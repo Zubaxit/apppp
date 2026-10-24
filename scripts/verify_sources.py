@@ -211,12 +211,19 @@ def check_website(url: str) -> Dict[str, Any]:
     }
 
 
-def qualifies(analysis: Dict[str, Any], language: str) -> Tuple[bool, str]:
+def qualifies(
+    analysis: Dict[str, Any], language: str, allow_undated: bool = False
+) -> Tuple[bool, str]:
     """Decide whether a fetched feed is enough evidence for `verified_working`.
 
     A 200 response is not enough: the body must parse as XML, carry several
     items with real timestamps and links back to the publisher's own host, and —
     for a Bengali publication — actual Bengali headlines.
+
+    `allow_undated` is a per-source, explicit exception for a publisher whose
+    feed genuinely omits item timestamps (The Daily Star's `/rss/all`). It is
+    never inferred: the candidate spec has to opt in, the exception is printed in
+    the summary, and the app shows those items with "publication time unknown".
     """
     items = int(analysis.get("itemCount") or 0)
     if not analysis.get("usable") or items < 3:
@@ -224,6 +231,8 @@ def qualifies(analysis: Dict[str, Any], language: str) -> Tuple[bool, str]:
     if not analysis.get("wellFormedXml"):
         return False, "body does not parse as XML"
     dated = int(analysis.get("datedItems") or 0)
+    if allow_undated and dated == 0:
+        dated = items  # documented exception: the feed publishes no timestamps
     if dated < max(1, items // 2):
         return False, f"only {dated}/{items} items carry a timestamp"
     on_domain = int(analysis.get("onDomainLinks") or 0)

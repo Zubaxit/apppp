@@ -59,7 +59,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         best: Optional[Dict[str, Any]] = None
         for url in entry["urls"]:
             result = verify.check_feed(url)
-            ok, reason = verify.qualifies(result, entry.get("language", ""))
+            ok, reason = verify.qualifies(
+                result, entry.get("language", ""), allow_undated=bool(entry.get("allowUndated"))
+            )
             status = result.get("status")
             detail = (
                 f"{result.get('itemCount', 0)} items, {result.get('datedItems', 0)} dated, "
@@ -71,6 +73,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             verify.time.sleep(args.delay)
             record = {
                 "sourceId": entry["id"],
+                "undated": int(result.get("datedItems") or 0) == 0 and ok,
                 "url": url,
                 "status": status,
                 "qualified": ok,
@@ -93,10 +96,47 @@ def main(argv: Optional[List[str]] = None) -> int:
     Path(args.report).write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+
+    # A compact, one-line-per-publisher result. The detailed log above is far too
+    # long to republish as a CI annotation, and this is what a maintainer reads.
+    summary: List[str] = []
+    for entry in spec["sources"]:
+        if only and entry["id"] not in only:
+            continue
+        records = [r for r in report["candidates"] if r["sourceId"] == entry["id"]]
+        winner = next((r for r in records if r["qualified"]), None)
+        if winner:
+            dated = winner.get("datedItems") or 0
+            detail = f"{winner.get('itemCount', 0)} items, {dated} dated"
+            if not dated:
+                detail += " (no timestamps: allowUndated)"
+            summary.append(f"{entry['id']:<16} OK   {winner['url']} ({detail})")
+        else:
+            reasons = [r.get("note") or r.get("reason") or "no response" for r in records]
+            signature = summarize_failures(reasons)
+            summary.append(f"{entry['id']:<16} FAIL {signature}")
+    Path("probe_summary.txt").write_text("\n".join(summary) + "\n", encoding="utf-8")
     print(f"\n{len(winners)} selected:")
     for line in winners:
         print("  +", line)
+    print("\nSUMMARY")
+    for line in summary:
+        print(line)
     return 0
+
+
+def summarize_failures(reasons: List[str]) -> str:
+    """Collapse per-URL reasons into the one thing a reader needs to know."""
+    counts: Dict[str, int] = {}
+    for reason in reasons:
+        key = str(reason).strip() or "no response"
+        if key.startswith("HTTP "):
+            key = key.split(" ")[0] + " " + key.split(" ")[1]
+        counts[key] = counts.get(key, 0) + 1
+    if not counts:
+        return "no candidate URL"
+    ordered = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return ", ".join(f"{name} x{count}" for name, count in ordered)
 
 
 if __name__ == "__main__":

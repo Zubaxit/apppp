@@ -1,3 +1,4 @@
+import 'package:bangladesh_newspaper_hub/core/utils/text_decoding.dart';
 import 'package:bangladesh_newspaper_hub/data/feeds/feed_parser.dart';
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';

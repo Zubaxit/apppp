@@ -70,7 +70,9 @@
         "https://www.thedailystar.net/frontpage/rss.xml",
         "https://www.thedailystar.net/news/rss",
         "https://www.thedailystar.net/rss.xml"
-      ]
+      ],
+      "allowUndated": true,
+      "undatedReason": "The Daily Star's /rss/all feed returns 10 well-formed, on-domain, English items with no item timestamps; the app shows them with 'publication time unknown' and sorts them after dated stories."
     },
     {
       "id": "dhaka_tribune",

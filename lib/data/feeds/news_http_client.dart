@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import '../../core/utils/text_decoding.dart';
 import '../../core/utils/url_safety.dart';
 
 class HttpFetchResult {
@@ -14,6 +15,7 @@ class HttpFetchResult {
     this.etag,
     this.lastModified,
     this.notModified = false,
+    this.contentType,
   });
 
   final int? statusCode;
@@ -23,6 +25,7 @@ class HttpFetchResult {
   final String? etag;
   final String? lastModified;
   final bool notModified;
+  final String? contentType;
 
   bool get isSuccess =>
       !notModified && body != null && statusCode != null && statusCode! >= 200 && statusCode! < 300;
@@ -114,10 +117,14 @@ class NewsHttpClient {
           }
           return HttpFetchResult(
             statusCode: status,
-            body: response.body,
+            // Decoded from the bytes, not from `response.body`, which would
+            // fall back to latin-1 for a feed that omits its charset and turn
+            // every Bengali headline into mojibake.
+            body: decodeFeedBody(response.bodyBytes, response.headers['content-type']),
             latencyMs: stopwatch.elapsedMilliseconds,
             etag: response.headers['etag'],
             lastModified: response.headers['last-modified'],
+            contentType: response.headers['content-type'],
           );
         }
         lastError = 'HTTP $status';

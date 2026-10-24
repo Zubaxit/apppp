@@ -705,24 +705,3 @@ class TextUtilsStrip {
 /// Exposed for tests and diagnostics: the canonicalized id of a raw link.
 String debugArticleIdFor(String sourceId, String link, String title) =>
     Ids.articleId(sourceId: sourceId, link: link, title: title);
-
-/// Exposed for tests: decode a latin1/utf8 body defensively.
-String decodeFeedBody(List<int> bytes, String? contentType) {
-  final String? charset = contentType == null
-      ? null
-      : RegExp(r'charset=([\w-]+)', caseSensitive: false)
-          .firstMatch(contentType)
-          ?.group(1);
-  try {
-    if (charset == null) return utf8.decode(bytes, allowMalformed: true);
-    switch (charset.toLowerCase()) {
-      case 'iso-8859-1':
-      case 'latin1':
-        return latin1.decode(bytes, allowInvalid: true);
-      default:
-        return utf8.decode(bytes, allowMalformed: true);
-    }
-  } catch (_) {
-    return latin1.decode(bytes, allowInvalid: true);
-  }
-}
