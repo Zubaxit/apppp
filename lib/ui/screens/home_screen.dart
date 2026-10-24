@@ -143,28 +143,44 @@ class _HomeScreenState extends State<HomeScreen> {
                 BreakingBanner(articles: feed.breakingArticles, onOpen: (Article a) => openArticle(context, a)),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              context.strings.latestNews,
-                              style: context.texts.headlineSmall?.copyWith(fontSize: 20),
-                            ),
-                            Text(
-                              context.strings.latestNewsSubtitle,
-                              style: context.texts.labelSmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                      _FollowingToggle(
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      final Widget heading = Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            context.strings.latestNews,
+                            style: context.texts.headlineSmall?.copyWith(fontSize: 20),
+                          ),
+                          Text(
+                            context.strings.latestNewsSubtitle,
+                            style: context.texts.labelSmall,
+                          ),
+                        ],
+                      );
+                      final Widget toggle = _FollowingToggle(
                         following: feed.query.followedOnly,
                         onChanged: _setFollowing,
-                      ),
-                    ],
+                      );
+                      // Below ~300dp the pill row and the Bengali heading cannot
+                      // share a line without squeezing the heading into columns.
+                      if (constraints.maxWidth < 300) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            heading,
+                            const SizedBox(height: 8),
+                            toggle,
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: <Widget>[
+                          Expanded(child: heading),
+                          toggle,
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

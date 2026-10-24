@@ -12,6 +12,7 @@ import 'package:bangladesh_newspaper_hub/ui/screens/settings_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/source_detail_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/shell/app_shell.dart';
 import 'package:bangladesh_newspaper_hub/ui/widgets/article_card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
