@@ -248,13 +248,15 @@ Test suites:
 | --- | --- |
 | `test/unit/feed_parser_test.dart` | RSS 2.0, Atom, malformed/HTML responses, unsafe links, missing dates, timezone conversion, duplicate items, stable ids, breaking-news labels, media thumbnails |
 | `test/unit/core_utils_test.dart` | HTML stripping, Bengali numerals/dates/relative time, transliteration, URL safety (javascript:/data:/localhost/file), id canonicalisation, story clustering |
-| `test/unit/registry_test.dart` | Shipped registry integrity: unique ids, HTTPS-only, safe feed/e-paper URLs, regional divisions, agency vs. newspaper typing, required publications, Bengali/English search |
+| `test/unit/registry_test.dart` | Shipped registry integrity: unique ids, HTTPS-only, safe feed/e-paper URLs, regional divisions, agency vs. newspaper typing, required publications, Bengali/English search, snake_case → enum mapping, verification claims always dated |
 | `test/unit/repository_test.dart` | Refresh reporting, partial source failure, crashing gateway, refresh throttling, filtering, sorting, bookmark persistence across store resets, history, related coverage, cache clearing |
 | `test/widget/screens_test.dart` | Home (live/empty/cached/breaking/topic filter), directory (search, filters, follow), publication detail, bookmarks, search, settings (theme/language/text size), about, e-paper list, shell navigation + Android back, dark theme, small-phone and tablet layouts |
 
-**Verified in this environment:** `./tool/verify.sh` (registry JSON validation + tree-sitter-based
-Dart static checks: parse, import resolution, undefined-identifier and missing-import detection,
-secret scanning) passes. **Not executable here:** `flutter analyze`, `flutter test` and the Android
+**Verified in this environment:** `./tool/verify.sh` passes — registry JSON validation (including
+"every registry enum value resolves to a real Dart enum member"), asset-existence checks, and
+tree-sitter-based Dart static checks (parse, import resolution, undefined-identifier, missing-import,
+constructor named-argument and secret scanning). Two feed endpoints were also fetched through an
+external reader on 2026-10-24 and returned parseable items (see *Source coverage*). **Not executable here:** `flutter analyze`, `flutter test` and the Android
 build — this sandbox has no Dart/Flutter/JDK/Android SDK and no network path to pub.dev, the Flutter
 SDK archive or Maven/Google repositories. Those run in GitHub Actions
 (`.github/workflows/ci.yml`) on every push. See [docs/TESTING.md](docs/TESTING.md) for the full,
