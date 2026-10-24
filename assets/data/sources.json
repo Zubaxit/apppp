@@ -12,9 +12,9 @@
         "প্রথম আলো"
       ],
       "website": "https://www.prothomalo.com/",
-      "feedUrl": "https://www.prothomalo.com/feed",
+      "feedUrl": "https://www.prothomalo.com/stories.rss",
       "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedClaim": "verified_working",
       "language": "bn",
       "type": "daily_newspaper",
       "categories": [
@@ -26,7 +26,8 @@
       "status": "active",
       "featured": true,
       "epaperUrl": "https://epaper.prothomalo.com/",
-      "notes": "Largest circulating Bengali daily; Quintype platform exposes section feeds such as /bangladesh/feed."
+      "notes": "Largest circulating Bengali daily. Publisher feed returns Bengali items (checked 2026-10-24); section feeds also exist under /bangladesh/feed.",
+      "lastVerifiedAt": "2026-10-24"
     },
     {
       "id": "bd_pratidin",
@@ -1263,7 +1264,8 @@
       "status": "active",
       "featured": false,
       "epaperUrl": null,
-      "notes": "International broadcaster with Bengali-language service. Not a Bangladeshi newspaper."
+      "notes": "BBC Bengali. Documented public RSS endpoint, confirmed returning items on 2026-10-24. Editorial control rests with the BBC; the app only links to it.",
+      "lastVerifiedAt": "2026-10-24"
     },
     {
       "id": "dw_bangla",

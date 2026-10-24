@@ -223,17 +223,20 @@ def main(argv: Optional[List[str]] = None) -> int:
                 "website": website,
                 "feed": feed_result,
                 "feedClaim": source.get("feedClaim"),
+                "lastVerifiedAt": source.get("lastVerifiedAt"),
             }
         )
 
         if args.write:
-            source["lastVerifiedAt"] = now
+            # Only a real fetch may change the claim: a documented URL stays
+            # documented, everything that returned items becomes verified_working,
+            # and a failing URL is demoted back to candidate (never deleted).
             if feed_result.get("usable"):
-                source["feedClaim"] = (
-                    source.get("feedClaim") if source.get("feedClaim") == "official_documented" else "verified"
-                )
+                source["lastVerifiedAt"] = now
+                if source.get("feedClaim") != "official_documented":
+                    source["feedClaim"] = "verified_working"
             elif source.get("feedUrl"):
-                source["feedClaim"] = "unverified"
+                source["feedClaim"] = "candidate"
 
     for edition in registry.get("epapers", []):
         if only and edition.get("sourceId") not in only:

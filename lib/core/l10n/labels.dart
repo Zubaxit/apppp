@@ -191,6 +191,20 @@ class Labels {
     }
   }
 
+  /// Registry-level statement about how the feed URL is known.
+  static String feedClaim(FeedClaim claim, {required bool bengali}) {
+    switch (claim) {
+      case FeedClaim.officialDocumented:
+        return bengali ? 'প্রকাশকের নিজস্ব ডকুমেন্টেড ফিড' : 'Documented by the publisher';
+      case FeedClaim.verifiedWorking:
+        return bengali ? 'যাচাই করা সচল ফিড' : 'Verified working feed';
+      case FeedClaim.candidate:
+        return bengali ? 'যাচাই হয়নি (সম্ভাব্য)' : 'Unverified (candidate)';
+      case FeedClaim.none:
+        return bengali ? 'ফিড নেই' : 'No feed';
+    }
+  }
+
   static String feedHealth(SourceHealthStatus status, {required bool bengali}) {
     switch (status) {
       case SourceHealthStatus.ok:

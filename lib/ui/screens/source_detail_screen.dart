@@ -359,6 +359,15 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                                 '${source.division}${source.district != null ? ' · ${source.district}' : ''}',
                           ),
                         _InfoRow(
+                          label: context.strings.feedState,
+                          value: Labels.feedClaim(source.feedClaim, bengali: bengali),
+                        ),
+                        if (source.lastVerifiedAt != null)
+                          _InfoRow(
+                            label: context.strings.verifiedOn,
+                            value: source.lastVerifiedAt!,
+                          ),
+                        _InfoRow(
                           label: context.strings.lastChecked,
                           value: health?.lastCheckedAt == null
                               ? context.strings.never

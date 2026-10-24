@@ -17,17 +17,21 @@ The directory is the product. It is therefore curated like editorial content, no
 5. **Logo files are not shipped.** Branding assets require permission; the app renders a
    deterministic two-tone monogram instead of an unlicensed logo.
 6. **Feed URLs are candidates until verified.** `feedClaim` records how a URL came to exist;
-   `scripts/verify_sources.py --write` is the only thing allowed to write `verified`.
+   `scripts/verify_sources.py --write` is the only thing allowed to write `verified_working`.
 
 ## States
 
 | `feedClaim` | Meaning | UI |
 | --- | --- | --- |
 | `none` | No feed known | "No feed — use the website" |
-| `candidate` | Plausible URL, needs a live check | Health badge: not checked / working / failing |
-| `official_documented` | Publisher documents the feed (e.g. BBC Bengali) | Same, checked at runtime |
-| `verified` | Live check succeeded | "Feed working" once fetched |
-| `unverified` | Last live check failed | "Feed currently unavailable" |
+| `candidate` | Plausible URL, never confirmed | "Unverified (candidate)" + health badge |
+| `official_documented` | Publisher documents the feed (e.g. BBC Bengali) | "Documented by the publisher" |
+| `verified_working` | A live fetch returned parseable items | "Verified working feed" + `lastVerifiedAt` date |
+
+Only `scripts/verify_sources.py --write` may write `verified_working`, and only after a successful
+fetch; it also writes `lastVerifiedAt`. A failing URL is demoted back to `candidate` — the entry is
+never deleted, and a claim is never upgraded by guesswork. As of 2026-10-24 exactly two feeds have
+been confirmed: `prothomalo` (`verified_working`) and `bbc_bangla` (`official_documented`).
 
 Runtime health is stored separately (`source_health`) and never rewrites `status`. A publication
 whose feed fails stays in the directory, keeps its "open website" action, and is listed first in

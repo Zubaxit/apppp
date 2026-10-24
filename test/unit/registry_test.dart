@@ -169,6 +169,87 @@ void main() {
     });
   });
 
+  group('registry key mapping (snake_case JSON)', () {
+    test('underscored values resolve to the right enum members', () {
+      final NewsSource parsed = NewsSource.fromMap(<String, dynamic>{
+        'id': 'x',
+        'name': 'Example Daily',
+        'nameBn': 'উদাহরণ',
+        'website': 'https://example.com/',
+        'feedUrl': 'https://example.com/rss',
+        'feedFormat': 'rss',
+        'feedClaim': 'verified_working',
+        'lastVerifiedAt': '2026-10-24',
+        'language': 'bn',
+        'type': 'daily_newspaper',
+        'categories': <String>['national', 'regional'],
+        'status': 'needs_review',
+      });
+      expect(parsed.type, PublicationType.dailyNewspaper);
+      expect(parsed.status, SourceStatus.needsReview);
+      expect(parsed.feedClaim, FeedClaim.verifiedWorking);
+      expect(parsed.feedFormat, FeedFormat.rss);
+      expect(parsed.categories, contains(SourceCategory.regional));
+      expect(parsed.lastVerifiedAt, '2026-10-24');
+    });
+
+    test('camelCase keys keep working and unknown values stay safe', () {
+      final NewsSource parsed = NewsSource.fromMap(<String, dynamic>{
+        'id': 'y',
+        'name': 'Example Two',
+        'website': 'https://example.org/',
+        'language': 'en',
+        'type': 'onlinePortal',
+        'feedClaim': 'officialDocumented',
+        'status': 'active',
+      });
+      expect(parsed.type, PublicationType.onlinePortal);
+      expect(parsed.status, SourceStatus.active);
+      expect(parsed.feedClaim, FeedClaim.officialDocumented);
+      expect(parsed.feedFormat, isNull);
+      expect(parsed.lastVerifiedAt, isNull);
+
+      final NewsSource broken = NewsSource.fromMap(<String, dynamic>{
+        'id': 'z',
+        'name': 'Example Three',
+        'website': 'https://example.net/',
+        'language': 'bn',
+        'type': 'not_a_type',
+        'feedClaim': 'nonsense',
+      });
+      expect(broken.type, PublicationType.unknown);
+      expect(broken.feedClaim, FeedClaim.none);
+      expect(broken.status, SourceStatus.active);
+    });
+
+    test('no shipped entry silently degrades to an unknown type', () {
+      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
+      final List<NewsSource> unknown = registry.sources
+          .where((NewsSource s) => s.type == PublicationType.unknown)
+          .toList();
+      expect(unknown, isEmpty, reason: 'unmapped types: ${unknown.map((NewsSource s) => s.id)}');
+      for (final NewsSource source in registry.sources) {
+        expect(source.categories, isNotEmpty, reason: '${source.id} lost its categories');
+      }
+    });
+
+    test('verification claims are explicit and dated', () {
+      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
+      for (final NewsSource source in registry.sources) {
+        if (source.feedClaim == FeedClaim.verifiedWorking) {
+          expect(source.lastVerifiedAt, isNotNull, reason: '${source.id} claims a verified feed');
+          expect(source.feedUrl, isNotNull, reason: '${source.id} claims a verified feed');
+          expect(source.hasVerifiedFeed, isTrue);
+        }
+        if (source.hasFeed) {
+          expect(source.feedUrl, startsWith('https://'), reason: source.id);
+        }
+      }
+    });
+  });
+
   group('search behaviour', () {
     final SourceRegistry registry = testRegistry();
 

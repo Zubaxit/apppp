@@ -101,15 +101,20 @@ publication time, and sends readers to the original article on the publisher's s
 | --- | --- | --- |
 | Publications in the registry | Curated entries with an official website | **60** |
 | Sources with an e-paper destination | Publisher-hosted e-paper links | **6** e-papers |
-| Sources with a **feed URL configured** | Feed candidates that the app checks at runtime | **57** |
-| Sources **verified working feeds** | Confirmed by a live HTTP check | **0** at build time — see below |
+| Sources with a **feed URL configured** | URLs the app checks at runtime | **57** |
+| Sources **verified working feeds** | Feed fetched and parsed, returning items | **1** (`prothomalo`) |
+| Sources with a **documented** feed | Publisher documents the endpoint; also fetched successfully | **1** (`bbc_bangla`) |
+| Feed **candidates** never confirmed | Guessed/plausible paths, validated only at runtime | **55** |
+| Entries with **no feed** | Website-only, by design | **3** |
 
-> **Honest status.** The initial implementation sandbox had no network access to publisher hosts
-> (only GitHub/npm/PyPI were reachable), so **no feed could be confirmed live**. Feed URLs are
-> therefore marked `feedClaim=candidate` in the registry and the app validates each one at runtime,
-> showing "working", "failing" or "not checked" per publication in *Source health*. Run
-> `python3 scripts/verify_sources.py --write` from a normal internet connection to promote reachable
-> feeds to `verified` and produce a report.
+> **Honest status.** Only two feed URLs have actually been fetched and parsed successfully
+> (`https://www.prothomalo.com/stories.rss` and `https://feeds.bbci.co.uk/bengali/rss.xml`, both on
+> 2026-10-24, returning Bengali items with publication dates). The remaining 55 URLs are educated
+> candidates — mostly conventional `/rss` paths — that were **not** confirmed, because the build
+> sandbox cannot reach publisher hosts (only GitHub/npm/PyPI are allow-listed). The app never claims
+> otherwise: each publication shows *verified working feed*, *documented*, *candidate (unverified)* or
+> *no feed* in its detail sheet, plus live health collected while you use the app. Run
+> `python3 scripts/verify_sources.py --write` from a normal connection to promote what actually works.
 
 The directory *itself* is fully usable offline and independent of feeds: every publication's official
 website opens even when its feed is missing or broken.
@@ -203,8 +208,8 @@ Feed states are deliberately distinct and never conflated:
 | `feedClaim` | `none` | No feed known — the app only offers the website |
 | | `candidate` | A plausible feed URL; the app verifies it at runtime |
 | | `official_documented` | Documented by the publisher (e.g. BBC Bengali) |
-| | `verified` | Written by `scripts/verify_sources.py --write` after a live check |
-| | `unverified` | Previously listed, failed the last live check |
+| | `verified_working` | A live fetch returned parseable items — written by `scripts/verify_sources.py --write` |
+| `lastVerifiedAt` | `yyyy-mm-dd` | Date of that successful check; absent when never confirmed |
 | `status` | `active` | Publication believed to be publishing |
 | | `needs_review` | Exists, but must be re-confirmed before relying on it |
 | | `inactive` | Not currently publishing |
@@ -292,7 +297,7 @@ publisher logos.
 ## Known limitations
 
 1. **No live feed has been verified in this environment** (no network access to publisher hosts).
-   Feed URLs are candidates; the app reports per-source reality at runtime. Run the verification
+   Feed URLs are mostly candidates; the app reports per-source reality at runtime. Run the verification
    script to confirm and promote them.
 2. Bengali and English publication *names* are curated; logos are not shipped (licensing), so
    text monograms are used.

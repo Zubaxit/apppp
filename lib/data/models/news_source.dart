@@ -21,15 +21,29 @@ enum SourceLanguage { bn, en }
 enum SourceStatus { active, needsReview, inactive }
 
 /// How confident we are that a feed URL belongs to the publisher.
-enum FeedClaim { officialDocumented, candidate, none }
+///
+///  * [officialDocumented] — the publisher itself documents the feed URL.
+///  * [verifiedWorking] — a maintainer fetched the URL and it returned items.
+///  * [candidate] — a plausible URL that has never been confirmed.
+///  * [none] — no feed is published for this publication.
+enum FeedClaim { officialDocumented, verifiedWorking, candidate, none }
+
+/// Normalizes a registry key so `official_documented`, `officialDocumented`
+/// and `official-documented` all resolve to the same enum value.
+String _enumKey(String? raw) =>
+    (raw ?? '').replaceAll(RegExp(r'[_\-\s]'), '').toLowerCase();
+
+bool _matches<T extends Enum>(T value, String key) =>
+    value.name.toLowerCase() == key;
 
 enum FeedFormat { rss, atom, unknown }
 
 extension SourceCategoryX on SourceCategory {
   String get key => name;
   static SourceCategory? fromKey(String? key) {
+    final String wanted = _enumKey(key);
     for (final SourceCategory value in SourceCategory.values) {
-      if (value.name == key) return value;
+      if (_matches(value, wanted)) return value;
     }
     return null;
   }
@@ -37,8 +51,9 @@ extension SourceCategoryX on SourceCategory {
 
 extension PublicationTypeX on PublicationType {
   static PublicationType fromKey(String? key) {
+    final String wanted = _enumKey(key);
     for (final PublicationType value in PublicationType.values) {
-      if (value.name == key) return value;
+      if (_matches(value, wanted)) return value;
     }
     return PublicationType.unknown;
   }
@@ -51,7 +66,7 @@ extension PublicationTypeX on PublicationType {
 
 extension SourceLanguageX on SourceLanguage {
   static SourceLanguage fromKey(String? key) =>
-      key == 'en' ? SourceLanguage.en : SourceLanguage.bn;
+      _enumKey(key) == 'en' ? SourceLanguage.en : SourceLanguage.bn;
 }
 
 /// A single publication in the curated registry.
@@ -68,6 +83,7 @@ class NewsSource {
     this.feedUrl,
     this.feedFormat,
     this.feedClaim = FeedClaim.none,
+    this.lastVerifiedAt,
     required this.language,
     required this.type,
     this.categories = const <SourceCategory>[],
@@ -87,6 +103,11 @@ class NewsSource {
   final String? feedUrl;
   final FeedFormat? feedFormat;
   final FeedClaim feedClaim;
+
+  /// ISO-8601 date (yyyy-MM-dd) of the last maintainer check of [feedUrl].
+  /// `null` means the registry has never confirmed this entry.
+  final String? lastVerifiedAt;
+
   final SourceLanguage language;
   final PublicationType type;
   final List<SourceCategory> categories;
@@ -98,6 +119,10 @@ class NewsSource {
   final String notes;
 
   bool get hasFeed => (feedUrl ?? '').isNotEmpty;
+
+  /// True only when a real fetch confirmed the feed; a documented or guessed
+  /// URL is never presented as verified.
+  bool get hasVerifiedFeed => feedClaim == FeedClaim.verifiedWorking;
   bool get hasEpaper => (epaperUrl ?? '').isNotEmpty;
   bool get isActive => status == SourceStatus.active;
   bool get isRegional => categories.contains(SourceCategory.regional);
@@ -165,6 +190,7 @@ class NewsSource {
         'feedUrl': feedUrl,
         'feedFormat': feedFormat?.name,
         'feedClaim': feedClaim.name,
+        'lastVerifiedAt': lastVerifiedAt,
         'language': language.name,
         'type': type.name,
         'categories': categories.map((SourceCategory c) => c.name).toList(),
@@ -190,13 +216,14 @@ class NewsSource {
       feedFormat: formatKey == null
           ? null
           : FeedFormat.values.firstWhere(
-              (FeedFormat f) => f.name == formatKey,
+              (FeedFormat f) => _matches(f, _enumKey(formatKey)),
               orElse: () => FeedFormat.unknown,
             ),
       feedClaim: FeedClaim.values.firstWhere(
-        (FeedClaim c) => c.name == map['feedClaim'],
+        (FeedClaim c) => _matches(c, _enumKey(map['feedClaim'] as String?)),
         orElse: () => FeedClaim.none,
       ),
+      lastVerifiedAt: TextUtils.nullIfBlank(map['lastVerifiedAt'] as String?),
       language: SourceLanguageX.fromKey(map['language'] as String?),
       type: PublicationTypeX.fromKey(map['type'] as String?),
       categories: (map['categories'] as List<dynamic>? ?? const <dynamic>[])
@@ -206,7 +233,7 @@ class NewsSource {
       division: TextUtils.nullIfBlank(map['division'] as String?),
       district: TextUtils.nullIfBlank(map['district'] as String?),
       status: SourceStatus.values.firstWhere(
-        (SourceStatus s) => s.name == map['status'],
+        (SourceStatus s) => _matches(s, _enumKey(map['status'] as String?)),
         orElse: () => SourceStatus.active,
       ),
       featured: map['featured'] == true,

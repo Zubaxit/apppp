@@ -94,6 +94,8 @@ abstract class AppStrings {
   String get noHeadlinesYet;
   String get fetchHeadlines;
   String get verifiedWebsite;
+  String get feedState;
+  String get verifiedOn;
   String get regionalSources;
   String get needsReview;
   String get broadcastNotice;
@@ -341,6 +343,10 @@ class BanglaStrings extends AppStrings {
   String get fetchHeadlines => 'শিরোনাম আনুন';
   @override
   String get verifiedWebsite => 'যাচাই করা অফিসিয়াল ঠিকানা';
+  @override
+  String get feedState => 'ফিডের অবস্থা';
+  @override
+  String get verifiedOn => 'যাচাইয়ের তারিখ';
   @override
   String get regionalSources => 'আঞ্চলিক পত্রিকা';
   @override
@@ -679,6 +685,10 @@ class EnglishStrings extends AppStrings {
   String get fetchHeadlines => 'Fetch headlines';
   @override
   String get verifiedWebsite => 'Curated official address';
+  @override
+  String get feedState => 'Feed state';
+  @override
+  String get verifiedOn => 'Verified on';
   @override
   String get regionalSources => 'Regional newspapers';
   @override
