@@ -147,6 +147,10 @@ class ArticleRepository {
     final List<String> notes = <String>[];
     for (final FeedFetchOutcome outcome in outcomes) {
       await stores.health.upsert(outcome.health);
+      // Pacing is the repository's job: record the attempt regardless of which
+      // FeedGateway implementation performed it, keeping the cached
+      // validators (ETag / Last-Modified) that the gateway wrote.
+      await _recordAttempt(outcome, startedAt);
       if (outcome.notModified) {
         notModified++;
         succeeded++;
@@ -185,6 +189,24 @@ class ArticleRepository {
       newArticles: countAfter > countBefore ? countAfter - countBefore : 0,
       failures: failures,
       notes: notes,
+    );
+  }
+
+  Future<void> _recordAttempt(FeedFetchOutcome outcome, DateTime startedAt) async {
+    final FeedMeta? previous = await stores.feedMeta.get(outcome.sourceId);
+    await stores.feedMeta.save(
+      FeedMeta(
+        sourceId: outcome.sourceId,
+        etag: previous?.etag,
+        lastModified: previous?.lastModified,
+        lastFetchAt: startedAt,
+        lastSuccessAt:
+            outcome.health.isOk ? startedAt : previous?.lastSuccessAt,
+        itemCount: outcome.notModified
+            ? (previous?.itemCount ?? 0)
+            : outcome.articles.length,
+        lastError: outcome.health.lastError,
+      ),
     );
   }
 

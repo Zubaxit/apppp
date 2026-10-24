@@ -79,7 +79,12 @@ class FeedParser {
     required DateTime fetchedAt,
     FeedParserConfig config = const FeedParserConfig(),
   }) {
+    final String withoutBom =
+        body.startsWith('\uFEFF') ? body.substring(1) : body;
     final String cleaned = _sanitizeXml(body);
+    // The body needed repair to become valid XML: report it as recovered so
+    // the UI can say "repaired" instead of silently pretending all is well.
+    final bool repaired = cleaned != withoutBom;
     final List<String> warnings = <String>[];
     XmlDocument? document;
     try {
@@ -115,7 +120,12 @@ class FeedParser {
           );
         }
       }
-      return FeedParseResult(articles: articles, format: format, warnings: warnings);
+      return FeedParseResult(
+        articles: articles,
+        format: format,
+        warnings: warnings,
+        recovered: repaired,
+      );
     }
 
     final List<Article> recovered = _parseWithRegex(
@@ -300,7 +310,10 @@ class FeedParser {
       warnings.add('Skipped item without a headline');
       return null;
     }
-    final String? safeLink = UrlSafety.sanitize(link);
+    final String? safeLinkRaw = UrlSafety.sanitize(link);
+    // Publish the canonical URL: tracking parameters removed, fragment gone.
+    final String? safeLink =
+        safeLinkRaw == null ? null : UrlSafety.stripTracking(safeLinkRaw);
     if (safeLink == null) {
       warnings.add('Skipped "$title": missing or unsafe link');
       return null;
@@ -504,6 +517,12 @@ class FeedParser {
     if (value.startsWith('\uFEFF')) value = value.substring(1);
     // Remove characters that are illegal in XML 1.0.
     value = value.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), '');
+    // Repair bare ampersands ('&' that does not start a valid entity), which
+    // are the most common cause of otherwise unparseable publisher feeds.
+    value = value.replaceAllMapped(
+      RegExp(r'&(?!(?:#[0-9]{1,7}|#x[0-9a-fA-F]{1,6}|[a-zA-Z][a-zA-Z0-9]{1,10});)'),
+      (Match _) => '&amp;',
+    );
     // Repair the most common entity problems without touching valid entities.
     const Map<String, String> named = <String, String>{
       'nbsp': '&#160;', 'mdash': '&#8212;', 'ndash': '&#8211;',

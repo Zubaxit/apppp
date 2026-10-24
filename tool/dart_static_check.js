@@ -156,7 +156,7 @@ Connectivity ConnectivityResult SharedPreferences Share Prefs Database
 ChangeNotifierProvider ProviderOf DatabaseFactory OpenDatabaseOptions ConflictAlgorithm
 Batch Sqflite MediaQuery.of.debugPrint debugPrint
 Timer CustomTargetPlatform Rect Ticker Isolate Zone
-LaunchMode NumberFormat T TargetPlatform XmlElement XmlNode XmlAttribute XmlDocument XmlException
+LaunchMode MapEntry NumberFormat T TargetPlatform XmlElement XmlNode XmlAttribute XmlDocument XmlException
 `.split(/\s+/).filter(Boolean));
 
 const declaredUpper = new Set([...declared]);

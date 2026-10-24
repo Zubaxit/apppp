@@ -91,6 +91,27 @@ void main() {
       expect(UrlSafety.sanitize(null), isNull);
     });
 
+    test('never leaves an empty fragment behind', () {
+      expect(UrlSafety.sanitize('https://www.prothomalo.com/a#'), 'https://www.prothomalo.com/a');
+      expect(UrlSafety.sanitize('https://www.prothomalo.com/a?x=1#top'),
+          'https://www.prothomalo.com/a?x=1');
+    });
+
+    test('removes campaign parameters but keeps functional ones', () {
+      expect(
+        UrlSafety.stripTracking('https://www.prothomalo.com/a?utm_source=rss&id=7'),
+        'https://www.prothomalo.com/a?id=7',
+      );
+      expect(
+        UrlSafety.stripTracking('https://www.prothomalo.com/a?utm_source=rss'),
+        'https://www.prothomalo.com/a',
+      );
+      expect(
+        UrlSafety.stripTracking('https://www.prothomalo.com/a'),
+        'https://www.prothomalo.com/a',
+      );
+    });
+
     test('strips fragments', () {
       expect(
         UrlSafety.sanitize('https://www.thedailystar.net/a#section'),

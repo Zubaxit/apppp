@@ -41,7 +41,37 @@ class UrlSafety {
     if (!host.contains('.')) return null;
     if (uri.userInfo.isNotEmpty) return null;
     if (!_isAllowedPath(uri.path)) return null;
-    return uri.replace(scheme: 'https', fragment: '').toString();
+    // `replace(fragment: '')` would leave a trailing '#' (an empty fragment is
+    // still a fragment), so drop it explicitly.
+    return uri.replace(scheme: 'https').removeFragment().toString();
+  }
+
+  static const Set<String> _trackingParams = <String>{
+    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+    'utm_id', 'utm_name', 'utm_reader', 'utm_brand', 'utm_social',
+    'fbclid', 'gclid', 'dclid', 'msclkid', 'mc_cid', 'mc_eid',
+    'amp', 'output', 'ref', 'referrer', 'wt_mc', 'at_medium', 'at_campaign',
+    's_cid', 'ito', 'share', 'fb_action_ids', 'fb_action_types',
+  };
+
+  /// Removes campaign/tracking parameters from an already-safe URL while
+  /// keeping every parameter the publisher may need to resolve the article.
+  static String stripTracking(String url) {
+    final Uri? uri = Uri.tryParse(url);
+    if (uri == null || uri.query.isEmpty) return url;
+    final List<MapEntry<String, String>> kept = uri.queryParameters.entries
+        .where((MapEntry<String, String> e) => !_trackingParams.contains(e.key.toLowerCase()))
+        .toList();
+    final String query = kept.isEmpty
+        ? ''
+        : '?${kept.map((MapEntry<String, String> e) => '${e.key}=${e.value}').join('&')}';
+    return Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: uri.path,
+      query: query.isEmpty ? null : query.substring(1),
+    ).toString();
   }
 
   static bool isSafe(String? raw) => sanitize(raw) != null;
