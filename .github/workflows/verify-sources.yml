@@ -5,13 +5,15 @@ name: Verify sources
 # report as an artifact. It never edits the registry — promoting a feed to
 # `verified_working` is a reviewed commit based on this evidence.
 on:
-  # Also runs whenever the registry or the verifier changes, so a data PR gets
-  # live evidence attached automatically.
+  # Also runs whenever the registry, the candidate list or a verifier changes,
+  # so a data commit always carries live evidence.
   push:
     branches: ["main", "arena/**", "feature/**"]
     paths:
       - "assets/data/sources.json"
+      - "assets/data/feed_candidates.json"
       - "scripts/verify_sources.py"
+      - "scripts/probe_feeds.py"
       - ".github/workflows/verify-sources.yml"
   workflow_dispatch:
     inputs:
@@ -52,7 +54,6 @@ jobs:
           python3 scripts/verify_sources.py --help >/dev/null
 
       - name: Probe curated candidates
-        if: inputs.probe == 'true'
         env:
           ONLY: ${{ inputs.only }}
           DELAY: ${{ inputs.delay }}
@@ -64,7 +65,6 @@ jobs:
             --report feed_probe.json 2>&1 | tee verify.log
 
       - name: Verify publishers
-        if: inputs.probe != 'true'
         env:
           ONLY: ${{ inputs.only }}
           DELAY: ${{ inputs.delay }}
