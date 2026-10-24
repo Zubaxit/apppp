@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "purpose": "Candidate feed URLs for the curated publisher set. A URL listed here is only a hypothesis; scripts/probe_feeds.py tests it against the live publisher and only a qualified result may be promoted into sources.json.",
-  "updatedAt": "2026-10-24",
+  "updatedAt": "2026-10-25",
   "sources": [
     {
       "id": "prothomalo",
@@ -16,6 +16,13 @@
       "id": "bdnews24",
       "language": "bn",
       "urls": [
+        "https://bdnews24.com/rss.xml",
+        "https://bdnews24.com/feed",
+        "https://bangla.bdnews24.com/rss.xml",
+        "https://bangla.bdnews24.com/feed",
+        "https://bdnews24.com/bangla/rss",
+        "https://bdnews24.com/?feed=rss",
+        "https://bdnews24.com/index.rss",
         "https://bdnews24.com/rss",
         "https://bdnews24.com/bangla.rss",
         "https://bdnews24.com/?feed=rss2",
@@ -27,9 +34,13 @@
       "id": "jugantor",
       "language": "bn",
       "urls": [
+        "https://www.jugantor.com/rss.xml",
+        "https://www.jugantor.com/rss/bangladesh",
+        "https://www.jugantor.com/arc/outboundfeeds/rss/",
+        "https://jugantor.com/rss",
+        "https://www.jugantor.com/feed/rss",
         "https://www.jugantor.com/rss",
         "https://www.jugantor.com/feed",
-        "https://www.jugantor.com/rss.xml",
         "https://www.jugantor.com/todays-paper/rss"
       ]
     },
@@ -37,15 +48,24 @@
       "id": "samakal",
       "language": "bn",
       "urls": [
+        "https://samakal.com/rss.xml",
+        "https://samakal.com/feed.xml",
+        "https://www.samakal.com/rss",
+        "https://samakal.com/arc/outboundfeeds/rss/",
+        "https://samakal.com/api/rss",
         "https://samakal.com/rss",
-        "https://samakal.com/feed",
-        "https://samakal.com/rss.xml"
+        "https://samakal.com/feed"
       ]
     },
     {
       "id": "daily_star",
       "language": "en",
       "urls": [
+        "https://www.thedailystar.net/rss/news.xml",
+        "https://www.thedailystar.net/rss/bangladesh.xml",
+        "https://www.thedailystar.net/feed",
+        "https://www.thedailystar.net/rss/frontpage.xml",
+        "https://www.thedailystar.net/todays-news/rss.xml",
         "https://www.thedailystar.net/rss/all",
         "https://www.thedailystar.net/frontpage/rss.xml",
         "https://www.thedailystar.net/news/rss",
@@ -56,6 +76,11 @@
       "id": "dhaka_tribune",
       "language": "en",
       "urls": [
+        "https://www.dhakatribune.com/feed.xml",
+        "https://www.dhakatribune.com/arc/outboundfeeds/rss/",
+        "https://www.dhakatribune.com/bangladesh/feed",
+        "https://www.dhakatribune.com/rss/bangladesh",
+        "https://dhakatribune.com/feed",
         "https://www.dhakatribune.com/feed",
         "https://www.dhakatribune.com/rss",
         "https://www.dhakatribune.com/rss.xml"
@@ -65,15 +90,24 @@
       "id": "kaler_kantho",
       "language": "bn",
       "urls": [
+        "https://www.kalerkantho.com/rss.xml",
+        "https://www.kalerkantho.com/feed.xml",
+        "https://www.kalerkantho.com/rss/bangladesh",
+        "https://kalerkantho.com/rss",
+        "https://www.kalerkantho.com/arc/outboundfeeds/rss/",
         "https://www.kalerkantho.com/rss",
-        "https://www.kalerkantho.com/feed",
-        "https://www.kalerkantho.com/rss.xml"
+        "https://www.kalerkantho.com/feed"
       ]
     },
     {
       "id": "bd_pratidin",
       "language": "bn",
       "urls": [
+        "https://www.bd-pratidin.com/rss.xml",
+        "https://www.bd-pratidin.com/feed.xml",
+        "https://www.bd-pratidin.com/arc/outboundfeeds/rss/",
+        "https://bd-pratidin.com/feed",
+        "https://www.bd-pratidin.com/rss/bangladesh",
         "https://www.bd-pratidin.com/rss",
         "https://www.bd-pratidin.com/feed",
         "https://bd-pratidin.com/rss"
@@ -83,9 +117,13 @@
       "id": "ittefaq",
       "language": "bn",
       "urls": [
+        "https://www.ittefaq.com.bd/rss.xml",
+        "https://www.ittefaq.com.bd/feed.xml",
+        "https://www.ittefaq.com.bd/arc/outboundfeeds/rss/",
+        "https://ittefaq.com.bd/rss",
+        "https://www.ittefaq.com.bd/rss/bangladesh",
         "https://www.ittefaq.com.bd/rss",
-        "https://www.ittefaq.com.bd/feed",
-        "https://www.ittefaq.com.bd/rss.xml"
+        "https://www.ittefaq.com.bd/feed"
       ]
     },
     {
@@ -101,25 +139,33 @@
       "id": "bangla_tribune",
       "language": "bn",
       "urls": [
+        "https://www.banglatribune.com/rss.xml",
+        "https://www.banglatribune.com/feed.xml",
+        "https://www.banglatribune.com/arc/outboundfeeds/rss/",
+        "https://banglatribune.com/feed",
+        "https://www.banglatribune.com/rss/bangladesh",
         "https://www.banglatribune.com/feed",
-        "https://www.banglatribune.com/rss",
-        "https://www.banglatribune.com/rss.xml"
+        "https://www.banglatribune.com/rss"
       ]
     },
     {
       "id": "bbc_bangla",
       "language": "bn",
       "urls": [
-        "https://feeds.bbci.co.uk/bengali/rss.xml"
+        "https://feeds.bbci.co.uk/bengali/rss.xml",
+        "https://feeds.bbci.co.uk/bengali/news/rss.xml"
       ]
     },
     {
       "id": "reuters",
       "language": "en",
       "urls": [
+        "https://www.reuters.com/arc/outboundfeeds/rss/category/world/?outputType=xml",
+        "https://www.reuters.com/arc/outboundfeeds/rss/?outputType=xml",
+        "https://www.reuters.com/rssFeed/worldNews",
+        "https://feeds.reuters.com/reuters/topNews",
         "https://www.reutersagency.com/feed/?best-topics=world&post_type=best",
-        "https://feeds.reuters.com/reuters/worldNews",
-        "https://www.reuters.com/arc/outboundfeeds/rss/?outputType=xml"
+        "https://feeds.reuters.com/reuters/worldNews"
       ]
     },
     {
@@ -127,6 +173,7 @@
       "language": "en",
       "urls": [
         "https://www.aljazeera.com/xml/rss/all.xml",
+        "https://www.aljazeera.com/xml/rss/all.rss",
         "https://www.aljazeera.com/rss"
       ]
     },
@@ -136,7 +183,113 @@
       "urls": [
         "https://rss.dw.com/rdf/rss-en-all",
         "https://rss.dw.com/xml/rss-en-all",
-        "https://rss.dw.com/rdf/rss-en-world"
+        "https://rss.dw.com/rdf/rss-en-world",
+        "https://rss.dw.com/atom/rss-en-all"
+      ]
+    },
+    {
+      "id": "bbc_world",
+      "language": "en",
+      "urls": [
+        "https://feeds.bbci.co.uk/news/world/rss.xml",
+        "https://feeds.bbci.co.uk/news/rss.xml"
+      ]
+    },
+    {
+      "id": "dw_bangla",
+      "language": "bn",
+      "urls": [
+        "https://rss.dw.com/xml/rss-bn-all",
+        "https://rss.dw.com/rdf/rss-bn-all"
+      ]
+    },
+    {
+      "id": "jagonews24",
+      "language": "bn",
+      "urls": [
+        "https://www.jagonews24.com/rss/rss.xml",
+        "https://www.jagonews24.com/rss",
+        "https://www.jagonews24.com/feed"
+      ]
+    },
+    {
+      "id": "banglanews24",
+      "language": "bn",
+      "urls": [
+        "https://www.banglanews24.com/rss/rss.xml",
+        "https://www.banglanews24.com/rss",
+        "https://www.banglanews24.com/feed"
+      ]
+    },
+    {
+      "id": "dhakapost",
+      "language": "bn",
+      "urls": [
+        "https://www.dhakapost.com/rss",
+        "https://www.dhakapost.com/rss.xml",
+        "https://www.dhakapost.com/feed"
+      ]
+    },
+    {
+      "id": "ajker_patrika",
+      "language": "bn",
+      "urls": [
+        "https://www.ajkerpatrika.com/rss",
+        "https://www.ajkerpatrika.com/rss.xml",
+        "https://www.ajkerpatrika.com/feed"
+      ]
+    },
+    {
+      "id": "risingbd",
+      "language": "bn",
+      "urls": [
+        "https://www.risingbd.com/rss",
+        "https://www.risingbd.com/rss.xml",
+        "https://www.risingbd.com/feed"
+      ]
+    },
+    {
+      "id": "jaijaidin",
+      "language": "bn",
+      "urls": [
+        "https://www.jaijaidinbd.com/rss",
+        "https://www.jaijaidinbd.com/rss.xml"
+      ]
+    },
+    {
+      "id": "bonik_barta",
+      "language": "bn",
+      "urls": [
+        "https://www.bonikbarta.com/rss",
+        "https://www.bonikbarta.com/rss.xml",
+        "https://www.bonikbarta.com/feed"
+      ]
+    },
+    {
+      "id": "financial_express",
+      "language": "en",
+      "urls": [
+        "https://thefinancialexpress.com.bd/rss",
+        "https://thefinancialexpress.com.bd/rss.xml",
+        "https://thefinancialexpress.com.bd/feed"
+      ]
+    },
+    {
+      "id": "daily_sun",
+      "language": "en",
+      "urls": [
+        "https://www.daily-sun.com/rss",
+        "https://www.daily-sun.com/rss.xml",
+        "https://www.daily-sun.com/feed"
+      ]
+    },
+    {
+      "id": "new_age",
+      "language": "en",
+      "urls": [
+        "https://www.newagebd.net/rss",
+        "https://www.newagebd.net/rss.xml",
+        "https://www.newagebd.net/feed"
       ]
     }
   ]
