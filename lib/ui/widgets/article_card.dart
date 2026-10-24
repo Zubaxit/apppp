@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
@@ -354,17 +355,36 @@ class _BookmarkButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Motion motion = Motion.of(context);
     return IconButton(
       visualDensity: dense ? VisualDensity.compact : VisualDensity.standard,
       iconSize: dense ? 18 : 20,
       padding: EdgeInsets.all(dense ? 4 : 8),
       constraints: const BoxConstraints(),
       tooltip: saved ? context.strings.removeSaved : context.strings.save,
-      icon: Icon(
-        saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-        color: saved ? context.colors.primary : context.texts.labelSmall?.color,
+      // The mark fills, settles with a short overshoot and the tap gives a
+      // haptic tick — small, but it is the gesture readers repeat most.
+      icon: AnimatedSwitcher(
+        duration: motion.fast,
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          if (motion.reduce) return child;
+          return ScaleTransition(
+            scale: Tween<double>(begin: 0.72, end: 1).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+            ),
+            child: FadeTransition(opacity: animation, child: child),
+          );
+        },
+        child: Icon(
+          saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+          key: ValueKey<bool>(saved),
+          color: saved ? context.colors.primary : context.texts.labelSmall?.color,
+        ),
       ),
       onPressed: () async {
+        HapticFeedback.lightImpact();
         final bool nowSaved = await context.read<SavedController>().toggle(article);
         if (!context.mounted) return;
         context.showSnack(nowSaved ? context.strings.savedLabel : context.strings.removeSaved);

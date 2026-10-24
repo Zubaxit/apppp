@@ -26,9 +26,18 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
+class _AppShellState extends State<AppShell>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   int _index = 0;
   bool _started = false;
+
+  /// Drives the short fade-through when a tab changes. The tab itself is an
+  /// IndexedStack child, so its scroll position and state survive the fade.
+  late final AnimationController _tabFade = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+    value: 1,
+  );
 
   static const List<Widget> _tabs = <Widget>[
     HomeScreen(),
@@ -70,13 +79,21 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _tabFade.dispose();
     super.dispose();
   }
 
-  void _onDestinationSelected(int index) {
+  void _switchTo(int index) {
     if (index == _index) return;
+    if (!Motion.of(context).reduce) {
+      _tabFade
+        ..value = 0
+        ..forward();
+    }
     setState(() => _index = index);
   }
+
+  void _onDestinationSelected(int index) => _switchTo(index);
 
   @override
   Widget build(BuildContext context) {
@@ -85,11 +102,14 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       canPop: _index == 0,
       onPopInvokedWithResult: (bool didPop, Object? result) {
         if (didPop) return;
-        if (_index != 0) setState(() => _index = 0);
+        if (_index != 0) _switchTo(0);
       },
       child: Scaffold(
         extendBody: true,
-        body: IndexedStack(index: _index, children: _tabs),
+        body: FadeTransition(
+          opacity: CurvedAnimation(parent: _tabFade, curve: Curves.easeOut),
+          child: IndexedStack(index: _index, children: _tabs),
+        ),
         bottomNavigationBar: _GlassNav(
           index: _index,
           onSelected: _onDestinationSelected,
