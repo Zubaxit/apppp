@@ -110,14 +110,15 @@ This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates r
 | --- | --- | --- |
 | Formatting | not gated (kept out of CI on purpose; `dart format lib test` locally) | — |
 | Static analysis | `flutter analyze --fatal-warnings` | **success**, 0 issues |
-| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 109 tests |
+| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 124 tests |
 | Debug APK | `flutter build apk --debug` | **success** |
 | Release APK | `flutter build apk --release` | **success** (artifact `apk`, ~118 MB combined) |
 | `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |
 | On-device / emulator smoke test | not run | manual, see checklist below |
 
-Run IDs for the green build: CI run `40107367502` (analyze & test + APK) and Verify sources run
-`40107364030`. Because runner logs are not reachable from this sandbox, the workflows republish
+Run IDs for the latest green build: CI run `40117972337` (analyze & test + APK, commit `d8261ad`, which
+includes the in-app reader) and Verify sources run `40107364030`. Earlier green runs:
+`40107367502` (pre-reader) and `40108517164`. Because runner logs are not reachable from this sandbox, the workflows republish
 analyzer and test diagnostics as check annotations — that is also how each failure below was
 diagnosed and fixed.
 
@@ -155,6 +156,23 @@ override; source/topic/language/text filters; followed-only semantics; publicati
 with undated items last; bookmark persistence across a cache wipe; history write/clear; related
 coverage excludes the same publisher and the article itself; cache clearing keeps bookmarks.
 
+**`test/unit/storage_contract_test.dart`**
+Reads the real `CREATE TABLE` DDL out of `app_database.dart` and asserts `Article.toRow()` /
+`SourceHealth.toRow()` keys equal the column names, round-trips a Bengali breaking article (tags,
+excerpt, image, both timestamps, guid, cluster key), keeps Bengali bytes intact, survives a missing
+date and a corrupt tag blob, and checks the camelCase JSON payload used by saved items still maps.
+
+**`test/widget/browser_test.dart`**
+Reader chrome shows the publisher's real domain (not just a title); page-history back is disabled
+until the engine reports history and then calls it; a load failure renders retry rather than a blank
+platform view; saving asks for consent first, explains it stores a headline + link, and then stores
+exactly one bookmark.
+
+**`test/widget/directory_filter_test.dart`**
+Division chips narrow the directory (Bengali division labels), the district row only lists districts
+inside the chosen division, a division passed in from the categories screen is preselected, clearing
+it restores the curated front page, and a division with no publication shows the honest empty note.
+
 **`test/widget/screens_test.dart`**
 Home: live render with source + relative time, empty state, cached notice, topic filtering,
 breaking banner. Directory: list, search (`daily`, `বণিক`), no-results, language filter, follow.
@@ -172,6 +190,10 @@ Layouts at 360×640 dp and 800×1280 dp without overflow.
 3. `Settings → Source health` → failing sources listed first with their error; retry one.
 4. Open a publication with no feed → only website/e-paper actions are offered.
 5. Bookmark three stories → force-stop → relaunch → Saved intact.
+6. Open a story → "Read in app" → the publisher page loads with its real domain in the bar; follow a
+   link inside it → back returns through page history before leaving the reader; "open in browser"
+   hands the same URL to the system browser; bookmarking from the reader warns that only the
+   headline and link are kept.
 6. Search in Bengali and in English → both find publications and headlines.
 7. Toggle dark theme, 140 % text size, reduce motion → no clipped Bengali headlines.
 8. Android back: detail → list → Home tab → app exits (no navigation loop).

@@ -330,7 +330,7 @@ publisher logos.
 7. There is no cloud sync, no full-text reading, and no commenting — by design.
 8. The in-app reader needs a live connection — saving from it stores the headline and link, not
    the page, and the reader cannot display a PDF-only e-paper.
-9. Analysis, the 113-test suite and the debug/release APK builds ran in GitHub Actions and pass
+9. Analysis, the 124-test suite and the debug/release APK builds ran in GitHub Actions and pass
    (see *Testing*); this development sandbox itself has no Flutter/JDK toolchain, so
    `./tool/verify.sh` is the only gate that runs locally.
 
