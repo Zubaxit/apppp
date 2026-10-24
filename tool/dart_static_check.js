@@ -237,6 +237,120 @@ for (const [file, info] of fileInfo) {
   visit(info.tree.rootNode);
 }
 
+// 4c. named arguments passed to project constructors must exist
+function classBody(text, name) {
+  const re = new RegExp('^(?:abstract |final |sealed |base )*class ' + name + '[^{]*\\{', 'm');
+  const m = re.exec(text);
+  if (!m) return null;
+  let i = m.index + m[0].length;
+  let depth = 1;
+  while (i < text.length && depth > 0) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}') depth--;
+    i++;
+  }
+  return text.slice(m.index + m[0].length, i - 1);
+}
+
+function topLevelPieces(listSrc) {
+  // Strip the enclosing bracket pair so `{ a: 1, b: 2 }` splits on its commas.
+  // Angle brackets are intentionally not tracked: `=>` would corrupt the depth.
+  let src = listSrc.trim();
+  if (src.length > 1) {
+    const first = src[0];
+    const last = src[src.length - 1];
+    if ((first === '{' && last === '}') ||
+        (first === '(' && last === ')') ||
+        (first === '[' && last === ']')) {
+      src = src.slice(1, -1);
+    }
+  }
+  const pieces = [];
+  let depth = 0;
+  let token = '';
+  for (const ch of src) {
+    if ('([{'.includes(ch)) depth++;
+    else if (')]}'.includes(ch)) depth--;
+    if (ch === ',' && depth === 0) {
+      pieces.push(token);
+      token = '';
+    } else {
+      token += ch;
+    }
+  }
+  pieces.push(token);
+  return pieces;
+}
+
+const ctorParams = new Map(); // className -> Set of accepted named params (null = unknown)
+for (const [file, info] of fileInfo) {
+  for (const decl of info.src.matchAll(/^(?:abstract |final |sealed |base )*class (\w+)/gm)) {
+    const name = decl[1];
+    const body = classBody(info.src, name);
+    if (body == null) continue;
+    const params = new Set();
+    const fieldRe = /^\s+(?:final\s+|const\s+|late\s+)*[\w<>?,\s\[\]]+?\s(\w+);/gm;
+    let fm;
+    while ((fm = fieldRe.exec(body)) !== null) params.add(fm[1]);
+    const ctorRe = new RegExp('(?:const\\s+)?\\b' + name + '(?:\\.\\w+)?\\s*\\(', 'g');
+    let hasCtor = false;
+    let cm;
+    while ((cm = ctorRe.exec(body)) !== null) {
+      hasCtor = true;
+      let i = cm.index + cm[0].length;
+      let depth = 1;
+      while (i < body.length && depth > 0) {
+        if (body[i] === '(') depth++;
+        else if (body[i] === ')') depth--;
+        i++;
+      }
+      for (const rawPiece of topLevelPieces(body.slice(cm.index + cm[0].length, i - 1))) {
+        // Drop a default value so `bool online = true` yields `online`.
+        const piece = rawPiece.replace(/^[\s{[(]+/, '').split('=')[0].trim();
+        if (!piece || piece.startsWith('//')) continue;
+        const named = /(?:^|\s)(?:required\s+|this\.)?(\w+)\s*(?:=|,|$)/.exec(piece);
+        const tail = /(?:required\s+)?[\w<>?,\s\[\]]*?\s(\w+)$/.exec(piece);
+        if (/this\.(\w+)/.test(piece)) params.add(/this\.(\w+)/.exec(piece)[1]);
+        else if (tail) params.add(tail[1]);
+        else if (named) params.add(named[1]);
+      }
+    }
+    if (!hasCtor && params.size === 0) continue;
+    const existing = ctorParams.get(name);
+    ctorParams.set(name, existing == null ? params : new Set([...existing, ...params]));
+  }
+}
+
+const widgetInherited = new Set(['key', 'child']);
+for (const [file, info] of fileInfo) {
+  const code = info.src.replace(/^\s*\/\/.*$/gm, '');
+  const callRe = /\b([A-Z]\w*)\s*\(/g;
+  let call;
+  while ((call = callRe.exec(code)) !== null) {
+    const name = call[1];
+    const allowed = ctorParams.get(name);
+    if (!allowed || allowed.size === 0) continue;
+    let i = call.index + call[0].length;
+    let depth = 1;
+    while (i < code.length && depth > 0) {
+      if (code[i] === '(') depth++;
+      else if (code[i] === ')') depth--;
+      i++;
+    }
+    const args = code.slice(call.index + call[0].length, i - 1);
+    for (const piece of topLevelPieces(args)) {
+      const m = /^\s*(\w+)\s*:/.exec(piece);
+      if (!m) continue;
+      if (allowed.has(m[1]) || widgetInherited.has(m[1])) continue;
+      const line = code.slice(0, call.index).split('\n').length;
+      errors.push(
+        `${path.relative(ROOT, file)}:${line} calls ${name}(... ${m[1]}: ...) ` +
+        `but ${name} has no such named parameter`,
+      );
+    }
+  }
+}
+
 // 5. secret scanning
 const secretPatterns = [
   [/AIza[0-9A-Za-z\-_]{35}/, 'Google API key'],

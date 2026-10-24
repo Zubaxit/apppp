@@ -42,6 +42,8 @@ all static checks passed
   classes);
 - every project type used in a file is **imported** by that file (catches the most common
   missing-import compile error);
+- every named argument passed to a project constructor corresponds to a declared constructor
+  parameter (catches misspelled `required` arguments);
 - no credential-looking strings (Google/OpenAI/GitHub tokens, private keys, cloud service keys).
 
 This is a lint, not a type checker: it does not validate argument types, generics or const-ness.
