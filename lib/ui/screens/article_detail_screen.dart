@@ -38,10 +38,12 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
   Future<void> _afterFrame() async {
     if (!mounted) return;
+    // Both look-ups happen before the first await so no BuildContext is used
+    // across an asynchronous gap.
     final SavedController saved = context.read<SavedController>();
+    final ArticleRepository repository = context.read<ArticleRepository>();
     await saved.recordHistory(widget.article);
     try {
-      final ArticleRepository repository = context.read<ArticleRepository>();
       final List<Article> related = await repository.relatedCoverage(widget.article);
       if (mounted) {
         setState(() {

@@ -184,7 +184,7 @@ class FeedParser {
       _childText(node, <String>['summary']),
       _childText(node, <String>['content']),
     ]);
-    final String? contentRaw = _childText(node, <String>['encoded', 'content']);
+    final String contentRaw = _childText(node, <String>['encoded', 'content']);
     final String? dateRaw = _firstNonEmpty(<String?>[
       _childText(node, <String>['pubdate']),
       _childText(node, <String>['published']),

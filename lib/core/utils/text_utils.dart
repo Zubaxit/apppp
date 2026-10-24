@@ -16,14 +16,14 @@ class TextUtils {
   /// forgiving: fall back to a tag-stripping regex if the html parser fails.
   static String stripHtml(String? input) {
     if (input == null) return '';
-    var value = input.trim();
+    final String value = input.trim();
     if (value.isEmpty) return '';
     if (!value.contains('<') && !value.contains('&')) {
       return normalizeSpaces(value);
     }
     String decoded;
     try {
-      decoded = html_parser.parseFragment(value)?.text ?? '';
+      decoded = html_parser.parseFragment(value).text;
     } catch (_) {
       decoded = value.replaceAll(_tagRe, ' ');
     }
@@ -37,7 +37,7 @@ class TextUtils {
   static String decodeEntities(String input) {
     if (!input.contains('&')) return input;
     try {
-      return html_parser.parseFragment(input)?.text ?? input;
+      return html_parser.parseFragment(input).text;
     } catch (_) {
       return input
           .replaceAll('&amp;', '&')

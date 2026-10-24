@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/extensions.dart';
 import '../../data/models/app_preferences.dart';
 import '../../state/feed_controller.dart';
 import '../../state/saved_controller.dart';

@@ -275,36 +275,34 @@ class ArticleSkeleton extends StatelessWidget {
 
   final int count;
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: List<Widget>.generate(count, (int index) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-          child: Row(
+  static const Widget _row = Padding(
+    padding: EdgeInsets.fromLTRB(20, 10, 20, 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const SkeletonBox(width: 96, height: 10),
-                    const SizedBox(height: 10),
-                    const SkeletonBox(height: 16),
-                    const SizedBox(height: 8),
-                    const SkeletonBox(width: 240, height: 16),
-                    const SizedBox(height: 12),
-                    const SkeletonBox(width: 180, height: 10),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-              const SkeletonBox(width: 88, height: 88, radius: 12),
+              SkeletonBox(width: 96, height: 10),
+              SizedBox(height: 10),
+              SkeletonBox(height: 16),
+              SizedBox(height: 8),
+              SkeletonBox(width: 240, height: 16),
+              SizedBox(height: 12),
+              SkeletonBox(width: 180, height: 10),
             ],
           ),
-        );
-      }),
-    );
+        ),
+        SizedBox(width: 14),
+        SkeletonBox(width: 88, height: 88, radius: 12),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: List<Widget>.filled(count, _row));
   }
 }
 
@@ -317,7 +315,6 @@ class HealthBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool bengali = context.isBengali;
     late final String label;
     late final Color color;
     if (!hasFeed) {

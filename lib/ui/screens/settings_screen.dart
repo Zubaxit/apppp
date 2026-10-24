@@ -204,8 +204,9 @@ class SettingsScreen extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 value: settings.historyEnabled,
                 onChanged: (bool value) async {
+                  final SavedController saved = context.read<SavedController>();
                   await settings.setHistoryEnabled(value);
-                  if (!value) await context.read<SavedController>().clearHistory();
+                  if (!value) await saved.clearHistory();
                 },
                 title: Text(context.strings.historyToggle, style: context.texts.labelLarge),
                 subtitle: Text(context.strings.historyToggleBody,
