@@ -211,6 +211,18 @@ class Article {
         'cluster_key': clusterKey,
       };
 
+  /// A malformed tag blob must never hide an article, so a bad payload reads
+  /// as "no tags" rather than throwing out of the row mapper.
+  static List<String> _tagsFromJson(String payload) {
+    try {
+      final Object? parsed = jsonDecode(payload);
+      if (parsed is List) return parsed.map((Object? e) => '$e').toList();
+    } catch (_) {
+      return const <String>[];
+    }
+    return const <String>[];
+  }
+
   static Article fromRow(Map<String, Object?> row) {
     int? asInt(Object? value) =>
         value is int ? value : int.tryParse('${value ?? ''}');
@@ -221,17 +233,10 @@ class Article {
           : DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
     }
 
-    Object? decodedTags = row['tags'];
-    List<String> tags = const <String>[];
-    if (decodedTags is String && decodedTags.isNotEmpty) {
-      try {
-        final Object? parsed = jsonDecode(decodedTags);
-        if (parsed is List) tags = parsed.map((Object? e) => '$e').toList();
-      } catch (_) {
-        // A malformed tag blob must never hide an article.
-        tags = const <String>[];
-      }
-    }
+    final Object? decodedTags = row['tags'];
+    final List<String> tags = decodedTags is String && decodedTags.isNotEmpty
+        ? _tagsFromJson(decodedTags)
+        : const <String>[];
 
     return Article(
       id: row['id']! as String,
