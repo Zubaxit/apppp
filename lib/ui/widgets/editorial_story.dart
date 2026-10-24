@@ -46,10 +46,6 @@ class LeadStory extends StatelessWidget {
               ),
               const SizedBox(height: 16),
             ],
-            if (article.breaking) ...<Widget>[
-              const BreakingTag(),
-              const SizedBox(height: 8),
-            ],
             Pressable(
               onTap: onOpenSource,
               child: Attribution(
@@ -129,10 +125,6 @@ class StoryRow extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        if (article.breaking) ...<Widget>[
-                          const BreakingTag(),
-                          const SizedBox(height: 5),
-                        ],
                         Attribution(article: article, source: source, compact: true),
                         const SizedBox(height: 5),
                         Text(

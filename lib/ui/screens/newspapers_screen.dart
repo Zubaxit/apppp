@@ -32,6 +32,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
   bool _showAll = false;
   String? _division;
   String? _district;
+  SourceLanguage? _language;
 
   @override
   void initState() {
@@ -53,13 +54,19 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
     final SettingsController settings = context.watch<SettingsController>();
     final FeedController feed = context.watch<FeedController>();
 
+    bool kept(NewsSource source) => _language == null || source.language == _language;
     final List<NewsSource> matches = _searching ? registry.search(_query) : const <NewsSource>[];
-    final List<NewsSource> curatedFeeds = registry.curatedWithFeeds;
-    final List<NewsSource> curatedWeb = registry.curatedWebOnly;
-    final List<NewsSource> rest = registry.sources
-        .where((NewsSource s) => !s.curated)
-        .toList()
+    final List<NewsSource> curatedFeeds =
+        registry.curatedWithFeeds.where(kept).toList();
+    final List<NewsSource> curatedWeb = registry.curatedWebOnly.where(kept).toList();
+    final List<NewsSource> rest = (registry.sources
+          .where((NewsSource s) => !s.curated && kept(s))
+          .toList())
       ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name));
+
+    // With nothing curated the directory opens fully instead of showing an
+    // empty front page with everything hidden behind a toggle.
+    final bool showAll = _showAll || (curatedFeeds.isEmpty && curatedWeb.isEmpty);
 
     final List<String> divisions = <String>{
       ...registry.divisionsWithSources,
@@ -74,7 +81,9 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
         ? const <NewsSource>[]
         : (registry.sources
               .where((NewsSource s) =>
-                  s.division == _division && (_district == null || s.district == _district))
+                  s.division == _division &&
+                  (_district == null || s.district == _district) &&
+                  kept(s))
               .toList()
             ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name)));
     final List<String> districts =
@@ -146,6 +155,29 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
               ),
             ),
           ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 2),
+            child: Wrap(
+              spacing: 7,
+              runSpacing: 7,
+              children: <Widget>[
+                ChoiceChip(
+                  label: Text(context.strings.allLanguages),
+                  selected: _language == null,
+                  onSelected: (bool _) => setState(() => _language = null),
+                ),
+                for (final SourceLanguage language in SourceLanguage.values)
+                  ChoiceChip(
+                    label: Text(Labels.language(language, bengali: context.isBengali)),
+                    selected: _language == language,
+                    onSelected: (bool selected) =>
+                        setState(() => _language = selected ? language : null),
+                  ),
+              ],
+            ),
+          ),
+        ),
         if (_division != null && districts.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(
@@ -285,7 +317,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                         ),
                       ),
                       Icon(
-                        _showAll ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                        showAll ? Icons.expand_less_rounded : Icons.expand_more_rounded,
                         size: 18,
                         color: context.colors.onSurfaceVariant,
                       ),
@@ -295,7 +327,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
               ),
             ),
           ),
-          if (_showAll) ...<Widget>[
+          if (showAll) ...<Widget>[
             const SliverPadding(padding: EdgeInsets.only(top: 8)),
             SliverList(
               delegate: SliverChildBuilderDelegate(
