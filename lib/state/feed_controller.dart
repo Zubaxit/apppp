@@ -18,12 +18,18 @@ class FeedController extends ChangeNotifier {
     required this.settings,
     required this.registry,
     required this.connectivity,
+    this.backgroundRefresh = true,
   });
 
   final ArticleRepository repository;
   final SettingsController settings;
   final SourceRegistry registry;
   final ConnectivityService connectivity;
+
+  /// Whether to arm the periodic foreground refresh timer. Production keeps it
+  /// on; tests that do not exercise scheduling turn it off so no timer outlives
+  /// the widget tree.
+  final bool backgroundRefresh;
 
   static const int pageSize = 80;
 
@@ -221,6 +227,7 @@ class FeedController extends ChangeNotifier {
 
   void _restartTimer() {
     _timer?.cancel();
+    if (!backgroundRefresh) return;
     final int minutes = settings.refreshMinutes.clamp(15, 240);
     _timer = Timer.periodic(Duration(minutes: minutes), (Timer timer) {
       // Best-effort foreground refresh; Android may throttle or kill the app,

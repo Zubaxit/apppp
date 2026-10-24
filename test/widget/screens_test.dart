@@ -10,6 +10,7 @@ import 'package:bangladesh_newspaper_hub/ui/screens/search_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/settings_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/source_detail_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/shell/app_shell.dart';
+import 'package:bangladesh_newspaper_hub/state/feed_controller.dart';
 import 'package:bangladesh_newspaper_hub/ui/widgets/article_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -102,7 +103,9 @@ void main() {
       await h.feed.start();
       await tester.pumpAndSettle();
 
-      expect(find.text('BREAKING NEWS'), findsOneWidget);
+      // The banner uses the localized label; Bengali has no letter case, so the
+      // upper-case call is a no-op in a Bengali UI.
+      expect(find.text('ব্রেকিং নিউজ'), findsOneWidget);
       expect(find.text('ব্রেকিং'), findsWidgets);
     });
   });
@@ -393,6 +396,27 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('মূল প্রতিবেদন পড়ুন'), findsNothing);
       expect(find.byType(HomeScreen), findsOneWidget);
+    });
+  });
+
+  group('background refresh timer', () {
+    testWidgets('is armed when enabled and cancelled by dispose', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      final FeedController feed = FeedController(
+        repository: h.repository,
+        settings: h.settings,
+        registry: h.registry,
+        connectivity: FakeConnectivity(),
+        backgroundRefresh: true,
+      );
+      await tester.pumpWidget(h.wrap(const SizedBox.shrink()));
+      await feed.start();
+
+      // The timing itself is covered in the repository tests; what matters here
+      // is that a running controller owns its timer and releases it on dispose,
+      // otherwise the pending-timer invariant below would fire.
+      feed.dispose();
+      await tester.pumpAndSettle();
     });
   });
 

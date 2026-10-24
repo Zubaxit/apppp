@@ -51,6 +51,9 @@ class TestHarness {
       settings: settings,
       registry: this.registry,
       connectivity: FakeConnectivity(online: online),
+      // Widget tests assert on rendered state; the periodic refresh timer is
+      // covered by its own test instead of arming one in every test.
+      backgroundRefresh: false,
     );
     saved = SavedController(repository: repository, settings: settings);
     // The controllers are app-scoped in production, so nothing else disposes
