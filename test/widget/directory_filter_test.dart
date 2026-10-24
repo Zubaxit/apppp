@@ -32,6 +32,9 @@ void main() {
           district: 'Sylhet',
         ),
       ],
+      epapers: const <EpaperEdition>[],
+      updatedAt: DateTime.utc(2026, 10, 24),
+      about: 'Regional filter test registry',
     );
   }
 
