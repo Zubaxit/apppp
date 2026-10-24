@@ -60,8 +60,10 @@ class FeedParser {
       RegExp(r'<title[^>]*>([\s\S]*?)</title>', caseSensitive: false);
   static final RegExp _linkTextRe =
       RegExp(r'<link[^>]*>([\s\S]*?)</link>', caseSensitive: false);
-  static final RegExp _linkHrefRe =
-      RegExp(r'<link[^>]*href\s*=\s*["'']([^"'']+)["'']', caseSensitive: false);
+  static final RegExp _linkHrefRe = RegExp(
+    r'''<link[^>]*href\s*=\s*["']([^"']+)["']''',
+    caseSensitive: false,
+  );
   static final RegExp _dateRe = RegExp(
     r'<(pubDate|published|updated|dc:date|date)[^>]*>([\s\S]*?)</\1>',
     caseSensitive: false,

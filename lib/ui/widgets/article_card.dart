@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +7,7 @@ import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/saved_controller.dart';
 import '../../theme/app_theme.dart';
+import 'common.dart';
 
 enum ArticleCardVariant { hero, standard, compact, saved }
 
@@ -71,7 +71,7 @@ class ArticleCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: _Image(url: article.imageUrl!),
+                child: RemoteImage(url: article.imageUrl!),
               ),
             ),
           const SizedBox(height: 14),
@@ -144,7 +144,7 @@ class ArticleCard extends StatelessWidget {
                   child: SizedBox(
                     width: 88,
                     height: 88,
-                    child: _Image(url: article.imageUrl!),
+                    child: RemoteImage(url: article.imageUrl!),
                   ),
                 ),
               ],
@@ -364,32 +364,6 @@ class _BookmarkButton extends StatelessWidget {
         if (!context.mounted) return;
         context.showSnack(nowSaved ? context.strings.savedLabel : context.strings.removeSaved);
       },
-    );
-  }
-}
-
-class _Image extends StatelessWidget {
-  const _Image({required this.url});
-
-  final String url;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color placeholder = context.colors.surfaceContainerHighest;
-    return CachedNetworkImage(
-      imageUrl: url,
-      fit: BoxFit.cover,
-      fadeInDuration: Motion.of(context).fast,
-      placeholder: (BuildContext context, String? url) => Container(color: placeholder),
-      errorWidget: (BuildContext context, String? url, Object error) => Container(
-        color: placeholder,
-        alignment: Alignment.center,
-        child: Icon(
-          Icons.image_not_supported_outlined,
-          size: 18,
-          color: context.colors.onSurfaceVariant.withValues(alpha: 0.6),
-        ),
-      ),
     );
   }
 }

@@ -33,12 +33,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _toggleTopic(ArticleTopic topic) {
     HapticFeedback.selectionClick();
     final FeedController feed = context.read<FeedController>();
-    feed.applyQuery(feed.query.toggleTopic(topic));
+    unawaited(feed.applyQuery(feed.query.toggleTopic(topic)));
   }
 
   void _clearTopics() {
     final FeedController feed = context.read<FeedController>();
-    feed.applyQuery(feed.query.copyWith(topics: const <ArticleTopic>{}));
+    unawaited(feed.applyQuery(feed.query.copyWith(topics: const <ArticleTopic>{})));
   }
 
   void _setFollowing(bool following) {

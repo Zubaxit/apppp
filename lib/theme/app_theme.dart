@@ -116,16 +116,6 @@ class AppTheme {
           letterSpacing: 0.1,
         ),
       ),
-      cardTheme: CardThemeData(
-        color: scheme.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(color: divider, width: 0.8),
-        ),
-      ),
       chipTheme: ChipThemeData(
         backgroundColor: surfaceAlt,
         selectedColor: scheme.primary,

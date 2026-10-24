@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/extensions.dart';
@@ -6,6 +7,43 @@ import '../../core/utils/bengali_text.dart';
 import '../../data/models/news_source.dart';
 import '../../data/models/source_health.dart';
 import '../../theme/app_theme.dart';
+
+/// Network image with disk caching, a calm fade-in and a graceful failure
+/// state. Uses [CachedNetworkImageProvider] under a standard [Image] widget so
+/// the behaviour stays on stable Flutter APIs.
+class RemoteImage extends StatelessWidget {
+  const RemoteImage({super.key, required this.url, this.fit = BoxFit.cover});
+
+  final String url;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color placeholder = context.colors.surfaceContainerHighest;
+    return Image(
+      image: CachedNetworkImageProvider(url),
+      fit: fit,
+      gaplessPlayback: true,
+      frameBuilder: (BuildContext context, Widget child, int? frame, bool sync) {
+        if (sync || frame != null) return child;
+        return Stack(
+          fit: StackFit.expand,
+          children: <Widget>[ColoredBox(color: placeholder), child],
+        );
+      },
+      errorBuilder: (BuildContext context, Object error, StackTrace? stack) => ColoredBox(
+        color: placeholder,
+        child: Center(
+          child: Icon(
+            Icons.image_not_supported_outlined,
+            size: 18,
+            color: context.colors.onSurfaceVariant.withValues(alpha: 0.6),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Publication identity without any unlicensed logo art: a deterministic
 /// two-tone monogram derived from the publication id.

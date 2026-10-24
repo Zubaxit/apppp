@@ -13,7 +13,6 @@ import 'package:bangladesh_newspaper_hub/ui/shell/app_shell.dart';
 import 'package:bangladesh_newspaper_hub/ui/widgets/article_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 
 import '../support/fakes.dart';
 import '../support/test_app.dart';

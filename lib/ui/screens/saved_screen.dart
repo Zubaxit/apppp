@@ -21,8 +21,22 @@ class _SavedScreenState extends State<SavedScreen> with SingleTickerProviderStat
   late final TabController _tabs = TabController(length: 2, vsync: this);
 
   @override
+  void initState() {
+    super.initState();
+    // The app-bar action depends on the visible tab, so rebuild on change.
+    _tabs.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_tabs.indexIsChanging) return;
+    setState(() {});
+  }
+
+  @override
   void dispose() {
-    _tabs.dispose();
+    _tabs
+      ..removeListener(_onTabChanged)
+      ..dispose();
     super.dispose();
   }
 

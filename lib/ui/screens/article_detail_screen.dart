@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -106,21 +105,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                       borderRadius: BorderRadius.circular(18),
                       child: AspectRatio(
                         aspectRatio: 16 / 9,
-                        child: CachedNetworkImage(
-                          imageUrl: article.imageUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (BuildContext context, String? url) =>
-                              Container(color: context.colors.surfaceContainerHighest),
-                          errorWidget:
-                              (BuildContext context, String? url, Object error) => Container(
-                            color: context.colors.surfaceContainerHighest,
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.image_not_supported_outlined,
-                              color: context.colors.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
+                        child: RemoteImage(url: article.imageUrl!),
                       ),
                     ),
                   ),
