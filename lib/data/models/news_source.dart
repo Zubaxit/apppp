@@ -373,6 +373,26 @@ class SourceRegistry {
           if (distance <= 2) {
             final int score = 60 - distance * 10;
             if (score > best) best = score;
+          } else {
+            // Token-level tolerance so "daly star" still finds "The Daily Star".
+            final List<String> queryTokens =
+                query.split(' ').where((String t) => t.isNotEmpty).toList();
+            final List<String> keyTokens =
+                key.split(' ').where((String t) => t.isNotEmpty).toList();
+            if (queryTokens.isNotEmpty && queryTokens.length <= 5) {
+              var matched = 0;
+              for (final String queryToken in queryTokens) {
+                final bool hit = keyTokens.any((String keyToken) =>
+                    keyToken == queryToken ||
+                    (queryToken.length >= 4 &&
+                        TextUtils.editDistance(queryToken, keyToken, cap: 1) <= 1));
+                if (hit) matched++;
+              }
+              if (matched == queryTokens.length) {
+                final int score = 50 + matched * 2;
+                if (score > best) best = score;
+              }
+            }
           }
         }
       }

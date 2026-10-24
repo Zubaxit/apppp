@@ -186,7 +186,8 @@ class FeedController extends ChangeNotifier {
       _health = await repository.healthMap();
       _offline = false;
       if (report.sourcesSucceeded == 0 && report.sourcesFailed > 0) {
-        _error = null; // per-source errors are surfaced via the health list
+        // Per-source errors are surfaced through the health list; only a real
+        // connectivity loss is reported as "offline".
         _offline = !(await connectivity.isOnline());
       }
       await _reload(notify: false);
