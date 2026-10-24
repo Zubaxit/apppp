@@ -1,0 +1,79 @@
+name: Verify sources
+
+# Maintainer workflow: fetch every publisher website, feed and e-paper link from
+# a machine with normal internet access, print the result and keep the JSON
+# report as an artifact. It never edits the registry — promoting a feed to
+# `verified_working` is a reviewed commit based on this evidence.
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma separated source ids (empty = every source)"
+        required: false
+        default: ""
+      delay:
+        description: "Seconds between requests (be polite)"
+        required: false
+        default: "1.0"
+  schedule:
+    # Weekly, Monday 03:00 UTC.
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Check live feeds
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Stress the verifier
+        run: |
+          python3 -m py_compile scripts/verify_sources.py
+          python3 scripts/verify_sources.py --help >/dev/null
+
+      - name: Verify publishers
+        env:
+          ONLY: ${{ inputs.only }}
+          DELAY: ${{ inputs.delay }}
+        run: |
+          set -o pipefail
+          python3 scripts/verify_sources.py \
+            --only "${ONLY}" \
+            --delay "${DELAY:-1.0}" \
+            --report source_verification.json 2>&1 | tee verify.log
+
+      # The run log is not always reachable from tooling, so the per-source
+      # verdicts are republished as one annotation block.
+      - name: Publish verdicts
+        if: always()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          lines = Path('verify.log').read_text(encoding='utf-8', errors='replace').splitlines()
+          verdicts = [line for line in lines if line.startswith(('  + ', '  x ', '  ! ', '  ? '))]
+          summary = [line for line in lines if line.startswith('summary:')]
+          payload = verdicts + summary
+          for start in range(0, min(len(payload), 240), 12):
+              chunk = payload[start:start + 12]
+              message = '%0A'.join(item.replace('%', '%25') for item in chunk)
+              print(f'::error::{message}')
+          PY
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-verification
+          path: |
+            source_verification.json
+            verify.log
+          if-no-files-found: warn
