@@ -23,7 +23,7 @@ class TextUtils {
     }
     String decoded;
     try {
-      decoded = html_parser.parseFragment(value).text;
+      decoded = html_parser.parseFragment(value).text ?? '';
     } catch (_) {
       decoded = value.replaceAll(_tagRe, ' ');
     }
@@ -37,7 +37,7 @@ class TextUtils {
   static String decodeEntities(String input) {
     if (!input.contains('&')) return input;
     try {
-      return html_parser.parseFragment(input).text;
+      return html_parser.parseFragment(input).text ?? input;
     } catch (_) {
       return input
           .replaceAll('&amp;', '&')
