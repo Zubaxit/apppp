@@ -1,0 +1,419 @@
+import 'package:bangladesh_newspaper_hub/core/utils/bengali_text.dart';
+import 'package:bangladesh_newspaper_hub/data/models/app_preferences.dart';
+import 'package:bangladesh_newspaper_hub/data/models/article.dart';
+import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/epaper_directory_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/home_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/newspapers_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/saved_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/search_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/settings_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/source_detail_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/shell/app_shell.dart';
+import 'package:bangladesh_newspaper_hub/ui/widgets/article_card.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+
+import '../support/fakes.dart';
+import '../support/test_app.dart';
+
+void main() {
+  final Article bnArticle = sampleArticle(
+    title: 'বাংলাদেশে নতুন উদ্যোগ ঘোষণা করেছে সরকার',
+    publishedAt: DateTime.now().toUtc().subtract(const Duration(hours: 2)),
+  );
+  final Article enArticle = sampleArticle(
+    sourceId: 'daily_star',
+    title: 'Bangladesh exports rise sharply this quarter',
+    language: SourceLanguage.en,
+    topic: ArticleTopic.economy,
+  );
+
+  TestHarness harness({
+    List<Article> artwork = const <Article>[],
+    AppPreferences prefs = const AppPreferences(),
+  }) {
+    return TestHarness(
+      prefs: prefs,
+      stores: fakeStores(seed: artwork),
+    );
+  }
+
+  group('HomeScreen', () {
+    testWidgets('renders aggregated Bengali headlines with source and time', (WidgetTester tester) async {
+      final TestHarness h = harness(artwork: <Article>[bnArticle, enArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      expect(find.text('বাংলাদেশে নতুন উদ্যোগ ঘোষণা করেছে সরকার'), findsOneWidget);
+      expect(find.text('প্রথম আলো'), findsWidgets);
+      expect(find.text('২ ঘণ্টা আগে'), findsWidgets);
+      expect(find.text('সর্বশেষ খবর'), findsOneWidget);
+    });
+
+    testWidgets('shows a useful empty state when no feed is available', (WidgetTester tester) async {
+      final TestHarness h = TestHarness(stores: fakeStores(), online: false);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      expect(find.text('এখনও কোনো খবর নেই'), findsOneWidget);
+      expect(find.text('আবার চেষ্টা করুন'), findsWidgets);
+    });
+
+    testWidgets('marks cached content instead of pretending it is live', (WidgetTester tester) async {
+      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('ক্যাশ'), findsWidgets);
+    });
+
+    testWidgets('topic chip filters the feed', (WidgetTester tester) async {
+      final TestHarness h = harness(artwork: <Article>[bnArticle, enArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('অর্থনীতি').first);
+      await tester.pumpAndSettle();
+
+      expect(h.feed.query.topics, <ArticleTopic>{ArticleTopic.economy});
+      expect(find.text(enArticle.title), findsOneWidget);
+      expect(find.text(bnArticle.title), findsNothing);
+    });
+
+    testWidgets('shows breaking stories only when the publisher flagged one', (WidgetTester tester) async {
+      final Article breaking = sampleArticle(
+        title: 'জরুরি সিদ্ধান্ত ঘোষণা',
+        breaking: true,
+        publishedAt: DateTime.now().toUtc(),
+      );
+      final TestHarness h = harness(artwork: <Article>[breaking]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      expect(find.text('BREAKING NEWS'), findsOneWidget);
+      expect(find.text('ব্রেকিং'), findsWidgets);
+    });
+  });
+
+  group('NewspapersScreen', () {
+    testWidgets('lists publications and filters by search query', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('প্রথম আলো'), findsWidgets);
+      expect(find.text('The Daily Star'), findsWidgets);
+
+      await tester.enterText(find.byType(TextField), 'daily');
+      await tester.pumpAndSettle();
+      expect(find.text('The Daily Star'), findsWidgets);
+      expect(find.text('বণিক বার্তা'), findsNothing);
+
+      await tester.enterText(find.byType(TextField), 'বণিক');
+      await tester.pumpAndSettle();
+      expect(find.text('বণিক বার্তা'), findsWidgets);
+      expect(find.text('The Daily Star'), findsNothing);
+    });
+
+    testWidgets('shows no-results state for a nonsense query', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'zzzzqqq');
+      await tester.pumpAndSettle();
+      expect(find.text('কিছু পাওয়া যায়নি'), findsOneWidget);
+    });
+
+    testWidgets('language filter narrows the list', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('ইংরেজি').first);
+      await tester.pumpAndSettle();
+      expect(find.text('The Daily Star'), findsWidgets);
+      expect(find.text('প্রথম আলো'), findsNothing);
+    });
+
+    testWidgets('following a publication persists in settings', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.add_circle_outline_rounded).first);
+      await tester.pump();
+      expect(h.settings.followedSourceIds, isNotEmpty);
+      await tester.pumpAndSettle();
+    });
+  });
+
+  group('SourceDetailScreen', () {
+    testWidgets('website, follow and e-paper actions are present and enabled', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      final NewsSource source = h.registry.byId('prothomalo')!;
+      await tester.pumpWidget(h.wrap(SourceDetailScreen(source: source)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('প্রথম আলো'), findsWidgets);
+      expect(find.text('অফিসিয়াল ওয়েবসাইট'), findsOneWidget);
+      expect(find.text('অনুসরণ'), findsOneWidget);
+      expect(find.text('ই-পেপার খুলুন'), findsOneWidget);
+      expect(find.text('পত্রিকা সম্পর্কে'), findsOneWidget);
+    });
+
+    testWidgets('publication without a feed offers website only', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      final NewsSource source = h.registry.byId('bonik_barta')!;
+      await tester.pumpWidget(h.wrap(SourceDetailScreen(source: source)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('কোনো ফিড নেই — ওয়েবসাইট ব্যবহার করুন'), findsWidgets);
+      expect(find.text('শিরোনাম আনুন'), findsNothing);
+    });
+
+    testWidgets('follow button toggles state', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      final NewsSource source = h.registry.byId('prothomalo')!;
+      await tester.pumpWidget(h.wrap(SourceDetailScreen(source: source)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('অনুসরণ'));
+      await tester.pump();
+      expect(h.settings.isFollowing('prothomalo'), isTrue);
+      await tester.pumpAndSettle();
+      expect(find.text('অনুসরণ করছেন'), findsWidgets);
+    });
+  });
+
+  group('SavedScreen', () {
+    testWidgets('bookmarking from a card adds it to Saved and survives restart', (WidgetTester tester) async {
+      final Article article = sampleArticle(title: 'সংরক্ষণের জন্য খবর');
+      final TestHarness h = harness(artwork: <Article>[article]);
+
+      await tester.pumpWidget(h.wrap(const SavedScreen()));
+      await h.saved.load();
+      await tester.pumpAndSettle();
+      expect(find.text('কোনো খবর সংরক্ষিত নেই'), findsOneWidget);
+
+      await h.saved.toggle(article);
+      await tester.pumpAndSettle();
+      expect(find.text('সংরক্ষণের জন্য খবর'), findsOneWidget);
+
+      // A fresh controller reading the same store behaves like a restart.
+      final TestHarness h2 = TestHarness(stores: h.stores);
+      await tester.pumpWidget(h2.wrap(const SavedScreen()));
+      await h2.saved.load();
+      await tester.pumpAndSettle();
+      expect(find.text('সংরক্ষণের জন্য খবর'), findsOneWidget);
+    });
+
+    testWidgets('unbookmarking removes the story', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      final Article article = sampleArticle(title: 'মুছে ফেলার খবর');
+      await h.saved.load();
+      await h.saved.toggle(article);
+      await tester.pumpWidget(h.wrap(const SavedScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.bookmark_rounded).first);
+      await tester.pumpAndSettle();
+      expect(find.text('মুছে ফেলার খবর'), findsNothing);
+    });
+  });
+
+  group('ArticleCard', () {
+    testWidgets('shows the missing-date note instead of a fake timestamp', (WidgetTester tester) async {
+      final Article undated = Article.create(
+        sourceId: 'prothomalo',
+        title: 'তারিখ ছাড়া খবর',
+        link: 'https://www.prothomalo.com/undated-card',
+      );
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(
+        Scaffold(
+          body: ArticleCard(
+            article: undated,
+            source: h.registry.byId('prothomalo'),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('প্রকাশের সময় পাওয়া যায়নি'), findsOneWidget);
+    });
+  });
+
+  group('SearchScreen', () {
+    testWidgets('finds publications and headlines, and separates the groups', (WidgetTester tester) async {
+      final TestHarness h = harness(artwork: <Article>[enArticle]);
+      await tester.pumpWidget(h.wrap(const SearchScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'exports');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(find.text('খবর'), findsWidgets);
+      expect(find.text(enArticle.title), findsOneWidget);
+    });
+
+    testWidgets('shows recent searches and empty state', (WidgetTester tester) async {
+      final TestHarness h = harness(prefs: const AppPreferences(searchHistory: <String>['প্রথম আলো']));
+      await tester.pumpWidget(h.wrap(const SearchScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('সাম্প্রতিক খোঁজ'), findsOneWidget);
+      expect(find.text('প্রথম আলো'), findsWidgets);
+
+      await tester.enterText(find.byType(TextField), 'qqqqqq');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(find.text('কিছু পাওয়া যায়নি'), findsOneWidget);
+    });
+  });
+
+  group('SettingsScreen', () {
+    testWidgets('switching theme and text size updates preferences', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const SettingsScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('গাঢ়'));
+      await tester.pump();
+      expect(h.settings.prefs.theme, AppThemeChoice.dark);
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(Slider).first, const Offset(60, 0));
+      await tester.pumpAndSettle();
+      expect(h.settings.textScale, greaterThan(1.0));
+    });
+
+    testWidgets('language switch changes the UI strings', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const SettingsScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('English'));
+      await tester.pump();
+      expect(h.settings.prefs.language, AppLanguage.en);
+      expect(find.text('Settings'), findsWidgets);
+      expect(find.text('Appearance'), findsWidgets);
+    });
+
+    testWidgets('about screen reports real registry counts', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const AboutScreen()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('3'), findsWidgets); // 3 test publications
+      expect(find.text('তালিকাভুক্ত উৎস'), findsOneWidget);
+    });
+  });
+
+  group('EpaperDirectoryScreen', () {
+    testWidgets('lists publisher e-paper editions', (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const EpaperDirectoryScreen()));
+      await tester.pumpAndSettle();
+      expect(find.text('প্রথম আলো ই-পেপার'), findsOneWidget);
+    });
+  });
+
+  group('typography', () {
+    test('Bengali numerals are used for relative times in the Bengali UI', () {
+      final DateTime now = DateTime.utc(2026, 10, 24, 12);
+      expect(
+        BengaliText.relative(now.subtract(const Duration(minutes: 5)), bengali: true, now: now),
+        '৫ মিনিট আগে',
+      );
+    });
+  });
+
+  group('dark theme', () {
+    testWidgets('home renders in dark mode', (WidgetTester tester) async {
+      final TestHarness h = harness(
+        artwork: <Article>[bnArticle],
+        prefs: const AppPreferences(theme: AppThemeChoice.dark),
+      );
+      await tester.pumpWidget(h.wrap(const HomeScreen(), brightness: Brightness.dark));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+      expect(find.text(bnArticle.title), findsOneWidget);
+      final ThemeData theme = Theme.of(tester.element(find.byType(HomeScreen)));
+      expect(theme.brightness, Brightness.dark);
+    });
+  });
+
+  group('AppShell navigation', () {
+    testWidgets('switches tabs and stays on Home after switching', (WidgetTester tester) async {
+      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      await tester.pumpWidget(h.wrap(const AppShell()));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HomeScreen), findsOneWidget);
+      await tester.tap(find.text('পত্রিকা'));
+      await tester.pumpAndSettle();
+      expect(find.byType(NewspapersScreen), findsOneWidget);
+
+      await tester.tap(find.text('সেটিংস'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsScreen), findsOneWidget);
+
+      // Back from a non-home tab returns to Home instead of exiting.
+      final NavigatorState navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(navigator.canPop(), isFalse);
+      expect(find.byType(HomeScreen), findsOneWidget);
+    });
+
+    testWidgets('pushed article detail can be popped back to the list', (WidgetTester tester) async {
+      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(bnArticle.title));
+      await tester.pumpAndSettle();
+      expect(find.text('মূল প্রতিবেদন পড়ুন'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('মূল প্রতিবেদন পড়ুন'), findsNothing);
+      expect(find.byType(HomeScreen), findsOneWidget);
+    });
+  });
+
+  group('responsive layout', () {
+    testWidgets('renders on a small phone without overflow', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(720, 1280);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      final TestHarness h = harness(artwork: <Article>[bnArticle, enArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text(bnArticle.title), findsOneWidget);
+    });
+
+    testWidgets('renders on a tablet width without overflow', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1600, 2560);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  });
+}

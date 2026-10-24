@@ -1,0 +1,22 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-raw-types: true
+  errors:
+    todo: ignore
+  exclude:
+    - build/**
+    - "**/*.g.dart"
+
+linter:
+  rules:
+    avoid_print: true
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_final_locals: true
+    unnecessary_lambdas: true
+    use_super_parameters: true
+    directives_ordering: true
+    unawaited_futures: true

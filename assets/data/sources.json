@@ -1,0 +1,1517 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-24",
+  "about": "Curated registry of Bangladeshi publications. Domains were curated by hand and are restricted to publishers whose official address the maintainer is confident about; doubtful candidates are parked in assets/data/source_candidates.json instead of being shipped as directory entries. Feed URLs marked feedClaim=candidate are discovery candidates that the app validates at runtime; feedClaim=verified is written by scripts/verify_sources.py --write after a successful live check. The initial build sandbox had no access to publisher hosts, so no feed is marked verified yet.",
+  "sources": [
+    {
+      "id": "prothomalo",
+      "name": "Prothom Alo",
+      "nameBn": "প্রথম আলো",
+      "aliases": [
+        "prothomalo",
+        "প্রথম আলো"
+      ],
+      "website": "https://www.prothomalo.com/",
+      "feedUrl": "https://www.prothomalo.com/feed",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national",
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.prothomalo.com/",
+      "notes": "Largest circulating Bengali daily; Quintype platform exposes section feeds such as /bangladesh/feed."
+    },
+    {
+      "id": "bd_pratidin",
+      "name": "Bangladesh Pratidin",
+      "nameBn": "বাংলাদেশ প্রতিদিন",
+      "aliases": [
+        "bd pratidin",
+        "bd-pratidin",
+        "বাংলাদেশ প্রতিদিন"
+      ],
+      "website": "https://www.bd-pratidin.com/",
+      "feedUrl": "https://www.bd-pratidin.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "kaler_kantho",
+      "name": "Kaler Kantho",
+      "nameBn": "কালের কণ্ঠ",
+      "aliases": [
+        "kalerkantho",
+        "কালের কণ্ঠ"
+      ],
+      "website": "https://www.kalerkantho.com/",
+      "feedUrl": "https://www.kalerkantho.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.kalerkantho.com/",
+      "notes": ""
+    },
+    {
+      "id": "jugantor",
+      "name": "Jugantor",
+      "nameBn": "যুগান্তর",
+      "aliases": [
+        "jugantor",
+        "যুগান্তর"
+      ],
+      "website": "https://www.jugantor.com/",
+      "feedUrl": "https://www.jugantor.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": "https://epaper.jugantor.com/",
+      "notes": ""
+    },
+    {
+      "id": "ittefaq",
+      "name": "The Daily Ittefaq",
+      "nameBn": "দৈনিক ইত্তেফাক",
+      "aliases": [
+        "ittefaq",
+        "ইত্তেফাক",
+        "দৈনিক ইত্তেফাক"
+      ],
+      "website": "https://www.ittefaq.com.bd/",
+      "feedUrl": "https://www.ittefaq.com.bd/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.ittefaq.com.bd/",
+      "notes": "One of the oldest Bengali dailies still publishing."
+    },
+    {
+      "id": "samakal",
+      "name": "Samakal",
+      "nameBn": "সমকাল",
+      "aliases": [
+        "samakal",
+        "সমকাল"
+      ],
+      "website": "https://samakal.com/",
+      "feedUrl": "https://samakal.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": "https://epaper.samakal.com/",
+      "notes": ""
+    },
+    {
+      "id": "janakantha",
+      "name": "Daily Janakantha",
+      "nameBn": "দৈনিক জনকণ্ঠ",
+      "aliases": [
+        "janakantha",
+        "জনকণ্ঠ"
+      ],
+      "website": "https://www.dailyjanakantha.com/",
+      "feedUrl": "https://www.dailyjanakantha.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "inqilab",
+      "name": "Daily Inqilab",
+      "nameBn": "দৈনিক ইনকিলাব",
+      "aliases": [
+        "inqilab",
+        "ইনকিলাব"
+      ],
+      "website": "https://dailyinqilab.com/",
+      "feedUrl": "https://dailyinqilab.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "amar_sangbad",
+      "name": "Amar Sangbad",
+      "nameBn": "আমার সংবাদ",
+      "aliases": [
+        "amarsangbad",
+        "আমার সংবাদ"
+      ],
+      "website": "https://www.amarsangbad.com/",
+      "feedUrl": "https://www.amarsangbad.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national",
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "ajker_patrika",
+      "name": "Ajker Patrika",
+      "nameBn": "আজকের পত্রিকা",
+      "aliases": [
+        "ajkerpatrika",
+        "আজকের পত্রিকা"
+      ],
+      "website": "https://www.ajkerpatrika.com/",
+      "feedUrl": "https://www.ajkerpatrika.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "desh_rupantor",
+      "name": "Desh Rupantor",
+      "nameBn": "দেশ রূপান্তর",
+      "aliases": [
+        "deshrupantor",
+        "দেশ রূপান্তর"
+      ],
+      "website": "https://www.deshrupantor.com/",
+      "feedUrl": "https://www.deshrupantor.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "naya_diganta",
+      "name": "Daily Naya Diganta",
+      "nameBn": "দৈনিক নয়া দিগন্ত",
+      "aliases": [
+        "nayadiganta",
+        "নয়া দিগন্ত"
+      ],
+      "website": "https://www.dailynayadiganta.com/",
+      "feedUrl": "https://www.dailynayadiganta.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "manabzamin",
+      "name": "Manabzamin",
+      "nameBn": "মানবজমিন",
+      "aliases": [
+        "mzamin",
+        "মানবজমিন"
+      ],
+      "website": "https://mzamin.com/",
+      "feedUrl": "https://mzamin.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Publishes Bengali and English content."
+    },
+    {
+      "id": "kalbela",
+      "name": "Kalbela",
+      "nameBn": "কালবেলা",
+      "aliases": [
+        "kalbela",
+        "কালবেলা"
+      ],
+      "website": "https://www.kalbela.com/",
+      "feedUrl": "https://www.kalbela.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "amader_shomoy",
+      "name": "Amader Shomoy",
+      "nameBn": "আমাদের সময়",
+      "aliases": [
+        "amadershomoy",
+        "আমাদের সময়"
+      ],
+      "website": "https://www.amadershomoy.com/",
+      "feedUrl": "https://www.amadershomoy.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "bhorer_kagoj",
+      "name": "Bhorer Kagoj",
+      "nameBn": "ভোরের কাগজ",
+      "aliases": [
+        "bhorerkagoj",
+        "ভোরের কাগজ"
+      ],
+      "website": "https://www.bhorerkagoj.com/",
+      "feedUrl": "https://www.bhorerkagoj.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "protidiner_sangbad",
+      "name": "Protidiner Sangbad",
+      "nameBn": "প্রতিদিনের সংবাদ",
+      "aliases": [
+        "protidinersangbad",
+        "প্রতিদিনের সংবাদ"
+      ],
+      "website": "https://www.protidinersangbad.com/",
+      "feedUrl": "https://www.protidinersangbad.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "jaijaidin",
+      "name": "Jaijaidin",
+      "nameBn": "যায়যায়দিন",
+      "aliases": [
+        "jaijaidin",
+        "যায়যায়দিন"
+      ],
+      "website": "https://www.jaijaidinbd.com/",
+      "feedUrl": "https://www.jaijaidinbd.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "sangbad",
+      "name": "The Sangbad",
+      "nameBn": "সংবাদ",
+      "aliases": [
+        "sangbad",
+        "সংবাদ"
+      ],
+      "website": "https://www.sangbad.com.bd/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Website only; no public news feed known."
+    },
+    {
+      "id": "bangladesher_khabor",
+      "name": "Bangladesher Khabor",
+      "nameBn": "বাংলাদেশের খবর",
+      "aliases": [
+        "bangladesher khabor",
+        "বাংলাদেশের খবর"
+      ],
+      "website": "https://www.bangladesherkhabor.net/",
+      "feedUrl": "https://www.bangladesherkhabor.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "daily_star",
+      "name": "The Daily Star",
+      "nameBn": "দ্য ডেইলি স্টার",
+      "aliases": [
+        "thedailystar",
+        "daily star",
+        "ডেইলি স্টার"
+      ],
+      "website": "https://www.thedailystar.net/",
+      "feedUrl": "https://www.thedailystar.net/rss/all",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.thedailystar.net/",
+      "notes": "Leading English-language daily in Bangladesh."
+    },
+    {
+      "id": "dhaka_tribune",
+      "name": "Dhaka Tribune",
+      "nameBn": "ঢাকা ট্রিবিউন",
+      "aliases": [
+        "dhakatribune",
+        "ঢাকা ট্রিবিউন"
+      ],
+      "website": "https://www.dhakatribune.com/",
+      "feedUrl": "https://www.dhakatribune.com/feed",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "tbs",
+      "name": "The Business Standard",
+      "nameBn": "দ্য বিজনেস স্ট্যান্ডার্ড",
+      "aliases": [
+        "tbsnews",
+        "business standard",
+        "বিজনেস স্ট্যান্ডার্ড"
+      ],
+      "website": "https://www.tbsnews.net/",
+      "feedUrl": "https://www.tbsnews.net/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Business-focused English daily with a Bengali edition on the same domain."
+    },
+    {
+      "id": "financial_express",
+      "name": "The Financial Express",
+      "nameBn": "দ্য ফিন্যান্সিয়াল এক্সপ্রেস",
+      "aliases": [
+        "financialexpress",
+        "financial express"
+      ],
+      "website": "https://thefinancialexpress.com.bd/",
+      "feedUrl": "https://thefinancialexpress.com.bd/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "daily_sun",
+      "name": "Daily Sun",
+      "nameBn": "ডেইলি সান",
+      "aliases": [
+        "dailysun",
+        "daily-sun",
+        "ডেইলি সান"
+      ],
+      "website": "https://www.daily-sun.com/",
+      "feedUrl": "https://www.daily-sun.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "new_age",
+      "name": "New Age",
+      "nameBn": "নিউ এজ",
+      "aliases": [
+        "newage",
+        "new age",
+        "নিউ এজ"
+      ],
+      "website": "https://www.newagebd.net/",
+      "feedUrl": "https://www.newagebd.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "daily_observer",
+      "name": "The Daily Observer",
+      "nameBn": "দ্য ডেইলি অবজারভার",
+      "aliases": [
+        "observerbd",
+        "daily observer"
+      ],
+      "website": "https://www.observerbd.com/",
+      "feedUrl": "https://www.observerbd.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "bangladesh_post",
+      "name": "Bangladesh Post",
+      "nameBn": "বাংলাদেশ পোস্ট",
+      "aliases": [
+        "bangladeshpost",
+        "বাংলাদেশ পোস্ট"
+      ],
+      "website": "https://bangladeshpost.net/",
+      "feedUrl": "https://bangladeshpost.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "asian_age",
+      "name": "The Asian Age",
+      "nameBn": "দ্য এশিয়ান এজ",
+      "aliases": [
+        "dailyasianage",
+        "asian age"
+      ],
+      "website": "https://dailyasianage.com/",
+      "feedUrl": "https://dailyasianage.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "new_nation",
+      "name": "The New Nation",
+      "nameBn": "দ্য নিউ নেশন",
+      "aliases": [
+        "dailynewnation",
+        "new nation"
+      ],
+      "website": "https://dailynewnation.com/",
+      "feedUrl": "https://dailynewnation.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "needs_review",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Publishing frequency has varied; confirm current status before relying on it."
+    },
+    {
+      "id": "business_post",
+      "name": "The Business Post",
+      "nameBn": "দ্য বিজনেস পোস্ট",
+      "aliases": [
+        "businesspostbd",
+        "business post"
+      ],
+      "website": "https://businesspostbd.com/",
+      "feedUrl": "https://businesspostbd.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "bdnews24",
+      "name": "bdnews24.com",
+      "nameBn": "বিডিনিউজ টোয়েন্টিফোর ডটকম",
+      "aliases": [
+        "bdnews24",
+        "বিডিনিউজ"
+      ],
+      "website": "https://bdnews24.com/",
+      "feedUrl": "https://bdnews24.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Bangladesh's first online-only news service; Bengali edition at bangla.bdnews24.com."
+    },
+    {
+      "id": "banglanews24",
+      "name": "Banglanews24",
+      "nameBn": "বাংলানিউজটোয়েন্টিফোর",
+      "aliases": [
+        "banglanews24",
+        "বাংলানিউজ"
+      ],
+      "website": "https://www.banglanews24.com/",
+      "feedUrl": "https://www.banglanews24.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "jagonews24",
+      "name": "Jago News 24",
+      "nameBn": "জাগোনিউজ২৪ ডটকম",
+      "aliases": [
+        "jagonews24",
+        "জাগো নিউজ"
+      ],
+      "website": "https://www.jagonews24.com/",
+      "feedUrl": "https://www.jagonews24.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "bangla_tribune",
+      "name": "Bangla Tribune",
+      "nameBn": "বাংলা ট্রিবিউন",
+      "aliases": [
+        "banglatribune",
+        "বাংলা ট্রিবিউন"
+      ],
+      "website": "https://www.banglatribune.com/",
+      "feedUrl": "https://www.banglatribune.com/feed",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Sister publication of Dhaka Tribune."
+    },
+    {
+      "id": "dhaka_post",
+      "name": "Dhaka Post",
+      "nameBn": "ঢাকা পোস্ট",
+      "aliases": [
+        "dhakapost",
+        "ঢাকা পোস্ট"
+      ],
+      "website": "https://www.dhakapost.com/",
+      "feedUrl": "https://www.dhakapost.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "risingbd",
+      "name": "Risingbd",
+      "nameBn": "রাইজিংবিডি",
+      "aliases": [
+        "risingbd",
+        "রাইজিংবিডি"
+      ],
+      "website": "https://www.risingbd.com/",
+      "feedUrl": "https://www.risingbd.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "barta24",
+      "name": "Barta24",
+      "nameBn": "বার্তা২৪",
+      "aliases": [
+        "barta24",
+        "বার্তা ২৪"
+      ],
+      "website": "https://barta24.com/",
+      "feedUrl": "https://barta24.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "newsbangla24",
+      "name": "Newsbangla24",
+      "nameBn": "নিউজবাংলা২৪",
+      "aliases": [
+        "newsbangla24",
+        "নিউজ বাংলা"
+      ],
+      "website": "https://www.newsbangla24.com/",
+      "feedUrl": "https://www.newsbangla24.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "sarabangla",
+      "name": "Sara Bangla",
+      "nameBn": "সারাবাংলা",
+      "aliases": [
+        "sarabangla",
+        "সারাবাংলা"
+      ],
+      "website": "https://sarabangla.net/",
+      "feedUrl": "https://sarabangla.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "orthoneeti",
+      "name": "Amader Orthoneeti",
+      "nameBn": "আমাদের অর্থনীতি",
+      "aliases": [
+        "orthoneeti",
+        "অর্থনীতি"
+      ],
+      "website": "https://www.orthoneeti.com/",
+      "feedUrl": "https://www.orthoneeti.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Economy and business reporting in Bengali."
+    },
+    {
+      "id": "protidiner_bangladesh",
+      "name": "Protidiner Bangladesh",
+      "nameBn": "প্রতিদিনের বাংলাদেশ",
+      "aliases": [
+        "protidinerbangladesh",
+        "প্রতিদিনের বাংলাদেশ"
+      ],
+      "website": "https://www.protidinerbangladesh.com/",
+      "feedUrl": "https://www.protidinerbangladesh.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "purboposhchim",
+      "name": "Purboposhchim",
+      "nameBn": "পূর্বপশ্চিম",
+      "aliases": [
+        "purboposhchim",
+        "পূর্বপশ্চিম"
+      ],
+      "website": "https://purboposhchimbd.news/",
+      "feedUrl": "https://purboposhchimbd.news/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "bonik_barta",
+      "name": "Bonik Barta",
+      "nameBn": "বণিক বার্তা",
+      "aliases": [
+        "bonikbarta",
+        "বণিক বার্তা"
+      ],
+      "website": "https://www.bonikbarta.com/",
+      "feedUrl": "https://www.bonikbarta.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Bengali business daily."
+    },
+    {
+      "id": "business_insider_bd",
+      "name": "Business Insider Bangladesh",
+      "nameBn": "বিজনেস ইনসাইডার বাংলাদেশ",
+      "aliases": [
+        "businessinsiderbd",
+        "business insider"
+      ],
+      "website": "https://www.businessinsiderbd.com/",
+      "feedUrl": "https://www.businessinsiderbd.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "online_portal",
+      "categories": [
+        "business",
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "dainik_azadi",
+      "name": "Dainik Azadi",
+      "nameBn": "দৈনিক আজাদী",
+      "aliases": [
+        "azadi",
+        "আজাদী"
+      ],
+      "website": "https://www.dainikazadi.net/",
+      "feedUrl": "https://www.dainikazadi.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Chattogram",
+      "district": "Chattogram",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Published from Chattogram since 1960."
+    },
+    {
+      "id": "purbokone",
+      "name": "Dainik Purbokone",
+      "nameBn": "দৈনিক পূর্বকোণ",
+      "aliases": [
+        "purbokone",
+        "purbakone",
+        "পূর্বকোণ"
+      ],
+      "website": "https://www.purbakone.com/",
+      "feedUrl": "https://www.purbakone.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Chattogram",
+      "district": "Chattogram",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "suprobhat",
+      "name": "Dainik Suprobhat",
+      "nameBn": "দৈনিক সুপ্রভাত",
+      "aliases": [
+        "suprobhat",
+        "সুপ্রভাত"
+      ],
+      "website": "https://www.suprobhat.com/",
+      "feedUrl": "https://www.suprobhat.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Chattogram",
+      "district": "Chattogram",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "sylheter_dak",
+      "name": "Dainik Sylheter Dak",
+      "nameBn": "দৈনিক সিলেটের ডাক",
+      "aliases": [
+        "sylheterdak",
+        "সিলেটের ডাক"
+      ],
+      "website": "https://www.sylheterdak.com/",
+      "feedUrl": "https://www.sylheterdak.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Sylhet",
+      "district": "Sylhet",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": ""
+    },
+    {
+      "id": "bss",
+      "name": "Bangladesh Sangbad Sangstha (BSS)",
+      "nameBn": "বাংলাদেশ সংবাদ সংস্থা",
+      "aliases": [
+        "bss",
+        "বাসস"
+      ],
+      "website": "https://www.bssnews.net/",
+      "feedUrl": "https://www.bssnews.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "news_agency",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "National news agency of Bangladesh. Not a newspaper."
+    },
+    {
+      "id": "unb",
+      "name": "United News of Bangladesh (UNB)",
+      "nameBn": "ইউএনবি",
+      "aliases": [
+        "unb",
+        "ইউনাইটেড নিউজ"
+      ],
+      "website": "https://unb.com.bd/",
+      "feedUrl": "https://unb.com.bd/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "news_agency",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Private news agency. Not a newspaper."
+    },
+    {
+      "id": "bbc_bangla",
+      "name": "BBC News Bengali",
+      "nameBn": "বিবিসি বাংলা",
+      "aliases": [
+        "bbc bangla",
+        "বিবিসি"
+      ],
+      "website": "https://www.bbc.com/bengali",
+      "feedUrl": "https://feeds.bbci.co.uk/bengali/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "official_documented",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "International broadcaster with Bengali-language service. Not a Bangladeshi newspaper."
+    },
+    {
+      "id": "dw_bangla",
+      "name": "DW Bangla",
+      "nameBn": "ডিডাব্লিউ বাংলা",
+      "aliases": [
+        "dw bangla",
+        "ডিডাব্লিউ"
+      ],
+      "website": "https://www.dw.com/bn",
+      "feedUrl": "https://rss.dw.com/xml/rss-bn-all",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Deutsche Welle Bengali service. Not a Bangladeshi newspaper."
+    },
+    {
+      "id": "voa_bangla",
+      "name": "VOA Bangla",
+      "nameBn": "ভিওএ বাংলা",
+      "aliases": [
+        "voa bangla",
+        "ভিওএ"
+      ],
+      "website": "https://www.voabangla.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Voice of America Bengali service. No public RSS feed listed; website only."
+    },
+    {
+      "id": "somoy_news",
+      "name": "Somoy News",
+      "nameBn": "সময় নিউজ",
+      "aliases": [
+        "somoy",
+        "সময় টিভি"
+      ],
+      "website": "https://www.somoynews.tv/",
+      "feedUrl": "https://www.somoynews.tv/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper."
+    },
+    {
+      "id": "jamuna_tv",
+      "name": "Jamuna Television",
+      "nameBn": "যমুনা টেলিভিশন",
+      "aliases": [
+        "jamuna",
+        "যমুনা টিভি"
+      ],
+      "website": "https://jamuna.tv/",
+      "feedUrl": "https://jamuna.tv/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper."
+    },
+    {
+      "id": "channel24",
+      "name": "Channel 24",
+      "nameBn": "চ্যানেল ২৪",
+      "aliases": [
+        "channel24",
+        "চ্যানেল ২৪"
+      ],
+      "website": "https://www.channel24bd.tv/",
+      "feedUrl": "https://www.channel24bd.tv/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper."
+    },
+    {
+      "id": "ekattor",
+      "name": "Ekattor Television",
+      "nameBn": "একাত্তর টেলিভিশন",
+      "aliases": [
+        "ekattor",
+        "একাত্তর"
+      ],
+      "website": "https://ekattor.tv/",
+      "feedUrl": "https://ekattor.tv/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper."
+    },
+    {
+      "id": "the_independent",
+      "name": "The Independent",
+      "nameBn": "দ্য ইনডিপেন্ডেন্ট",
+      "aliases": [
+        "independent",
+        "the independent bd"
+      ],
+      "website": "https://www.theindependentbd.com/",
+      "feedUrl": "https://www.theindependentbd.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "English daily published from Dhaka."
+    },
+    {
+      "id": "dhaka_courier",
+      "name": "Dhaka Courier",
+      "nameBn": "ঢাকা কুরিয়ার",
+      "aliases": [
+        "dhakacourier",
+        "dhaka courier"
+      ],
+      "website": "https://www.dhakacourier.com.bd/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "en",
+      "type": "weekly",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "needs_review",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Weekly news magazine. Publishing frequency must be confirmed before relying on this entry."
+    }
+  ],
+  "epapers": [
+    {
+      "id": "epaper_prothomalo",
+      "sourceId": "prothomalo",
+      "name": "Prothom Alo E-Paper",
+      "nameBn": "প্রথম আলো ই-পেপার",
+      "url": "https://epaper.prothomalo.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper. Access terms set by the publisher."
+    },
+    {
+      "id": "epaper_ittefaq",
+      "sourceId": "ittefaq",
+      "name": "Ittefaq E-Paper",
+      "nameBn": "ইত্তেফাক ই-পেপার",
+      "url": "https://epaper.ittefaq.com.bd/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_kalerkantho",
+      "sourceId": "kaler_kantho",
+      "name": "Kaler Kantho E-Paper",
+      "nameBn": "কালের কণ্ঠ ই-পেপার",
+      "url": "https://epaper.kalerkantho.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_jugantor",
+      "sourceId": "jugantor",
+      "name": "Jugantor E-Paper",
+      "nameBn": "যুগান্তর ই-পেপার",
+      "url": "https://epaper.jugantor.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_samakal",
+      "sourceId": "samakal",
+      "name": "Samakal E-Paper",
+      "nameBn": "সমকাল ই-পেপার",
+      "url": "https://epaper.samakal.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_dailystar",
+      "sourceId": "daily_star",
+      "name": "The Daily Star E-Paper",
+      "nameBn": "ডেইলি স্টার ই-পেপার",
+      "url": "https://epaper.thedailystar.net/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    }
+  ]
+}

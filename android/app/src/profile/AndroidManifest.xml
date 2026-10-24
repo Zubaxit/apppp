@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Flutter's hot-reload and observatory need network access in debug. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+</manifest>

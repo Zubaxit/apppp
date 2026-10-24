@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Warm paper background with the brand green mark, matching the Flutter splash. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/launch_background" />
+    <item android:gravity="center" android:width="96dp" android:height="96dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/brand_green" />
+            <corners android:radius="26dp" />
+        </shape>
+    </item>
+</layer-list>

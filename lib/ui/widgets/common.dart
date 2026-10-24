@@ -1,0 +1,380 @@
+import 'package:flutter/material.dart';
+
+import '../../core/extensions.dart';
+import '../../core/l10n/app_strings.dart';
+import '../../core/utils/bengali_text.dart';
+import '../../data/models/news_source.dart';
+import '../../data/models/source_health.dart';
+import '../../theme/app_theme.dart';
+
+/// Publication identity without any unlicensed logo art: a deterministic
+/// two-tone monogram derived from the publication id.
+class SourceAvatar extends StatelessWidget {
+  const SourceAvatar({super.key, required this.source, this.size = 44});
+
+  final NewsSource source;
+  final double size;
+
+  static const List<List<Color>> _palettes = <List<Color>>[
+    <Color>[Color(0xFF0B5A46), Color(0xFF12866A)],
+    <Color>[Color(0xFF8C2F39), Color(0xFFC05A4A)],
+    <Color>[Color(0xFF1F3A5F), Color(0xFF3A6EA5)],
+    <Color>[Color(0xFF6B4E16), Color(0xFFA87F2A)],
+    <Color>[Color(0xFF3D2C4E), Color(0xFF6B4B86)],
+    <Color>[Color(0xFF17504F), Color(0xFF2C8C7E)],
+    <Color>[Color(0xFF4A2B1F), Color(0xFF8A5A3B)],
+    <Color>[Color(0xFF263238), Color(0xFF4C5C63)],
+  ];
+
+  List<Color> get _colors {
+    final int hash = source.id.codeUnits.fold<int>(7, (int a, int b) => (a * 31 + b) & 0x7fffffff);
+    return _palettes[hash % _palettes.length];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Color> colors = _colors;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+        borderRadius: BorderRadius.circular(size * 0.3),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: colors.first.withValues(alpha: 0.22),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        source.monogram,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        style: TextStyle(
+          color: Colors.white,
+          fontFamily: 'NotoSansBengali',
+          fontWeight: FontWeight.w700,
+          fontSize: size * 0.34,
+          height: 1.0,
+        ),
+      ),
+    );
+  }
+}
+
+class SectionHeader extends StatelessWidget {
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.actionLabel,
+    this.onAction,
+    this.padding = const EdgeInsets.fromLTRB(20, 0, 12, 10),
+  });
+
+  final String title;
+  final String? subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final AppStrings strings = context.strings;
+    return Padding(
+      padding: padding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: 3,
+            height: 18,
+            margin: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              color: context.colors.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(title, style: context.texts.titleLarge?.copyWith(fontSize: 17)),
+                if (subtitle != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(subtitle!, style: context.texts.bodySmall),
+                  ),
+              ],
+            ),
+          ),
+          if (onAction != null)
+            TextButton(
+              onPressed: onAction,
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                foregroundColor: context.colors.primary,
+              ),
+              child: Text(actionLabel ?? strings.viewAll),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class EmptyState extends StatelessWidget {
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.body,
+    this.actionLabel,
+    this.onAction,
+    this.compact = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 32, vertical: compact ? 24 : 44),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: compact ? 52 : 66,
+            height: compact ? 52 : 66,
+            decoration: BoxDecoration(
+              color: context.colors.surfaceContainerHighest,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: compact ? 24 : 30, color: context.colors.primary),
+          ),
+          const SizedBox(height: 16),
+          Text(title, style: context.texts.titleMedium, textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          Text(
+            body,
+            style: context.texts.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+          if (onAction != null && actionLabel != null) ...<Widget>[
+            const SizedBox(height: 16),
+            FilledButton.tonal(onPressed: onAction, child: Text(actionLabel!)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Lightweight skeleton pulse used instead of a blocking spinner.
+class SkeletonBox extends StatefulWidget {
+  const SkeletonBox({
+    super.key,
+    this.width,
+    this.height = 14,
+    this.radius = 8,
+  });
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  State<SkeletonBox> createState() => _SkeletonBoxState();
+}
+
+class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool reduce = Motion.of(context).reduce;
+    final Color base = context.colors.surfaceContainerHighest;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (BuildContext context, Widget? child) {
+        final double t = reduce ? 0.4 : 0.25 + _controller.value * 0.35;
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            color: base.withValues(alpha: t),
+            borderRadius: BorderRadius.circular(widget.radius),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class ArticleSkeleton extends StatelessWidget {
+  const ArticleSkeleton({super.key, this.count = 4});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List<Widget>.generate(count, (int index) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const SkeletonBox(width: 96, height: 10),
+                    const SizedBox(height: 10),
+                    const SkeletonBox(height: 16),
+                    const SizedBox(height: 8),
+                    const SkeletonBox(width: 240, height: 16),
+                    const SizedBox(height: 12),
+                    const SkeletonBox(width: 180, height: 10),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              const SkeletonBox(width: 88, height: 88, radius: 12),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+/// Compact health indicator used in directory rows and detail headers.
+class HealthBadge extends StatelessWidget {
+  const HealthBadge({super.key, required this.health, this.hasFeed = true});
+
+  final SourceHealth? health;
+  final bool hasFeed;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool bengali = context.isBengali;
+    late final String label;
+    late final Color color;
+    if (!hasFeed) {
+      label = context.strings.feedNotAvailable;
+      color = context.colors.onSurfaceVariant;
+    } else if (health == null || health!.status == SourceHealthStatus.unknown) {
+      label = context.strings.feedUnchecked;
+      color = context.colors.onSurfaceVariant;
+    } else if (health!.status == SourceHealthStatus.ok) {
+      label = context.strings.feedWorking;
+      color = context.isDark ? AppColors.mint : AppColors.brandGreen;
+    } else if (health!.status == SourceHealthStatus.disabled) {
+      label = context.strings.feedNotAvailable;
+      color = context.colors.onSurfaceVariant;
+    } else {
+      label = context.strings.feedFailing;
+      color = context.colors.error;
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            style: context.texts.labelSmall?.copyWith(color: color, fontWeight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Publication metadata line: type · language · location.
+String publicationMeta(NewsSource source, {required bool bengali}) {
+  final List<String> parts = <String>[
+    if (bengali) _typeBn(source.type) else _typeEn(source.type),
+    source.language == SourceLanguage.bn ? (bengali ? 'বাংলা' : 'Bengali') : (bengali ? 'ইংরেজি' : 'English'),
+    if (source.district != null) source.district!,
+  ];
+  return parts.join(' · ');
+}
+
+String _typeBn(PublicationType type) {
+  switch (type) {
+    case PublicationType.dailyNewspaper:
+      return 'দৈনিক';
+    case PublicationType.onlinePortal:
+      return 'অনলাইন';
+    case PublicationType.weekly:
+      return 'সাপ্তাহিক';
+    case PublicationType.magazine:
+      return 'ম্যাগাজিন';
+    case PublicationType.newsAgency:
+      return 'সংবাদ সংস্থা';
+    case PublicationType.broadcaster:
+      return 'সম্প্রচারমাধ্যম';
+    case PublicationType.unknown:
+      return 'প্রকাশনা';
+  }
+}
+
+String _typeEn(PublicationType type) {
+  switch (type) {
+    case PublicationType.dailyNewspaper:
+      return 'Daily';
+    case PublicationType.onlinePortal:
+      return 'Online';
+    case PublicationType.weekly:
+      return 'Weekly';
+    case PublicationType.magazine:
+      return 'Magazine';
+    case PublicationType.newsAgency:
+      return 'Agency';
+    case PublicationType.broadcaster:
+      return 'Broadcaster';
+    case PublicationType.unknown:
+      return 'Publication';
+  }
+}
+
+/// "৩ ঘণ্টা আগে" or the explicit "publication time not provided" note.
+String articleTimeLabel(
+  BuildContext context, {
+  required DateTime? publishedAt,
+  required DateTime fetchedAt,
+}) {
+  final String? relative = BengaliText.relative(publishedAt, bengali: context.isBengali);
+  if (relative != null) return relative;
+  return context.strings.noPublicationDate;
+}

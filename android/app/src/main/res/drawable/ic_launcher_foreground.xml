@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple newspaper glyph; no publisher branding is used. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,32h44a4,4 0 0 1 4,4v36a4,4 0 0 1 -4,4H32a4,4 0 0 1 -4,-4V36a4,4 0 0 1 4,-4z" />
+    <path
+        android:fillColor="#0B5A46"
+        android:pathData="M37,40h16v13H37z" />
+    <path
+        android:fillColor="#F42A41"
+        android:pathData="M37,40h16v4H37z" />
+    <path
+        android:fillColor="#0B5A46"
+        android:pathData="M57,41h14v2.6H57zM57,46.5h14v2.6H57zM57,52h14v2.6H57zM36,59h35v2.6H36zM36,64.5h35v2.6H36zM36,70h24v2.6H36z" />
+</vector>
