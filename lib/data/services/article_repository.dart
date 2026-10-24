@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../feeds/feed_service.dart';
 import '../models/article.dart';
 import '../models/feed_query.dart';
@@ -168,12 +170,27 @@ class ArticleRepository {
       }
     }
 
+    String? storageError;
     if (fetched.isNotEmpty) {
-      await stores.articles.upsertAll(fetched);
-      await stores.articles.prune();
+      try {
+        await stores.articles.upsertAll(fetched);
+        await stores.articles.prune();
+      } catch (error) {
+        // A storage failure must never look like a successful refresh, and it
+        // must never discard the per-source diagnostics we just collected.
+        storageError = 'Local cache write failed: $error';
+        if (kDebugMode) debugPrint(storageError);
+        for (final FeedFetchOutcome outcome in outcomes) {
+          if (outcome.health.isOk) {
+            failures[outcome.sourceId] = storageError;
+          }
+        }
+      }
     }
 
-    final int countAfter = await stores.articles.count();
+    final int countAfter = storageError == null
+        ? await stores.articles.count()
+        : countBefore;
     final DateTime finishedAt = _clock();
     if (outcomes.any((FeedFetchOutcome o) => o.health.isOk)) {
       await stores.meta.set(lastRefreshKey, finishedAt.toIso8601String());
@@ -189,6 +206,7 @@ class ArticleRepository {
       newArticles: countAfter > countBefore ? countAfter - countBefore : 0,
       failures: failures,
       notes: notes,
+      storageError: storageError,
     );
   }
 

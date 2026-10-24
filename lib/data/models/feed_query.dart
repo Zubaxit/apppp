@@ -95,6 +95,7 @@ class RefreshReport {
     required this.newArticles,
     this.failures = const <String, String>{},
     this.notes = const <String>[],
+    this.storageError,
   });
 
   final DateTime startedAt;
@@ -108,6 +109,10 @@ class RefreshReport {
   /// sourceId -> short error message
   final Map<String, String> failures;
   final List<String> notes;
+
+  /// Set when fetched articles could not be written to the local cache. The
+  /// UI shows this as a real failure instead of a successful refresh.
+  final String? storageError;
 
   Duration get duration => finishedAt.difference(startedAt);
 

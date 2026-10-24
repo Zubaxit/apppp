@@ -132,6 +132,25 @@ void main() {
     expect(gateway.calls, greaterThan(first));
   });
 
+  test('a storage failure is reported instead of looking like a success', () async {
+    final ArticleRepository repository = ArticleRepository(
+      registry: registry,
+      stores: fakeStores(articles: _BrokenArticleStore()),
+      feedService: FakeFeedGateway(
+        articlesBySource: <String, List<Article>>{
+          'prothomalo': <Article>[sampleArticle()],
+        },
+      ),
+    );
+
+    final RefreshReport report = await repository.refresh(force: true);
+
+    expect(report.storageError, contains('Local cache write failed'));
+    expect(report.failures.values, contains(report.storageError));
+    // The per-source fetch itself still happened and is not lost.
+    expect(report.sourcesAttempted, greaterThan(0));
+  });
+
   test('feed filters by source, topic, language and text', () async {
     final AppStores stores = fakeStores(
       seed: <Article>[
@@ -297,5 +316,14 @@ class _ThrowingGateway implements FeedGateway {
   @override
   Future<FeedFetchOutcome> fetch(NewsSource source, {DateTime? now}) async {
     throw StateError('simulated crash inside the gateway');
+  }
+}
+
+/// Simulates an unusable local cache (e.g. the schema/column mismatch that
+/// emptied the shipped app) to prove the repository surfaces it.
+class _BrokenArticleStore extends FakeArticleStore {
+  @override
+  Future<void> upsertAll(Iterable<Article> articles) async {
+    throw StateError('table articles has no column named sourceId');
   }
 }

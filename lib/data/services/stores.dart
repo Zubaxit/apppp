@@ -94,11 +94,9 @@ class SqliteArticleStore implements ArticleStore {
     if (articles.isEmpty) return;
     final Batch batch = _db.batch();
     for (final Article article in articles) {
-      final Map<String, dynamic> map = article.toMap();
-      map['tags'] = json.encode(article.tags);
       batch.insert(
         _table,
-        map,
+        article.toRow(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -141,7 +139,7 @@ class SqliteArticleStore implements ArticleStore {
       orderBy: 'COALESCE(published_at, fetched_at) DESC, fetched_at DESC',
       limit: limit,
     );
-    return rows.map(Article.fromMap).toList();
+    return rows.map(Article.fromRow).toList();
   }
 
   @override
@@ -153,7 +151,7 @@ class SqliteArticleStore implements ArticleStore {
       orderBy: 'COALESCE(published_at, fetched_at) DESC',
       limit: limit,
     );
-    return rows.map(Article.fromMap).toList();
+    return rows.map(Article.fromRow).toList();
   }
 
   @override
@@ -165,7 +163,7 @@ class SqliteArticleStore implements ArticleStore {
       limit: 1,
     );
     if (rows.isEmpty) return null;
-    return Article.fromMap(rows.first);
+    return Article.fromRow(rows.first);
   }
 
   @override
@@ -177,7 +175,7 @@ class SqliteArticleStore implements ArticleStore {
       orderBy: 'COALESCE(published_at, fetched_at) DESC',
       limit: limit,
     );
-    return rows.map(Article.fromMap).toList();
+    return rows.map(Article.fromRow).toList();
   }
 
   @override

@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Candidate feed URLs for the curated publisher set. A URL listed here is only a hypothesis; scripts/probe_feeds.py tests it against the live publisher and only a qualified result may be promoted into sources.json.",
+  "updatedAt": "2026-10-24",
+  "sources": [
+    {
+      "id": "prothomalo",
+      "language": "bn",
+      "urls": [
+        "https://www.prothomalo.com/stories.rss",
+        "https://www.prothomalo.com/feed",
+        "https://www.prothomalo.com/bangladesh/feed"
+      ]
+    },
+    {
+      "id": "bdnews24",
+      "language": "bn",
+      "urls": [
+        "https://bdnews24.com/rss",
+        "https://bdnews24.com/bangla.rss",
+        "https://bdnews24.com/?feed=rss2",
+        "https://bdnews24.com/northamerica/rss",
+        "https://bangla.bdnews24.com/rss"
+      ]
+    },
+    {
+      "id": "jugantor",
+      "language": "bn",
+      "urls": [
+        "https://www.jugantor.com/rss",
+        "https://www.jugantor.com/feed",
+        "https://www.jugantor.com/rss.xml",
+        "https://www.jugantor.com/todays-paper/rss"
+      ]
+    },
+    {
+      "id": "samakal",
+      "language": "bn",
+      "urls": [
+        "https://samakal.com/rss",
+        "https://samakal.com/feed",
+        "https://samakal.com/rss.xml"
+      ]
+    },
+    {
+      "id": "daily_star",
+      "language": "en",
+      "urls": [
+        "https://www.thedailystar.net/rss/all",
+        "https://www.thedailystar.net/frontpage/rss.xml",
+        "https://www.thedailystar.net/news/rss",
+        "https://www.thedailystar.net/rss.xml"
+      ]
+    },
+    {
+      "id": "dhaka_tribune",
+      "language": "en",
+      "urls": [
+        "https://www.dhakatribune.com/feed",
+        "https://www.dhakatribune.com/rss",
+        "https://www.dhakatribune.com/rss.xml"
+      ]
+    },
+    {
+      "id": "kaler_kantho",
+      "language": "bn",
+      "urls": [
+        "https://www.kalerkantho.com/rss",
+        "https://www.kalerkantho.com/feed",
+        "https://www.kalerkantho.com/rss.xml"
+      ]
+    },
+    {
+      "id": "bd_pratidin",
+      "language": "bn",
+      "urls": [
+        "https://www.bd-pratidin.com/rss",
+        "https://www.bd-pratidin.com/feed",
+        "https://bd-pratidin.com/rss"
+      ]
+    },
+    {
+      "id": "ittefaq",
+      "language": "bn",
+      "urls": [
+        "https://www.ittefaq.com.bd/rss",
+        "https://www.ittefaq.com.bd/feed",
+        "https://www.ittefaq.com.bd/rss.xml"
+      ]
+    },
+    {
+      "id": "tbs",
+      "language": "en",
+      "urls": [
+        "https://www.tbsnews.net/rss.xml",
+        "https://www.tbsnews.net/rss",
+        "https://www.tbsnews.net/feed"
+      ]
+    },
+    {
+      "id": "bangla_tribune",
+      "language": "bn",
+      "urls": [
+        "https://www.banglatribune.com/feed",
+        "https://www.banglatribune.com/rss",
+        "https://www.banglatribune.com/rss.xml"
+      ]
+    },
+    {
+      "id": "bbc_bangla",
+      "language": "bn",
+      "urls": [
+        "https://feeds.bbci.co.uk/bengali/rss.xml"
+      ]
+    },
+    {
+      "id": "reuters",
+      "language": "en",
+      "urls": [
+        "https://www.reutersagency.com/feed/?best-topics=world&post_type=best",
+        "https://feeds.reuters.com/reuters/worldNews",
+        "https://www.reuters.com/arc/outboundfeeds/rss/?outputType=xml"
+      ]
+    },
+    {
+      "id": "aljazeera",
+      "language": "en",
+      "urls": [
+        "https://www.aljazeera.com/xml/rss/all.xml",
+        "https://www.aljazeera.com/rss"
+      ]
+    },
+    {
+      "id": "dw",
+      "language": "en",
+      "urls": [
+        "https://rss.dw.com/rdf/rss-en-all",
+        "https://rss.dw.com/xml/rss-en-all",
+        "https://rss.dw.com/rdf/rss-en-world"
+      ]
+    }
+  ]
+}

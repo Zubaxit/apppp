@@ -42,7 +42,9 @@ class FeedController extends ChangeNotifier {
   bool _loading = true;
   bool _offline = false;
   String? _error;
+  String? _lastFailureDetail;
   RefreshReport? _lastReport;
+  String? get lastFailureDetail => _lastFailureDetail;
   int _progressDone = 0;
   int _progressTotal = 0;
   Timer? _timer;
@@ -197,9 +199,15 @@ class FeedController extends ChangeNotifier {
         _offline = !(await connectivity.isOnline());
       }
       await _reload(notify: false);
-    } catch (error) {
-      _error = 'Refresh failed';
-      if (kDebugMode) debugPrint('Refresh failed: $error');
+    } catch (error, stack) {
+      // Keep the real cause for the diagnostics sheet; the headline message
+      // stays human and localized.
+      _lastFailureDetail = '$error';
+      _error = 'Could not refresh: $error';
+      if (kDebugMode) {
+        debugPrint('Refresh failed: $error');
+        debugPrintStack(stackTrace: stack);
+      }
     } finally {
       _busy = false;
       _loading = false;

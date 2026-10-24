@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../core/utils/ids.dart';
 import '../../core/utils/text_utils.dart';
 import 'news_source.dart';
@@ -183,6 +185,73 @@ class Article {
       };
 
   Map<String, dynamic> toJson() => toMap();
+
+  /// SQLite row mapping.
+  ///
+  /// Deliberately separate from [toMap]: the JSON payload keeps camelCase keys
+  /// for the saved/history blobs, while the `articles` table uses snake_case
+  /// columns. Conflating the two meant every insert failed with
+  /// "no column named sourceId", which aborted the whole refresh.
+  Map<String, Object?> toRow() => <String, Object?>{
+        'id': id,
+        'source_id': sourceId,
+        'title': title,
+        'link': link,
+        'excerpt': excerpt,
+        'image_url': imageUrl,
+        'published_at': publishedAt?.millisecondsSinceEpoch,
+        'fetched_at': fetchedAt.millisecondsSinceEpoch,
+        'guid': guid,
+        'author': author,
+        'topic': topic.name,
+        'publisher_category': publisherCategory,
+        'language': language.name,
+        'tags': jsonEncode(tags),
+        'breaking': breaking ? 1 : 0,
+        'cluster_key': clusterKey,
+      };
+
+  static Article fromRow(Map<String, Object?> row) {
+    int? asInt(Object? value) =>
+        value is int ? value : int.tryParse('${value ?? ''}');
+    DateTime? asDate(Object? value) {
+      final int? millis = asInt(value);
+      return millis == null || millis == 0
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
+    }
+
+    Object? decodedTags = row['tags'];
+    List<String> tags = const <String>[];
+    if (decodedTags is String && decodedTags.isNotEmpty) {
+      try {
+        final Object? parsed = jsonDecode(decodedTags);
+        if (parsed is List) tags = parsed.map((Object? e) => '$e').toList();
+      } catch (_) {
+        // A malformed tag blob must never hide an article.
+        tags = const <String>[];
+      }
+    }
+
+    return Article(
+      id: row['id']! as String,
+      sourceId: (row['source_id'] ?? '') as String,
+      title: (row['title'] ?? '') as String,
+      link: (row['link'] ?? '') as String,
+      excerpt: row['excerpt'] as String?,
+      imageUrl: row['image_url'] as String?,
+      publishedAt: asDate(row['published_at']),
+      fetchedAt: asDate(row['fetched_at']) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      guid: row['guid'] as String?,
+      author: row['author'] as String?,
+      topic: ArticleTopicX.fromKey(row['topic'] as String?),
+      publisherCategory: row['publisher_category'] as String?,
+      language: SourceLanguageX.fromKey(row['language'] as String?),
+      tags: tags,
+      breaking: row['breaking'] == 1 || row['breaking'] == true,
+      clusterKey: row['cluster_key'] as String?,
+    );
+  }
 
   static Article fromMap(Map<String, dynamic> map) {
     final int? published = map['publishedAt'] as int?;

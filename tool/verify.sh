@@ -118,6 +118,9 @@ for path in sorted(set(declared)):
 print(f'    all {len(set(declared))} declared asset files present')
 PY
 
+echo "==> Dart structural checks (no SDK required)"
+python3 tool/dart_lint.py
+
 echo "==> Dart static checks (tree-sitter based)"
 if [ -d node_modules/tree-sitter ] || [ -d /tmp/tsdart/node_modules/tree-sitter ]; then
   NODE_PATH="${NODE_PATH:-}:/tmp/tsdart/node_modules" node tool/dart_static_check.js
