@@ -85,9 +85,8 @@ jobs:
 
           emit(f'{len(failing)} failing tests:', names[:40])
 
-          layout = [line for line in lines
-                    if 'LAYOUT-ERROR' in line or 'overflowed by' in line
-                    or 'error-causing widget' in line]
+          start = next((i for i, line in enumerate(lines) if 'LAYOUT-ERROR' in line), None)
+          layout = lines[start:start + 60] if start is not None else []
           emit('Layout diagnostics:', layout)
 
           first = next((i for i, line in enumerate(lines) if 'EXCEPTION CAUGHT' in line), None)

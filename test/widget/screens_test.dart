@@ -430,10 +430,17 @@ void main() {
       final TestHarness h = harness(artwork: <Article>[bnArticle, enArticle]);
       await tester.pumpWidget(h.wrap(const HomeScreen()));
       await h.feed.start();
+      // Capture layout errors ourselves so the full diagnostics (including the
+      // offending widget and its source line) reach the CI log.
+      final List<FlutterErrorDetails> layoutErrors = <FlutterErrorDetails>[];
+      final FlutterExceptionHandler? previousHandler = FlutterError.onError;
+      FlutterError.onError = (FlutterErrorDetails details) => layoutErrors.add(details);
       await tester.pumpAndSettle();
-      final Object? error = tester.takeException();
-      if (error != null) debugPrint('LAYOUT-ERROR: $error');
-      expect(error, isNull);
+      FlutterError.onError = previousHandler;
+      for (final FlutterErrorDetails details in layoutErrors) {
+        debugPrint('LAYOUT-ERROR: $details');
+      }
+      expect(layoutErrors, isEmpty);
       expect(find.text(bnArticle.title), findsOneWidget);
     });
 
