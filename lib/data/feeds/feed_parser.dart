@@ -79,12 +79,12 @@ class FeedParser {
     required DateTime fetchedAt,
     FeedParserConfig config = const FeedParserConfig(),
   }) {
-    final String withoutBom =
-        body.startsWith('\uFEFF') ? body.substring(1) : body;
-    final String cleaned = _sanitizeXml(body);
-    // The body needed repair to become valid XML: report it as recovered so
-    // the UI can say "repaired" instead of silently pretending all is well.
-    final bool repaired = cleaned != withoutBom;
+    final ({String body, bool repaired}) prepared = _prepareXml(body);
+    final String cleaned = prepared.body;
+    // `repaired` is true only when the publisher's markup was genuinely broken
+    // (bare '&', illegal control characters) — not for the routine
+    // normalisation of HTML named entities.
+    final bool repaired = prepared.repaired;
     final List<String> warnings = <String>[];
     XmlDocument? document;
     try {
@@ -512,17 +512,22 @@ class FeedParser {
   // XML helpers
   // ---------------------------------------------------------------------------
 
-  String _sanitizeXml(String input) {
+  ({String body, bool repaired}) _prepareXml(String input) {
     var value = input;
+    var repaired = false;
     if (value.startsWith('\uFEFF')) value = value.substring(1);
     // Remove characters that are illegal in XML 1.0.
+    final String beforeControl = value;
     value = value.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), '');
+    if (value != beforeControl) repaired = true;
     // Repair bare ampersands ('&' that does not start a valid entity), which
     // are the most common cause of otherwise unparseable publisher feeds.
+    final String beforeAmpersand = value;
     value = value.replaceAllMapped(
       RegExp(r'&(?!(?:#[0-9]{1,7}|#x[0-9a-fA-F]{1,6}|[a-zA-Z][a-zA-Z0-9]{1,10});)'),
       (Match _) => '&amp;',
     );
+    if (value != beforeAmpersand) repaired = true;
     // Repair the most common entity problems without touching valid entities.
     const Map<String, String> named = <String, String>{
       'nbsp': '&#160;', 'mdash': '&#8212;', 'ndash': '&#8211;',
@@ -543,7 +548,7 @@ class FeedParser {
         return replacement ?? '&amp;${match.group(1)};';
       },
     );
-    return value;
+    return (body: value, repaired: repaired);
   }
 
   String _cleanText(String input) {
