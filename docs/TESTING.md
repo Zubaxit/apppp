@@ -110,7 +110,7 @@ This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates r
 | --- | --- | --- |
 | Formatting | not gated (kept out of CI on purpose; `dart format lib test` locally) | — |
 | Static analysis | `flutter analyze --fatal-warnings` | **success**, 0 issues |
-| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 106 tests |
+| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 109 tests |
 | Debug APK | `flutter build apk --debug` | **success** |
 | Release APK | `flutter build apk --release` | **success** (artifact `apk`, ~118 MB combined) |
 | `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |

@@ -319,7 +319,7 @@ publisher logos.
 6. Deduplication is heuristic: identical URLs are collapsed; cross-publication coverage is grouped
    by headline-similarity signature for display only.
 7. There is no cloud sync, no full-text reading, and no commenting — by design.
-8. Analysis, the 106-test suite and the debug/release APK builds ran in GitHub Actions and pass
+8. Analysis, the 109-test suite and the debug/release APK builds ran in GitHub Actions and pass
    (see *Testing*); this development sandbox itself has no Flutter/JDK toolchain, so
    `./tool/verify.sh` is the only gate that runs locally.
 
