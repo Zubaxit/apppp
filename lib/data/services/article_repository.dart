@@ -109,7 +109,7 @@ class ArticleRepository {
     final DateTime startedAt = _clock();
     await stores.meta.set(lastAttemptKey, startedAt.toIso8601String());
 
-    final List<NewsSource> candidates = registry.withFeeds
+    final List<NewsSource> candidates = registry.feedSources
         .where((NewsSource s) => onlySourceIds == null || onlySourceIds.contains(s.id))
         .toList();
     final Map<String, FeedMeta> metaBySource = <String, FeedMeta>{

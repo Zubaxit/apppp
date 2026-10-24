@@ -93,6 +93,8 @@ class NewsSource {
     this.featured = false,
     this.epaperUrl,
     this.notes = '',
+    this.curated = false,
+    this.curationOrder = 99,
   });
 
   final String id;
@@ -117,6 +119,13 @@ class NewsSource {
   final bool featured;
   final String? epaperUrl;
   final String notes;
+
+  /// Part of the hand-picked reading set shown first in the app. Curation is a
+  /// presentation choice and says nothing about feed availability.
+  final bool curated;
+
+  /// Ordering inside the curated set.
+  final int curationOrder;
 
   bool get hasFeed => (feedUrl ?? '').isNotEmpty;
 
@@ -200,6 +209,8 @@ class NewsSource {
         'featured': featured,
         'epaperUrl': epaperUrl,
         'notes': notes,
+        'curated': curated,
+        'curationOrder': curationOrder,
       };
 
   static NewsSource fromMap(Map<String, dynamic> map) {
@@ -239,6 +250,9 @@ class NewsSource {
       featured: map['featured'] == true,
       epaperUrl: TextUtils.nullIfBlank(map['epaperUrl'] as String?),
       notes: (map['notes'] as String?) ?? '',
+      curated: map['curated'] == true,
+      curationOrder:
+          map['curationOrder'] is int ? map['curationOrder'] as int : 99,
     );
   }
 }
@@ -316,6 +330,28 @@ class SourceRegistry {
       sources.where((NewsSource s) => s.categories.contains(category)).toList()
         ..sort((NewsSource a, NewsSource b) =>
             a.localizedName(bengali: true).compareTo(b.localizedName(bengali: true)));
+
+  /// The curated reading set, in editorial order.
+  List<NewsSource> get curated => sources.where((NewsSource s) => s.curated).toList()
+    ..sort((NewsSource a, NewsSource b) => a.curationOrder.compareTo(b.curationOrder));
+
+  /// Curated publications that can actually contribute to the unified feed.
+  List<NewsSource> get curatedWithFeeds =>
+      curated.where((NewsSource s) => s.hasFeed && s.isActive).toList();
+
+  /// What the unified feed actually fetches.
+  ///
+  /// Preference order: curated publications with a verified/documented feed,
+  /// then (for fixtures or a future expanded set) any source that has a feed.
+  List<NewsSource> get feedSources {
+    final List<NewsSource> curatedFeeds = curatedWithFeeds;
+    if (curatedFeeds.isNotEmpty) return curatedFeeds;
+    return withFeeds;
+  }
+
+  /// Curated publications available as a website only.
+  List<NewsSource> get curatedWebOnly =>
+      curated.where((NewsSource s) => !s.hasFeed).toList();
 
   List<NewsSource> get featured =>
       sources.where((NewsSource s) => s.featured && s.isActive).toList();

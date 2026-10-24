@@ -95,6 +95,9 @@ abstract class AppStrings {
   String get fetchHeadlines;
   String get verifiedWebsite;
   String get feedState;
+  String get inYourFeed;
+  String get readOnWeb;
+  String get allPublications;
   String get verifiedOn;
   String get regionalSources;
   String get needsReview;
@@ -192,6 +195,8 @@ abstract class AppStrings {
   String get sourceCountShort;
   String get articleCountShort;
   String get offlineSavedNotice;
+  String get saveLinkOnlyNotice;
+  String get readInApp;
   String get noFollowedPapers;
   String get noFollowedBody;
   String get regionalEmpty;
@@ -345,6 +350,12 @@ class BanglaStrings extends AppStrings {
   String get verifiedWebsite => 'যাচাই করা অফিসিয়াল ঠিকানা';
   @override
   String get feedState => 'ফিডের অবস্থা';
+  @override
+  String get inYourFeed => 'আপনার ফিডে';
+  @override
+  String get readOnWeb => 'ওয়েবসাইটে পড়ুন';
+  @override
+  String get allPublications => 'সব প্রকাশনা';
   @override
   String get verifiedOn => 'যাচাইয়ের তারিখ';
   @override
@@ -532,6 +543,11 @@ class BanglaStrings extends AppStrings {
   @override
   String get offlineSavedNotice => 'অফলাইনে সংরক্ষিত কপি';
   @override
+  String get saveLinkOnlyNotice =>
+      'শুধু শিরোনাম, সারাংশ ও মূল লিংক সংরক্ষিত হবে — পুরো প্রতিবেদনের লেখা নয়। অফলাইনে থাকলে মূল পৃষ্ঠাটি খুলবে না।';
+  @override
+  String get readInApp => 'অ্যাপে পড়ুন';
+  @override
   String get noFollowedPapers => 'এখনও কোনো পত্রিকা অনুসরণ করছেন না';
   @override
   String get noFollowedBody => 'পত্রিকা নির্দেশিকা থেকে পছন্দের পত্রিকা অনুসরণ করুন।';
@@ -687,6 +703,12 @@ class EnglishStrings extends AppStrings {
   String get verifiedWebsite => 'Curated official address';
   @override
   String get feedState => 'Feed state';
+  @override
+  String get inYourFeed => 'In your feed';
+  @override
+  String get readOnWeb => 'Read on the web';
+  @override
+  String get allPublications => 'All publications';
   @override
   String get verifiedOn => 'Verified on';
   @override
@@ -876,6 +898,11 @@ class EnglishStrings extends AppStrings {
   String get articleCountShort => 'stories';
   @override
   String get offlineSavedNotice => 'Offline saved copy';
+  @override
+  String get saveLinkOnlyNotice =>
+      'Only the headline, excerpt and original link are saved — not the full article text. The page will not open while you are offline.';
+  @override
+  String get readInApp => 'Read in app';
   @override
   String get noFollowedPapers => 'You are not following any publication yet';
   @override

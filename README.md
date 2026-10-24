@@ -66,8 +66,14 @@ publication time, and sends readers to the original article on the publisher's s
 
 ### Reading
 - Article detail with source identity, exact publication date/time in Bangladesh time, the
-  permitted excerpt, a clear notice about why only the excerpt is shown, "Read the original story"
-  (Custom Tab / in-app browser, with a fallback to the external browser), copy link and share.
+  permitted excerpt, a clear notice about why only the excerpt is shown, "Read in app", copy link
+  and share.
+- **In-app reader.** "Read in app" opens the publisher's own page in an embedded web view that
+  always shows the real origin (e.g. `prothomalo.com`) and offers reload, page-history back,
+  "open in browser" and a bookmark that stores the headline + link only. Nothing is injected into
+  the page; logins, paywalls and anti-bot measures are never bypassed. E-paper destinations open in
+  the external browser instead, because editions are usually PDF/image viewers the web view cannot
+  render honestly.
 - Automatic tags: topic, publisher category, thumbnail (only if the feed supplies one).
 - **Related coverage**: other publishers whose headlines describe the same story, listed as
   separate links with their own attribution — stories are never merged.
@@ -304,9 +310,12 @@ publisher logos.
 
 ## Known limitations
 
-1. **No live feed has been verified in this environment** (no network access to publisher hosts).
-   Feed URLs are mostly candidates; the app reports per-source reality at runtime. Run the verification
-   script to confirm and promote them.
+1. **Six feeds are verified working; fifty publisher URLs are not.** The verification workflow
+   (`Verify sources`) fetched each candidate on 2026-10-24: 6 feeds returned well-formed items
+   (Prothom Alo, Bhorer Kagoj-free Suprobhat, Sarabangla, Dainik Azadi, The Business Standard, BBC
+   Bangla), 22 websites were reachable but exposed no usable feed, and 50 candidates failed (mostly
+   HTTP 403 bot protection, then 404 and DNS failures). Those 50 stay marked `candidate` in the
+   directory and the app reports the failure at runtime rather than pretending to have news.
 2. Bengali and English publication *names* are curated; logos are not shipped (licensing), so
    text monograms are used.
 3. Regional coverage is intentionally conservative: only publications whose official domain is
@@ -319,7 +328,9 @@ publisher logos.
 6. Deduplication is heuristic: identical URLs are collapsed; cross-publication coverage is grouped
    by headline-similarity signature for display only.
 7. There is no cloud sync, no full-text reading, and no commenting — by design.
-8. Analysis, the 109-test suite and the debug/release APK builds ran in GitHub Actions and pass
+8. The in-app reader needs a live connection — saving from it stores the headline and link, not
+   the page, and the reader cannot display a PDF-only e-paper.
+9. Analysis, the 113-test suite and the debug/release APK builds ran in GitHub Actions and pass
    (see *Testing*); this development sandbox itself has no Flutter/JDK toolchain, so
    `./tool/verify.sh` is the only gate that runs locally.
 

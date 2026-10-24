@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'tokens.dart';
+
 /// Editorial colour system: warm paper in light mode, deep ink in dark mode,
 /// with Bangladesh green as the brand colour and flag red reserved for
 /// breaking news only.
 class AppColors {
   const AppColors._();
 
-  static const Color brandGreen = Color(0xFF0B5A46);
-  static const Color brandGreenBright = Color(0xFF12765C);
-  static const Color flagRed = Color(0xFFC8102E);
-  static const Color paper = Color(0xFFFBF8F3);
-  static const Color paperDeep = Color(0xFFF2ECE1);
-  static const Color ink = Color(0xFF14201B);
-  static const Color inkSoft = Color(0xFF5A675F);
-  static const Color inkFaint = Color(0xFF8B968F);
-  static const Color line = Color(0xFFE4DCCE);
+  static const Color brandGreen = Tokens.green;
+  static const Color brandGreenBright = Tokens.greenSoft;
+  static const Color flagRed = Tokens.signal;
+  static const Color paper = Tokens.paper;
+  static const Color paperDeep = Tokens.paperSunken;
+  static const Color ink = Tokens.ink;
+  static const Color inkSoft = Tokens.inkMuted;
+  static const Color inkFaint = Tokens.inkFaint;
+  static const Color line = Tokens.hairline;
 
-  static const Color nightBg = Color(0xFF0D1311);
-  static const Color nightSurface = Color(0xFF151D1A);
-  static const Color nightSurfaceAlt = Color(0xFF1C2622);
-  static const Color nightLine = Color(0xFF2A3531);
-  static const Color nightInk = Color(0xFFF0EBE2);
-  static const Color nightInkSoft = Color(0xFFA9B4AD);
-  static const Color mint = Color(0xFF57C9A5);
-  static const Color rose = Color(0xFFFF7A88);
+  static const Color nightBg = Tokens.nightBg;
+  static const Color nightSurface = Tokens.nightRaised;
+  static const Color nightSurfaceAlt = Tokens.nightRaised;
+  static const Color nightLine = Tokens.nightHairline;
+  static const Color nightInk = Tokens.nightInk;
+  static const Color nightInkSoft = Tokens.nightInkMuted;
+  static const Color mint = Tokens.mint;
+  static const Color rose = Color(0xFFFF8A8A);
 }
 
 class AppTheme {
@@ -41,7 +43,7 @@ class AppTheme {
       primary: AppColors.brandGreen,
       onPrimary: Colors.white,
       secondary: AppColors.brandGreenBright,
-      surface: Colors.white,
+      surface: Tokens.paperRaised,
       onSurface: AppColors.ink,
       error: AppColors.flagRed,
       surfaceContainerHighest: AppColors.paperDeep,
@@ -96,12 +98,13 @@ class AppTheme {
       scaffoldBackgroundColor: background,
       canvasColor: background,
       dividerColor: divider,
+      dividerTheme: DividerThemeData(color: divider, thickness: 0.8, space: 0.8),
       fontFamily: _sans,
       textTheme: text,
       splashFactory: InkSparkle.splashFactory,
       visualDensity: VisualDensity.standard,
       appBarTheme: AppBarTheme(
-        backgroundColor: background,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         elevation: 0,
@@ -127,7 +130,7 @@ class AppTheme {
         showCheckmark: false,
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: scheme.surface,
+        backgroundColor: Colors.transparent,
         indicatorColor: scheme.primary.withValues(alpha: 0.14),
         surfaceTintColor: Colors.transparent,
         elevation: 0,

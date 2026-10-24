@@ -19,7 +19,7 @@ class SourceHealthScreen extends StatelessWidget {
     final SourceRegistry registry = context.registry;
     final FeedController feed = context.watch<FeedController>();
     final bool bengali = context.isBengali;
-    final List<NewsSource> sources = registry.withFeeds.toList()
+    final List<NewsSource> sources = registry.feedSources.toList()
       ..sort((NewsSource a, NewsSource b) {
         final int rankA = _rank(feed.healthFor(a.id));
         final int rankB = _rank(feed.healthFor(b.id));

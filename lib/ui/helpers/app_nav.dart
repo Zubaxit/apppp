@@ -6,6 +6,7 @@ import '../../data/models/news_source.dart';
 import '../../theme/app_theme.dart';
 import '../screens/article_detail_screen.dart';
 import '../screens/article_list_screen.dart';
+import '../screens/newspapers_screen.dart';
 import '../screens/source_detail_screen.dart';
 import '../screens/source_health_screen.dart';
 import '../services/link_launcher.dart';
@@ -48,6 +49,13 @@ void openArticle(BuildContext context, Article article) {
 void openSource(BuildContext context, NewsSource source) {
   Navigator.of(context).push<void>(
     editorialRoute<void>(SourceDetailScreen(source: source), name: 'source'),
+  );
+}
+
+/// Opens the publication directory as a pushed page (used from empty states).
+void openSourceDirectory(BuildContext context) {
+  Navigator.of(context).push<void>(
+    editorialRoute<void>(const NewspapersScreen(standalone: true), name: 'directory'),
   );
 }
 

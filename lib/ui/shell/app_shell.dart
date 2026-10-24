@@ -12,6 +12,10 @@ import '../screens/home_screen.dart';
 import '../screens/newspapers_screen.dart';
 import '../screens/saved_screen.dart';
 import '../screens/settings_screen.dart';
+import '../../core/extensions.dart';
+import '../../theme/app_theme.dart';
+import '../../theme/tokens.dart';
+import '../widgets/editorial.dart';
 
 /// Bottom-navigation shell. Each tab keeps its own scroll state; the detail
 /// routes are pushed on the root navigator so the Android back button behaves
@@ -85,36 +89,122 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
         if (_index != 0) setState(() => _index = 0);
       },
       child: Scaffold(
+        extendBody: true,
         body: IndexedStack(index: _index, children: _tabs),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _index,
-          onDestinationSelected: _onDestinationSelected,
-          destinations: <Widget>[
-            NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home_rounded),
-              label: settings.strings.navHome,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.grid_view_outlined),
-              selectedIcon: const Icon(Icons.grid_view_rounded),
-              label: settings.strings.navCategories,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.newspaper_outlined),
-              selectedIcon: const Icon(Icons.newspaper_rounded),
-              label: settings.strings.navPapers,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.bookmark_border_rounded),
-              selectedIcon: const Icon(Icons.bookmark_rounded),
-              label: settings.strings.navSaved,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.tune_outlined),
-              selectedIcon: const Icon(Icons.tune_rounded),
-              label: settings.strings.navSettings,
-            ),
+        bottomNavigationBar: _GlassNav(
+          index: _index,
+          onSelected: _onDestinationSelected,
+          labels: <String>[
+            settings.strings.navHome,
+            settings.strings.navCategories,
+            settings.strings.navPapers,
+            settings.strings.navSaved,
+            settings.strings.navSettings,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Floating, frosted navigation bar.
+///
+/// Kept short and quiet: five destinations, no labels shouting, a soft tinted
+/// capsule behind the active icon.
+class _GlassNav extends StatelessWidget {
+  const _GlassNav({
+    required this.index,
+    required this.onSelected,
+    required this.labels,
+  });
+
+  final int index;
+  final ValueChanged<int> onSelected;
+  final List<String> labels;
+
+  static const List<IconData> _icons = <IconData>[
+    Icons.article_outlined,
+    Icons.grid_view_outlined,
+    Icons.menu_book_outlined,
+    Icons.bookmark_border_rounded,
+    Icons.tune_rounded,
+  ];
+
+  static const List<IconData> _activeIcons = <IconData>[
+    Icons.article_rounded,
+    Icons.grid_view_rounded,
+    Icons.menu_book_rounded,
+    Icons.bookmark_rounded,
+    Icons.tune_rounded,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final Motion motion = Motion.of(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        MediaQuery.paddingOf(context).bottom > 0 ? 10 : 14,
+      ),
+      child: GlassBar(
+        radius: 26,
+        floating: true,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            for (int i = 0; i < _icons.length; i++)
+              Expanded(
+                child: Semantics(
+                  selected: i == index,
+                  button: true,
+                  label: labels[i],
+                  child: Pressable(
+                    onTap: () => onSelected(i),
+                    scale: 0.94,
+                    child: AnimatedContainer(
+                      duration: motion.fast,
+                      curve: Curves.easeOut,
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      decoration: BoxDecoration(
+                        color: i == index
+                            ? context.colors.primary.withValues(alpha: 0.10)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(
+                            i == index ? _activeIcons[i] : _icons[i],
+                            size: 21,
+                            color: i == index
+                                ? context.colors.primary
+                                : context.colors.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            labels[i],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.texts.labelSmall?.copyWith(
+                              fontSize: 9.5,
+                              fontWeight:
+                                  i == index ? FontWeight.w700 : FontWeight.w500,
+                              letterSpacing: 0.1,
+                              color: i == index
+                                  ? context.colors.primary
+                                  : context.colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

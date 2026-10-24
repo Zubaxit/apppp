@@ -1,23 +1,28 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
+import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/feed_controller.dart';
-import '../../state/settings_controller.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
-import '../widgets/article_card.dart';
 import '../widgets/common.dart';
+import '../widgets/editorial.dart';
+import '../widgets/editorial_story.dart';
 import '../widgets/feed_filter_sheet.dart';
 import '../widgets/feed_widgets.dart';
-import 'newspapers_screen.dart';
 import 'search_screen.dart';
 
+/// The front page.
+///
+/// Composition rules: one lead story, then a rule-separated river of headlines.
+/// No cards, no shadows on content, no rounded blobs — the page reads like a
+/// printed front page that happens to scroll.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -26,453 +31,501 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const int _pageStep = 8;
-  int _visible = _pageStep;
-
   Future<void> _refresh() => context.read<FeedController>().refresh(force: true);
 
-  void _toggleTopic(ArticleTopic topic) {
-    HapticFeedback.selectionClick();
-    final FeedController feed = context.read<FeedController>();
-    unawaited(feed.applyQuery(feed.query.toggleTopic(topic)));
-  }
-
-  void _clearTopics() {
-    final FeedController feed = context.read<FeedController>();
-    unawaited(feed.applyQuery(feed.query.copyWith(topics: const <ArticleTopic>{})));
-  }
-
   void _setFollowing(bool following) {
-    HapticFeedback.selectionClick();
     unawaited(context.read<FeedController>().setFollowedOnly(following));
   }
 
   @override
   Widget build(BuildContext context) {
     final FeedController feed = context.watch<FeedController>();
-    final SettingsController settings = context.watch<SettingsController>();
     final SourceRegistry registry = context.registry;
     final List<Article> articles = feed.articles;
-    final Article? hero = articles.isNotEmpty ? articles.first : null;
-    final List<Article> rest = articles.skip(1).take(_visible).toList();
-    final List<NewsSource> followed = <NewsSource>[
-      for (final String id in settings.followedSourceIds)
-        if (registry.byId(id) != null) registry.byId(id)!,
-    ];
-    final List<NewsSource> featured = registry.featured.take(10).toList();
-    final bool bengali = context.isBengali;
+    final bool hasArticles = articles.isNotEmpty;
+    final Article? lead = hasArticles ? articles.first : null;
+    final List<Article> river = hasArticles ? articles.skip(1).toList() : const <Article>[];
 
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      edgeOffset: 72,
-      child: CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-            pinned: true,
-            toolbarHeight: 66,
-            titleSpacing: 20,
-            title: Row(
-              children: <Widget>[
-                const _BrandMark(),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        edgeOffset: 90,
+        color: context.colors.primary,
+        backgroundColor: context.theme.colorScheme.surface,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: <Widget>[
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _MastheadDelegate(
+                child: Masthead(
+                  trailing: Row(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        context.strings.appName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.texts.titleMedium?.copyWith(
-                          fontSize: 14.5,
-                          letterSpacing: 0.1,
-                        ),
+                      _GlassAction(
+                        icon: Icons.tune_rounded,
+                        tooltip: context.strings.filterTitle,
+                        badge: feed.query.sourceIds.isNotEmpty ||
+                            feed.query.languages.isNotEmpty,
+                        onTap: () => showFeedFilterSheet(context),
                       ),
-                      Text(
-                        context.strings.appTagline,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
+                      const SizedBox(width: 6),
+                      _GlassAction(
+                        icon: Icons.search_rounded,
+                        tooltip: context.strings.searchTitle,
+                        onTap: () => Navigator.of(context).push<void>(
+                          editorialRoute<void>(const SearchScreen(), name: 'search'),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            actions: <Widget>[
-              IconButton(
-                tooltip: context.strings.filterTitle,
-                onPressed: () => showFeedFilterSheet(context),
-                icon: Badge(
-                  isLabelVisible: feed.query.sourceIds.isNotEmpty ||
-                      feed.query.languages.isNotEmpty,
-                  child: const Icon(Icons.tune_rounded),
-                ),
-              ),
-              IconButton(
-                tooltip: context.strings.searchTitle,
-                onPressed: () => Navigator.of(context).push<void>(
-                  editorialRoute<void>(const SearchScreen(), name: 'search'),
-                ),
-                icon: const Icon(Icons.search_rounded),
-              ),
-              const SizedBox(width: 4),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const SizedBox(height: 6),
-                TopicRail(
-                  selected: feed.query.topics,
-                  onToggle: _toggleTopic,
-                  onClear: _clearTopics,
-                ),
-                const SizedBox(height: 10),
-                FeedStatusBar(onRefresh: _refresh),
-                if (feed.lastError != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                    child: Text(
-                      feed.lastError!,
-                      style: context.texts.labelSmall?.copyWith(color: context.colors.error),
-                    ),
-                  ),
-                BreakingBanner(articles: feed.breakingArticles, onOpen: (Article a) => openArticle(context, a)),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                  child: LayoutBuilder(
-                    builder: (BuildContext context, BoxConstraints constraints) {
-                      final Widget heading = Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            context.strings.latestNews,
-                            style: context.texts.headlineSmall?.copyWith(fontSize: 20),
-                          ),
-                          Text(
-                            context.strings.latestNewsSubtitle,
-                            style: context.texts.labelSmall,
-                          ),
-                        ],
-                      );
-                      // The pill row has an intrinsic width; scale it down
-                      // rather than overflow however narrow the header gets.
-                      final Widget toggle = FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: AlignmentDirectional.centerStart,
-                        child: _FollowingToggle(
-                          following: feed.query.followedOnly,
-                          onChanged: _setFollowing,
-                        ),
-                      );
-                      // Below ~300dp the pill row and the Bengali heading cannot
-                      // share a line without squeezing the heading into columns.
-                      if (constraints.maxWidth < 300) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            heading,
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: toggle,
-                            ),
-                          ],
-                        );
-                      }
-                      return Row(
-                        children: <Widget>[
-                          Expanded(child: heading),
-                          Flexible(child: toggle),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (feed.isLoading && articles.isEmpty)
-            const SliverToBoxAdapter(child: ArticleSkeleton(count: 5))
-          else if (articles.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 40),
-                child: EmptyState(
-                  icon: feed.isOffline ? Icons.cloud_off_rounded : Icons.article_outlined,
-                  title: context.strings.emptyFeedTitle,
-                  body: feed.isOffline
-                      ? context.strings.offlineNotice
-                      : feed.query.followedOnly
-                          ? context.strings.noFollowedBody
-                          : context.strings.emptyFeedBody,
-                  actionLabel: context.strings.retry,
-                  onAction: _refresh,
-                ),
-              ),
-            )
-          else ...<Widget>[
-            if (hero != null)
-              SliverToBoxAdapter(
-                child: ArticleCard(
-                  article: hero,
-                  source: registry.byId(hero.sourceId),
-                  variant: ArticleCardVariant.hero,
-                  onTap: () => openArticle(context, hero),
-                ),
-              ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  final Article article = rest[index];
-                  return Column(
-                    children: <Widget>[
-                      ArticleCard(
-                        article: article,
-                        source: registry.byId(article.sourceId),
-                        onTap: () => openArticle(context, article),
-                      ),
-                      if (index != rest.length - 1)
-                        Divider(
-                          height: 1,
-                          thickness: 0.6,
-                          indent: 20,
-                          endIndent: 20,
-                          color: context.colors.outlineVariant,
-                        ),
-                    ],
-                  );
-                },
-                childCount: rest.length,
+                refreshing: feed.isRefreshing,
+                onRefresh: _refresh,
               ),
             ),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 22),
-                child: Column(
-                  children: <Widget>[
-                    if (_visible < articles.length || articles.length >= feed.query.limit)
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            if (_visible < articles.length) {
-                              setState(() => _visible += _pageStep);
-                            } else {
-                              await context.read<FeedController>().loadMore();
-                              if (mounted) setState(() => _visible += _pageStep);
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: context.colors.outlineVariant),
-                          ),
-                          child: Text(context.strings.viewAll),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _FeedControls(
+                    following: feed.query.followedOnly,
+                    onChanged: _setFollowing,
+                    count: articles.length,
+                    onRefresh: _refresh,
+                  ),
+                  _StatusLine(feed: feed),
+                  if (feed.lastError != null) _ErrorNote(message: feed.lastError!),
+                  if (!hasArticles && feed.isLoading)
+                    const _LoadingState()
+                  else if (!hasArticles)
+                    _EmptyState(feed: feed, onRetry: _refresh)
+                  else ...<Widget>[
+                    if (lead != null)
+                      RiseIn(
+                        child: LeadStory(
+                          article: lead,
+                          source: registry.byId(lead.sourceId),
+                          onTap: () => openArticle(context, lead),
+                          onOpenSource: () => openSource(context, registry.byId(lead.sourceId)),
                         ),
                       ),
-                    const SizedBox(height: 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(Icons.done_all_rounded, size: 14, color: context.texts.labelSmall?.color),
-                        const SizedBox(width: 6),
-                        Text(context.strings.feedEnd, style: context.texts.labelSmall),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 22, Tokens.gutter, 0),
+                      child: Kicker(context.strings.latestNews),
                     ),
+                    const SizedBox(height: 10),
+                    for (int i = 0; i < river.length; i++)
+                      RiseIn(
+                        index: i + 1,
+                        child: StoryRow(
+                          article: river[i],
+                          source: registry.byId(river[i].sourceId),
+                          onTap: () => openArticle(context, river[i]),
+                          last: i == river.length - 1,
+                        ),
+                      ),
+                    if (river.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 28),
+                      Center(
+                        child: Text(
+                          context.strings.feedEnd,
+                          style: context.texts.labelSmall?.copyWith(
+                            fontSize: 10.5,
+                            letterSpacing: 1.2,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 120),
                   ],
-                ),
+                ],
               ),
             ),
           ],
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                if (followed.isNotEmpty) ...<Widget>[
-                  SectionHeader(
-                    title: context.strings.followedPapers,
-                    actionLabel: context.strings.viewAll,
-                    onAction: () => openArticleList(
-                      context,
-                      title: context.strings.followedPapers,
-                      sourceIds: followed.map((NewsSource s) => s.id).toSet(),
-                    ),
-                  ),
-                  FollowStrip(
-                    sources: followed,
-                    onOpen: (NewsSource s) => openSource(context, s),
-                    onBrowse: () => _openDirectory(context),
-                  ),
-                  const SizedBox(height: 18),
-                ],
-                if (featured.isNotEmpty) ...<Widget>[
-                  SectionHeader(
-                    title: context.strings.featuredPapers,
-                    actionLabel: context.strings.browseDirectory,
-                    onAction: () => _openDirectory(context),
-                  ),
-                  _FeaturedRail(
-                    sources: featured,
-                    onOpen: (NewsSource s) => openSource(context, s),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-                PrimaryActionCard(
-                  icon: Icons.newspaper_rounded,
-                  title: context.strings.directoryTitle,
-                  subtitle: bengali
-                      ? '${registry.sources.length}টি পত্রিকা, পোর্টাল ও ই-পেপার'
-                      : '${registry.sources.length} publications, portals and e-papers',
-                  onTap: () => _openDirectory(context),
-                ),
-                const SizedBox(height: 26),
-              ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Pinned masthead with a frosted backdrop once content scrolls beneath it.
+class _MastheadDelegate extends SliverPersistentHeaderDelegate {
+  const _MastheadDelegate({
+    required this.child,
+    required this.refreshing,
+    required this.onRefresh,
+  });
+
+  final Widget child;
+  final bool refreshing;
+  final Future<void> Function() onRefresh;
+
+  @override
+  double get minExtent => 76;
+
+  @override
+  double get maxExtent => 76;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return GlassBar(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 8),
+      child: Row(
+        children: <Widget>[
+          Expanded(child: child),
+          if (refreshing)
+            const Padding(
+              padding: EdgeInsetsDirectional.only(end: 6),
+              child: SizedBox(
+                width: 13,
+                height: 13,
+                child: CircularProgressIndicator(strokeWidth: 1.6),
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  void _openDirectory(BuildContext context) {
-    Navigator.of(context).push<void>(
-      editorialRoute<void>(
-        const NewspapersScreen(standalone: true),
-        name: 'directory',
-      ),
-    );
-  }
+  @override
+  bool shouldRebuild(covariant _MastheadDelegate old) =>
+      old.refreshing != refreshing || old.child != child;
 }
 
-class _BrandMark extends StatelessWidget {
-  const _BrandMark();
+class _GlassAction extends StatelessWidget {
+  const _GlassAction({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.badge = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool badge;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: context.isDark
-              ? <Color>[AppColors.mint, AppColors.brandGreenBright]
-              : <Color>[AppColors.brandGreen, AppColors.brandGreenBright],
+    final bool dark = context.isDark;
+    return Tooltip(
+      message: tooltip,
+      child: Pressable(
+        onTap: onTap,
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: dark ? Tokens.nightRaised : Tokens.paperSunken,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: dark ? Tokens.nightHairline : Tokens.hairline,
+              width: 0.8,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: <Widget>[
+              Icon(icon, size: 18, color: context.colors.onSurface),
+              if (badge)
+                Positioned(
+                  right: -3,
+                  top: -3,
+                  child: Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: context.colors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(
-        Icons.newspaper_rounded,
-        size: 20,
-        color: context.isDark ? AppColors.nightBg : Colors.white,
       ),
     );
   }
 }
 
-class _FollowingToggle extends StatelessWidget {
-  const _FollowingToggle({required this.following, required this.onChanged});
+/// "All / Following" as quiet text with a rule underneath the active choice.
+class _FeedControls extends StatelessWidget {
+  const _FeedControls({
+    required this.following,
+    required this.onChanged,
+    required this.count,
+    required this.onRefresh,
+  });
 
   final bool following;
   final ValueChanged<bool> onChanged;
+  final int count;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    Widget pill(String label, bool active, VoidCallback onTap) {
-      return GestureDetector(
+    Widget tab(String label, bool active, VoidCallback onTap) {
+      return Pressable(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: Motion.of(context).fast,
-          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-          decoration: BoxDecoration(
-            color: active ? context.colors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(
-            label,
-            style: context.texts.labelSmall?.copyWith(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              color: active ? context.colors.onPrimary : context.colors.onSurfaceVariant,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+              child: Text(
+                label,
+                style: context.texts.titleSmall?.copyWith(
+                  fontSize: 14,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+                  color: active
+                      ? context.colors.onSurface
+                      : context.colors.onSurfaceVariant,
+                ),
+              ),
             ),
-          ),
+            Container(
+              height: 2,
+              width: 22,
+              decoration: BoxDecoration(
+                color: active ? context.colors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 4),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
-          pill(context.strings.all, !following, () => onChanged(false)),
-          pill(context.strings.followingLabel, following, () => onChanged(true)),
+          tab(context.strings.all, !following, () => onChanged(false)),
+          const SizedBox(width: 18),
+          tab(context.strings.followingLabel, following, () => onChanged(true)),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 7),
+            child: Text(
+              count == 0
+                  ? ''
+                  : '${BengaliText.toBengaliDigits(count)} '
+                      '${context.strings.articleCountShort}',
+              style: context.texts.labelSmall?.copyWith(
+                fontSize: 10.5,
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _FeaturedRail extends StatelessWidget {
-  const _FeaturedRail({required this.sources, required this.onOpen});
+/// Honest freshness line: last successful update, or a cached/offline note.
+class _StatusLine extends StatelessWidget {
+  const _StatusLine({required this.feed});
 
-  final List<NewsSource> sources;
-  final ValueChanged<NewsSource> onOpen;
+  final FeedController feed;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 132,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: sources.length,
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 10),
-        itemBuilder: (BuildContext context, int index) {
-          final NewsSource source = sources[index];
-          return InkWell(
-            onTap: () => onOpen(source),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: 136,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: context.colors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: context.colors.outlineVariant),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  SourceAvatar(source: source, size: 36),
-                  const Spacer(),
-                  Text(
-                    source.localizedName(bengali: context.isBengali),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.texts.titleSmall?.copyWith(fontSize: 12.5, height: 1.3),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    publicationMeta(source, bengali: context.isBengali),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.texts.labelSmall?.copyWith(fontSize: 9.5),
-                  ),
-                ],
+    final bool bengali = context.isBengali;
+    final String? updated = BengaliText.relative(feed.lastRefreshAt, bengali: bengali);
+    final bool offline = feed.isOffline;
+    final bool cached = feed.isShowingCached;
+
+    final String text = offline
+        ? context.strings.offlineNotice
+        : cached
+            ? context.strings.cachedNotice
+            : updated == null
+                ? context.strings.neverUpdated
+                : '${context.strings.lastUpdated}: $updated';
+
+    final Color color = offline
+        ? context.colors.error
+        : cached
+            ? context.colors.onSurfaceVariant
+            : context.colors.onSurfaceVariant;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 0),
+      child: Row(
+        children: <Widget>[
+          Icon(
+            offline
+                ? Icons.cloud_off_rounded
+                : cached
+                    ? Icons.history_rounded
+                    : Icons.schedule_rounded,
+            size: 13,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 2,
+              style: context.texts.labelSmall?.copyWith(
+                fontSize: 10.8,
+                height: 1.35,
+                color: color,
               ),
             ),
-          );
-        },
+          ),
+          if (feed.isRefreshing)
+            Text(
+              '${context.strings.checking}…',
+              style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorNote extends StatelessWidget {
+  const _ErrorNote({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 0),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: context.colors.error.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          border: Border.all(color: context.colors.error.withValues(alpha: 0.25), width: 0.8),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Icon(Icons.error_outline_rounded, size: 16, color: context.colors.error),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: context.texts.bodySmall?.copyWith(
+                  fontSize: 11.5,
+                  height: 1.4,
+                  color: context.colors.error,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadingState extends StatelessWidget {
+  const _LoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 24, Tokens.gutter, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          for (int i = 0; i < 5; i++) ...<Widget>[
+            Container(
+              height: 11,
+              width: i.isEven ? 96 : 78,
+              decoration: BoxDecoration(
+                color: context.colors.onSurface.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              height: i == 0 ? 22 : 17,
+              decoration: BoxDecoration(
+                color: context.colors.onSurface.withValues(alpha: 0.09),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: i == 0 ? 22 : 17,
+              width: MediaQuery.sizeOf(context).width * (i == 0 ? 0.62 : 0.45),
+              decoration: BoxDecoration(
+                color: context.colors.onSurface.withValues(alpha: 0.09),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Hairline(),
+            const SizedBox(height: 20),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.feed, required this.onRetry});
+
+  final FeedController feed;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool offline = feed.isOffline;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 40, Tokens.gutter, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(
+            offline ? Icons.cloud_off_rounded : Icons.article_outlined,
+            size: 26,
+            color: context.colors.primary,
+          ),
+          const SizedBox(height: 14),
+          Text(
+            context.strings.emptyFeedTitle,
+            style: context.texts.headlineSmall?.copyWith(fontSize: 21),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            offline ? context.strings.offlineNotice : context.strings.emptyFeedBody,
+            style: context.texts.bodyMedium?.copyWith(height: 1.6),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: <Widget>[
+              FilledButton(
+                onPressed: () => onRetry(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(Tokens.radiusMd),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
+                child: Text(context.strings.retry),
+              ),
+              const SizedBox(width: 10),
+              TextButton(
+                onPressed: () => openSourceDirectory(context),
+                child: Text(context.strings.browseDirectory),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

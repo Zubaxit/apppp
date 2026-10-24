@@ -12,6 +12,7 @@ import '../../state/settings_controller.dart';
 import '../helpers/app_nav.dart';
 import '../services/link_launcher.dart';
 import '../widgets/common.dart';
+import 'browser_screen.dart';
 
 /// Reading surface for an aggregated story.
 ///
@@ -229,14 +230,32 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton.icon(
-                          onPressed: () => openUrlFeedback(context, article.link, inApp: true),
+                          onPressed: () => openInBrowser(
+                            context,
+                            url: article.link,
+                            title: article.title,
+                            source: source,
+                            article: article,
+                          ),
                           style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             backgroundColor: context.colors.primary,
                             foregroundColor: context.colors.onPrimary,
                           ),
-                          icon: const Icon(Icons.open_in_new_rounded, size: 18),
-                          label: Text(context.strings.readOriginal),
+                          icon: const Icon(Icons.menu_book_rounded, size: 18),
+                          label: Text(context.strings.readInApp),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Center(
+                        child: TextButton(
+                          onPressed: () => openUrlFeedback(context, article.link),
+                          child: Text(
+                            context.strings.readOriginal,
+                            style: context.texts.labelMedium?.copyWith(
+                              color: context.colors.onSurfaceVariant,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),

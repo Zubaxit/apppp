@@ -27,7 +27,9 @@
       "featured": true,
       "epaperUrl": "https://epaper.prothomalo.com/",
       "notes": "Feed fetched and parsed 2026-10-24: 88 items, 88 with timestamps, 76 on-domain links, Bengali headlines; valid XML.",
-      "lastVerifiedAt": "2026-10-24"
+      "lastVerifiedAt": "2026-10-24",
+      "curated": true,
+      "curationOrder": 1
     },
     {
       "id": "bd_pratidin",
@@ -63,9 +65,9 @@
         "কালের কণ্ঠ"
       ],
       "website": "https://www.kalerkantho.com/",
-      "feedUrl": "https://www.kalerkantho.com/rss",
-      "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
       "language": "bn",
       "type": "daily_newspaper",
       "categories": [
@@ -76,7 +78,9 @@
       "status": "active",
       "featured": true,
       "epaperUrl": "https://epaper.kalerkantho.com/",
-      "notes": ""
+      "notes": "Feed path blocked on 2026-10-24 (HTTP 403). Website link only.",
+      "curated": true,
+      "curationOrder": 14
     },
     {
       "id": "jugantor",
@@ -87,9 +91,9 @@
         "যুগান্তর"
       ],
       "website": "https://www.jugantor.com/",
-      "feedUrl": "https://www.jugantor.com/rss",
-      "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
       "language": "bn",
       "type": "daily_newspaper",
       "categories": [
@@ -100,7 +104,9 @@
       "status": "active",
       "featured": false,
       "epaperUrl": "https://epaper.jugantor.com/",
-      "notes": ""
+      "notes": "No public feed path found on 2026-10-24 (/rss returns the 404 page). Website link only.",
+      "curated": true,
+      "curationOrder": 10
     },
     {
       "id": "ittefaq",
@@ -136,9 +142,9 @@
         "সমকাল"
       ],
       "website": "https://samakal.com/",
-      "feedUrl": "https://samakal.com/rss",
-      "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
       "language": "bn",
       "type": "daily_newspaper",
       "categories": [
@@ -149,7 +155,9 @@
       "status": "active",
       "featured": false,
       "epaperUrl": "https://epaper.samakal.com/",
-      "notes": ""
+      "notes": "Feed path blocked or missing on 2026-10-24 (HTTP 403). Website link only.",
+      "curated": true,
+      "curationOrder": 11
     },
     {
       "id": "janakantha",
@@ -498,9 +506,9 @@
         "ডেইলি স্টার"
       ],
       "website": "https://www.thedailystar.net/",
-      "feedUrl": "https://www.thedailystar.net/rss/all",
-      "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
       "language": "en",
       "type": "daily_newspaper",
       "categories": [
@@ -511,7 +519,9 @@
       "status": "active",
       "featured": true,
       "epaperUrl": "https://epaper.thedailystar.net/",
-      "notes": "Leading English-language daily in Bangladesh."
+      "notes": "The archived taxonomy feed still serves 2022 articles, so it is not used. Website link only.",
+      "curated": true,
+      "curationOrder": 12
     },
     {
       "id": "dhaka_tribune",
@@ -522,9 +532,9 @@
         "ঢাকা ট্রিবিউন"
       ],
       "website": "https://www.dhakatribune.com/",
-      "feedUrl": "https://www.dhakatribune.com/feed",
-      "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
       "language": "en",
       "type": "daily_newspaper",
       "categories": [
@@ -535,7 +545,9 @@
       "status": "active",
       "featured": true,
       "epaperUrl": null,
-      "notes": ""
+      "notes": "No public RSS on the current site (checked 2026-10-24). Website link only.",
+      "curated": true,
+      "curationOrder": 13
     },
     {
       "id": "tbs",
@@ -562,7 +574,9 @@
       "featured": true,
       "epaperUrl": null,
       "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, English headlines; valid XML.",
-      "lastVerifiedAt": "2026-10-24"
+      "lastVerifiedAt": "2026-10-24",
+      "curated": true,
+      "curationOrder": 2
     },
     {
       "id": "financial_express",
@@ -768,9 +782,9 @@
         "বিডিনিউজ"
       ],
       "website": "https://bdnews24.com/",
-      "feedUrl": "https://bdnews24.com/rss",
-      "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
       "language": "bn",
       "type": "online_portal",
       "categories": [
@@ -781,7 +795,9 @@
       "status": "active",
       "featured": true,
       "epaperUrl": null,
-      "notes": "Bangladesh's first online-only news service; Bengali edition at bangla.bdnews24.com."
+      "notes": "Feed path was not confirmed on 2026-10-24 (returns a non-feed response). Website link only.",
+      "curated": true,
+      "curationOrder": 9
     },
     {
       "id": "banglanews24",
@@ -974,7 +990,9 @@
       "featured": false,
       "epaperUrl": null,
       "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, Bengali headlines; valid XML.",
-      "lastVerifiedAt": "2026-10-24"
+      "lastVerifiedAt": "2026-10-24",
+      "curated": true,
+      "curationOrder": 5
     },
     {
       "id": "orthoneeti",
@@ -1121,7 +1139,9 @@
       "featured": false,
       "epaperUrl": null,
       "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, Bengali headlines; valid XML.",
-      "lastVerifiedAt": "2026-10-24"
+      "lastVerifiedAt": "2026-10-24",
+      "curated": true,
+      "curationOrder": 6
     },
     {
       "id": "purbokone",
@@ -1171,7 +1191,9 @@
       "featured": false,
       "epaperUrl": null,
       "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, Bengali headlines; valid XML.",
-      "lastVerifiedAt": "2026-10-24"
+      "lastVerifiedAt": "2026-10-24",
+      "curated": true,
+      "curationOrder": 4
     },
     {
       "id": "sylheter_dak",
@@ -1268,7 +1290,9 @@
       "featured": false,
       "epaperUrl": null,
       "notes": "Feed fetched and parsed 2026-10-24: 14 items, 14 with timestamps, 14 on-domain links, Bengali headlines; valid XML.",
-      "lastVerifiedAt": "2026-10-24"
+      "lastVerifiedAt": "2026-10-24",
+      "curated": true,
+      "curationOrder": 3
     },
     {
       "id": "dw_bangla",
@@ -1461,6 +1485,89 @@
       "featured": false,
       "epaperUrl": null,
       "notes": "Weekly news magazine. Publishing frequency must be confirmed before relying on this entry."
+    },
+    {
+      "id": "aljazeera",
+      "name": "Al Jazeera English",
+      "nameBn": "আল জাজিরা ইংরেজি",
+      "aliases": [
+        "al jazeera",
+        "আল জাজিরা"
+      ],
+      "website": "https://www.aljazeera.com/",
+      "feedUrl": "https://www.aljazeera.com/xml/rss/all.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "lastVerifiedAt": "2026-10-24",
+      "language": "en",
+      "type": "broadcaster",
+      "categories": [
+        "english",
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-24: 25 items, all timestamped and on-domain; valid XML.",
+      "curated": true,
+      "curationOrder": 7
+    },
+    {
+      "id": "dw_news",
+      "name": "DW News (English)",
+      "nameBn": "ডিডাব্লিউ নিউজ",
+      "aliases": [
+        "dw",
+        "deutsche welle"
+      ],
+      "website": "https://www.dw.com/en/",
+      "feedUrl": "https://rss.dw.com/rdf/rss-en-all",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "lastVerifiedAt": "2026-10-24",
+      "language": "en",
+      "type": "broadcaster",
+      "categories": [
+        "english",
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-24: 131 items, all timestamped and on-domain; valid XML.",
+      "curated": true,
+      "curationOrder": 8
+    },
+    {
+      "id": "reuters",
+      "name": "Reuters",
+      "nameBn": "রয়টার্স",
+      "aliases": [
+        "reuters world"
+      ],
+      "website": "https://www.reuters.com/world/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "lastVerifiedAt": null,
+      "language": "en",
+      "type": "news_agency",
+      "categories": [
+        "english",
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No public RSS found on 2026-10-24 (feeds.reuters.com retired, outboundfeeds returns 403). Available as a website link only.",
+      "curated": true,
+      "curationOrder": 15
     }
   ],
   "epapers": [

@@ -15,6 +15,7 @@ import '../helpers/app_nav.dart';
 import '../services/link_launcher.dart';
 import '../widgets/article_card.dart';
 import '../widgets/common.dart';
+import 'browser_screen.dart';
 
 /// Publication page: identity, actions, feed status, cached headlines and
 /// e-paper links. Every action shown here is one the app can actually perform.
@@ -161,7 +162,12 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                         children: <Widget>[
                           Expanded(
                             child: FilledButton.icon(
-                              onPressed: () => openUrlFeedback(context, source.website),
+                              onPressed: () => openInBrowser(
+                                context,
+                                url: source.website,
+                                title: source.localizedName(bengali: context.isBengali),
+                                source: source,
+                              ),
                               style: FilledButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 backgroundColor: context.colors.primary,
@@ -269,7 +275,12 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                             )
                           else
                             OutlinedButton.icon(
-                              onPressed: () => openUrlFeedback(context, source.website),
+                              onPressed: () => openInBrowser(
+                                context,
+                                url: source.website,
+                                title: source.localizedName(bengali: context.isBengali),
+                                source: source,
+                              ),
                               icon: const Icon(Icons.public_rounded, size: 16),
                               label: Text(context.strings.openWebsite),
                             ),

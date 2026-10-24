@@ -56,7 +56,7 @@ class _FeedFilterSheetState extends State<_FeedFilterSheet> {
   }
 
   List<NewsSource> get _visibleSources {
-    final List<NewsSource> all = widget.registry.withFeeds.toList()
+    final List<NewsSource> all = widget.registry.feedSources.toList()
       ..sort((NewsSource a, NewsSource b) => a
           .localizedName(bengali: context.isBengali)
           .compareTo(b.localizedName(bengali: context.isBengali)));

@@ -34,6 +34,9 @@ dependencies:
   # Media + formatting.
   cached_network_image: ^3.4.1
 
+  # In-app browser for reading the publisher's own page without leaving the app.
+  webview_flutter: ^4.10.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
