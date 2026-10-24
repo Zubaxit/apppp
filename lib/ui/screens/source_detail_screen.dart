@@ -169,7 +169,7 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                               ),
                               icon: const Icon(Icons.public_rounded, size: 17),
                               label: Text(
-                                context.strings.openWebsite,
+                                context.strings.openMainWebsite,
                                 style: context.texts.labelLarge?.copyWith(
                                   color: context.colors.onPrimary,
                                   fontSize: 12.5,

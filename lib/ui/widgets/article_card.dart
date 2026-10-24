@@ -38,10 +38,15 @@ class ArticleCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: article.title,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: content,
+      // The card is rendered in lists, sheets and dialogs; provide the Material
+      // the ink response needs instead of assuming an ancestor supplies it.
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: content,
+        ),
       ),
     );
   }
