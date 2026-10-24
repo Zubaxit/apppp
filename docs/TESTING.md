@@ -69,20 +69,31 @@ Every method declared on `ArticleStore`, `SavedStore`, `HistoryStore`, `HealthSt
 `FeedMetaStore`, `MetaStore`, `PreferencesStore` and `FeedGateway` is implemented by both the
 SQLite and the fake implementation, so the fakes exercise the same contract as production.
 
-### 5. Source verification script — executed, network-blocked
+### 5. Source verification — executed on a networked runner
 
 ```
-$ python3 scripts/verify_sources.py --only prothomalo --delay 0.1
-  x prothomalo               feed unusable: URL error: TLS/SSL connection has been closed
-summary: 0 websites reachable, 0 feeds usable, ...
+$ gh run list --workflow verify-sources.yml
+Check live feeds   success   (run 40107364030)
+
+  + prothomalo      feed ok: 88 items, 88 dated, 76 on-domain, 88 bn, xml=True
+  + bbc_bangla      feed ok: 14 items, 14 dated, 14 on-domain, 14 bn, xml=True
+  + suprobhat       feed ok: 10 items, 10 dated, 10 on-domain, 10 bn, xml=True
+  + sarabangla      feed ok: 10 items, 10 dated, 10 on-domain, 10 bn, xml=True
+  + dainik_azadi    feed ok: 10 items, 10 dated, 10 on-domain, 10 bn, xml=True
+  + tbs             feed ok: 10 items, 10 dated, 10 on-domain,  0 bn, xml=True
+summary: 22 websites reachable, 6 feeds usable, 50 feeds failing, 4 without a configured feed
 ```
 
-The script itself runs correctly end to end (it produced a report file); it cannot reach
-publishers from this sandbox. **Therefore no feed is claimed as verified.** Run it from a normal
-connection and commit `docs/source_verification.json`:
+Six feeds passed the evidence gate and are recorded as `verified_working` (five) or
+`official_documented` (BBC). The other 50 configured candidates failed on HTTP 403/404, DNS or TLS and
+stay clearly labelled as unverified — see [SOURCES.md](SOURCES.md). The script cannot reach
+publishers from the development sandbox (only GitHub/npm/PyPI are allow-listed), which is why it runs
+in the `Verify sources` workflow.
 
 ```bash
-python3 scripts/verify_sources.py --write --probe-candidates
+# on any machine with normal internet access
+python3 scripts/verify_sources.py --write            # promote qualified feeds
+gh workflow run verify-sources.yml                   # or run the workflow
 ```
 
 ### 6. Launcher icons — generated and visually inspected
@@ -90,19 +101,28 @@ python3 scripts/verify_sources.py --write --probe-candidates
 `scripts/generate_icons.py` produced the adaptive-icon layers and all five PNG densities plus a
 512 px store icon; the output was opened and reviewed.
 
-## What was NOT executed here (and where it does run)
+### 7. Analyzer, unit/widget tests and the Android build — executed in GitHub Actions
 
-| Command | Status | Where it runs |
+This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates run on GitHub Actions
+(`.github/workflows/ci.yml`) on every push to the feature branch and on the pull request:
+
+| Gate | Command | Latest result |
 | --- | --- | --- |
-| `dart format` | not executed (nothing to compare against without the SDK) | local, documented in README |
-| `flutter analyze --fatal-warnings` | not executed | CI |
-| `flutter test` (unit + widget) | not executed | CI |
-| `flutter build apk --debug/--release` | not executed | CI (`build-android` job) |
-| `flutter build appbundle` | not executed | documented in `docs/RELEASE.md` |
-| On-device / emulator smoke test | not executed | manual, see checklist below |
+| Formatting | not gated (kept out of CI on purpose; `dart format lib test` locally) | — |
+| Static analysis | `flutter analyze --fatal-warnings` | **success**, 0 issues |
+| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 106 tests |
+| Debug APK | `flutter build apk --debug` | **success** |
+| Release APK | `flutter build apk --release` | **success** (artifact `apk`, ~118 MB combined) |
+| `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |
+| On-device / emulator smoke test | not run | manual, see checklist below |
 
-The test suites are written to run in CI without network access: all stores are in-memory fakes,
-the feed gateway is a fake, connectivity is faked, and no test performs an HTTP request.
+Run IDs for the green build: CI run `40107367502` (analyze & test + APK) and Verify sources run
+`40107364030`. Because runner logs are not reachable from this sandbox, the workflows republish
+analyzer and test diagnostics as check annotations — that is also how each failure below was
+diagnosed and fixed.
+
+The test suites run without network access: all stores are in-memory fakes, the feed gateway is a
+fake, connectivity is faked, and no test performs an HTTP request.
 
 ## Test inventory (what the suites assert)
 

@@ -193,6 +193,118 @@ void main() {
     });
   });
 
+  group('real publisher shapes', () {
+    // Structure observed on https://feeds.bbci.co.uk/bengali/rss.xml (2026-10-24):
+    // RSS 2.0, CDATA titles, campaign parameters on every link, GMT dates.
+    const String bbcShaped = '''
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title><![CDATA[BBC News বাংলা]]></title>
+    <link>https://www.bbc.com/bengali</link>
+    <item>
+      <title><![CDATA[টঙ্গীতে মাদ্রাসা শিক্ষককে চড় মারা ব্যক্তিকে গ্রেফতার করতে চায় পুলিশ]]></title>
+      <description><![CDATA[পুলিশ জানিয়েছে, অভিযুক্তকে শনাক্ত করা হয়েছে।]]></description>
+      <link>https://www.bbc.com/bengali/articles/c9dr8n7pd4zko?at_medium=RSS&amp;at_campaign=rss</link>
+      <guid isPermaLink="false">https://www.bbc.com/bengali/articles/c9dr8n7pd4zko</guid>
+      <pubDate>Sat, 24 Oct 2026 14:05:43 GMT</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[বৃষ্টি-ঘূর্ণিঝড়ের আচরণ বদলে দেওয়াসহ বিশ্ব আবহাওয়ায় যে পাঁচ প্রভাব]]></title>
+      <description><![CDATA[বিশেষজ্ঞরা বলছেন, প্রভাব দীর্ঘমেয়াদি।]]></description>
+      <link>https://www.bbc.com/bengali/articles/c6m2d1gx277go?at_medium=RSS&amp;at_campaign=rss</link>
+      <pubDate>Sat, 24 Oct 2026 10:36:16 GMT</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[রসে ভরপুর আখের নাম ব্ল্যাক রুবি]]></title>
+      <description><![CDATA[এর বৈশিষ্ট্য কী, জানাচ্ছে প্রতিবেদন।]]></description>
+      <link>https://www.bbc.com/bengali/articles/cmn8eq9vepq5o?at_medium=RSS&amp;at_campaign=rss</link>
+      <pubDate>Sat, 24 Oct 2026 07:34:32 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
+''';
+
+    // Structure observed on https://www.prothomalo.com/stories.rss (2026-10-24):
+    // Quintype RSS with category tags and a media:content thumbnail.
+    const String quintypeShaped = '''
+<rss xmlns:media="http://search.yahoo.com/mrss/" version="2.0">
+  <channel>
+    <title>প্রথম আলো</title>
+    <link>https://www.prothomalo.com</link>
+    <language>bn</language>
+    <item>
+      <title>সড়কে বন্দুক হাতে তরুণের মহড়া, ভিডিওতে যা দেখা গেল</title>
+      <link>https://www.prothomalo.com/video/bangladesh/1jf9hf946z</link>
+      <guid isPermaLink="false">18339f1e-f251-4af1-9e37-06ec19947e48</guid>
+      <pubDate>Sat, 24 Oct 2026 14:08:41 +0000</pubDate>
+      <description>খাগড়াছড়িতে অবরোধের মধ্যে সড়কে বন্দুক হাতে এক তরুণের মহড়ার ভিডিও ছড়িয়ে পড়েছে।</description>
+      <category>বাংলাদেশ</category>
+      <media:content url="https://media.prothomalo.com/prothomalo-bangla/2026-10-24/abc/thumb.jpg" medium="image" />
+    </item>
+    <item>
+      <title>ব্যাংকের সাপ্তাহিক ছুটি এক দিন করার দাবি দোকান মালিক সমিতির</title>
+      <link>https://www.prothomalo.com/business/economics/aspf1opadh</link>
+      <pubDate>Sat, 24 Oct 2026 14:00:00 +0000</pubDate>
+      <description>দেশের সব বাণিজ্যিক ব্যাংকের সাপ্তাহিক ছুটি কমিয়ে এক দিন করার দাবি করেছে সমিতি।</description>
+      <category>অর্থনীতি</category>
+    </item>
+    <item>
+      <title>জাতীয় চিত্রাঙ্কন ও রচনা প্রতিযোগিতার ফল প্রকাশ</title>
+      <link>https://www.prothomalo.com/bangladesh/district/uo7apa2ava</link>
+      <pubDate>Sat, 24 Oct 2026 14:07:35 +0000</pubDate>
+      <description>বিজয়ীদের হাতে পুরস্কার তুলে দেওয়া হবে ২০ নভেম্বর।</description>
+      <category>জেলা</category>
+    </item>
+  </channel>
+</rss>
+''';
+
+    test('parses a BBC-shaped Bengali RSS feed', () {
+      final FeedParseResult result = parser.parse(
+        bbcShaped,
+        source: sampleSource(
+          id: 'bbc_bangla',
+          name: 'BBC News Bengali',
+          feedUrl: 'https://feeds.bbci.co.uk/bengali/rss.xml',
+        ),
+        fetchedAt: fetchedAt,
+      );
+      expect(result.format, FeedFormatDetected.rss2);
+      expect(result.recovered, isFalse);
+      expect(result.articles, hasLength(3));
+      expect(result.articles.first.title, startsWith('টঙ্গীতে মাদ্রাসা'));
+      expect(result.articles.first.link, 'https://www.bbc.com/bengali/articles/c9dr8n7pd4zko');
+      expect(result.articles.first.publishedAt, DateTime.utc(2026, 10, 24, 14, 5, 43));
+      expect(result.articles.first.language, SourceLanguage.bn);
+    });
+
+    test('parses a Quintype-shaped Bengali RSS feed with media thumbnails', () {
+      final FeedParseResult result =
+          parser.parse(quintypeShaped, source: bnSource, fetchedAt: fetchedAt);
+      expect(result.articles, hasLength(3));
+      final Article first = result.articles.first;
+      expect(first.link, 'https://www.prothomalo.com/video/bangladesh/1jf9hf946z');
+      expect(first.publishedAt, DateTime.utc(2026, 10, 24, 14, 8, 41));
+      expect(first.imageUrl, 'https://media.prothomalo.com/prothomalo-bangla/2026-10-24/abc/thumb.jpg');
+      expect(first.topic, ArticleTopic.bangladesh);
+      expect(first.id, isNotEmpty);
+    });
+
+    test('every parsed headline in the Bengali fixtures is Bengali text', () {
+      for (final String body in <String>[bbcShaped, quintypeShaped]) {
+        final FeedParseResult result =
+            parser.parse(body, source: bnSource, fetchedAt: fetchedAt);
+        for (final Article article in result.articles) {
+          expect(
+            article.title.runes.any((int rune) => rune >= 0x0980 && rune <= 0x09FF),
+            isTrue,
+            reason: 'not Bengali: ${article.title}',
+          );
+        }
+      }
+    });
+  });
+
   group('malformed feeds', () {
     test('recovers items from invalid XML instead of throwing', () {
       final FeedParseResult result =

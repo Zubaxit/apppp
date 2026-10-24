@@ -319,12 +319,14 @@ publisher logos.
 6. Deduplication is heuristic: identical URLs are collapsed; cross-publication coverage is grouped
    by headline-similarity signature for display only.
 7. There is no cloud sync, no full-text reading, and no commenting — by design.
-8. `flutter analyze`, `flutter test` and the Android build have not been executed in this sandbox;
-   CI is configured to run them.
+8. Analysis, the 106-test suite and the debug/release APK builds ran in GitHub Actions and pass
+   (see *Testing*); this development sandbox itself has no Flutter/JDK toolchain, so
+   `./tool/verify.sh` is the only gate that runs locally.
 
 ## Roadmap
 
-- Promote feed candidates to `verified` with the verification script and a small PR per batch.
+- Keep promoting feed candidates with the `Verify sources` workflow; 50 URLs still need a confirmed
+  path (most currently answer 403 to automated clients).
 - Extend regional coverage (all eight divisions) once each domain is confirmed.
 - Optional Firebase-free backend for centralized feed aggregation, if per-device fetching ever
   becomes impolite at scale.
