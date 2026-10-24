@@ -322,6 +322,33 @@ class GlassBar extends StatelessWidget {
   }
 }
 
+/// Marker shown only when the publisher itself flagged an item as breaking.
+class BreakingTag extends StatelessWidget {
+  const BreakingTag({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color red = context.colors.error;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+      decoration: BoxDecoration(
+        color: red.withValues(alpha: context.isDark ? 0.18 : 0.08),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: red.withValues(alpha: 0.3), width: 0.7),
+      ),
+      child: Text(
+        context.strings.breakingShort,
+        style: context.texts.labelSmall?.copyWith(
+          fontSize: 9.5,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.8,
+          color: red,
+        ),
+      ),
+    );
+  }
+}
+
 /// Source + time attribution line used everywhere an article is shown.
 class Attribution extends StatelessWidget {
   const Attribution({

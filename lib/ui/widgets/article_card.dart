@@ -245,7 +245,7 @@ class ArticleMetaRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(5),
             ),
             child: Text(
-              bengali ? 'ব্রেকিং' : 'BREAKING',
+              context.strings.breakingShort,
               style: TextStyle(
                 color: context.colors.onError,
                 fontSize: 9.5,

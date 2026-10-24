@@ -13,6 +13,7 @@ import '../helpers/app_nav.dart';
 import '../widgets/editorial.dart';
 import '../widgets/editorial_story.dart';
 import '../widgets/feed_filter_sheet.dart';
+import '../widgets/feed_widgets.dart';
 import 'search_screen.dart';
 
 /// The front page.
@@ -32,6 +33,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _setFollowing(bool following) {
     unawaited(context.read<FeedController>().setFollowedOnly(following));
+  }
+
+  void _toggleTopic(ArticleTopic topic) {
+    final FeedController feed = context.read<FeedController>();
+    unawaited(feed.applyQuery(feed.query.toggleTopic(topic)));
+  }
+
+  void _clearTopics() {
+    final FeedController feed = context.read<FeedController>();
+    unawaited(feed.applyQuery(feed.query.copyWith(topics: const <ArticleTopic>{})));
   }
 
   /// Masthead actions stay next to the title rather than in a trailing row of
@@ -116,7 +127,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     onRefresh: _refresh,
                   ),
                   _StatusLine(feed: feed),
+                  TopicRail(
+                    selected: feed.query.topics,
+                    onToggle: _toggleTopic,
+                    onClear: _clearTopics,
+                  ),
                   if (feed.lastError != null) _ErrorNote(message: feed.lastError!),
+                  BreakingBanner(
+                    articles: feed.breakingArticles,
+                    onOpen: (Article article) => openArticle(context, article),
+                  ),
                   if (!hasArticles && feed.isLoading)
                     const _LoadingState()
                   else if (!hasArticles)

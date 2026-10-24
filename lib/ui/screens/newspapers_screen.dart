@@ -204,7 +204,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                 childCount: regional.length,
               ),
             ),
-          const SizedBox(height: 120),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
         ]
         else ...<Widget>[
           SliverToBoxAdapter(
@@ -312,7 +312,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 120),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
         ],
       ],
     );

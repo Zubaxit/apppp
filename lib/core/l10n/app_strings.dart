@@ -51,6 +51,7 @@ abstract class AppStrings {
   String get latestNews;
   String get latestNewsSubtitle;
   String get breakingNews;
+  String get breakingShort;
   String get followedPapers;
   String get featuredPapers;
   String get browseDirectory;
@@ -263,6 +264,8 @@ class BanglaStrings extends AppStrings {
   String get latestNewsSubtitle => 'সব পত্রিকা থেকে একসঙ্গে';
   @override
   String get breakingNews => 'ব্রেকিং নিউজ';
+  @override
+  String get breakingShort => 'ব্রেকিং';
   @override
   String get followedPapers => 'আপনার অনুসরণ';
   @override
@@ -616,6 +619,8 @@ class EnglishStrings extends AppStrings {
   String get latestNewsSubtitle => 'From every publication, together';
   @override
   String get breakingNews => 'Breaking news';
+  @override
+  String get breakingShort => 'BREAKING';
   @override
   String get followedPapers => 'You follow';
   @override
