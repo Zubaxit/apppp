@@ -62,7 +62,7 @@ jobs:
           python3 scripts/probe_feeds.py \
             --only "${ONLY}" \
             --delay "${DELAY:-0.8}" \
-            --report feed_probe.json 2>&1 | tee verify.log
+            --report feed_probe.json 2>&1 | tee probe.log
 
       - name: Verify publishers
         env:
@@ -83,16 +83,29 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
-          lines = Path('verify.log').read_text(encoding='utf-8', errors='replace').splitlines()
-          verdicts = [line for line in lines
-                      if line.startswith(('  + ', '  x ', '  ! ', '  ? ', '  OK', '  =>', '      '))
-                      or line.startswith('summary:')]
-          payload = verdicts
-          for start in range(0, min(len(payload), 480), 12):
-              chunk = payload[start:start + 12]
-              message = '%0A'.join(item.replace('%', '%25') for item in chunk)
-              # Probe output is long; keep it inside the annotation size cap.
-              print(f'::notice::{message[:60000]}')
+          def emit(title: str, lines: list[str], limit: int = 140) -> None:
+              body = lines[:limit]
+              if not body:
+                  return
+              for start in range(0, len(body), 12):
+                  chunk = body[start:start + 12]
+                  message = '%0A'.join(item.replace('%', '%25') for item in chunk)
+                  print(f'::notice::{title}%0A{message[:60000]}')
+
+          probe = Path('probe.log')
+          if probe.exists():
+              lines = probe.read_text(encoding='utf-8', errors='replace').splitlines()
+              picked = [line for line in lines
+                        if line.startswith(('  OK', '  x ', '      ', '  =>', '  + '))
+                        or line.startswith('selected')]
+              emit('Curated feed probe', picked)
+
+          verify_log = Path('verify.log')
+          if verify_log.exists():
+              lines = verify_log.read_text(encoding='utf-8', errors='replace').splitlines()
+              picked = [line for line in lines
+                        if line.startswith(('  + ', '  x ', '  ! ', '  ? ')) or line.startswith('summary:')]
+              emit('Registry verification', picked)
           PY
 
       - name: Upload report
@@ -104,4 +117,5 @@ jobs:
             source_verification.json
             feed_probe.json
             verify.log
+            probe.log
           if-no-files-found: warn
