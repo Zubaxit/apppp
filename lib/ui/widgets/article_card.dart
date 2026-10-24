@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -384,7 +386,7 @@ class _BookmarkButton extends StatelessWidget {
         ),
       ),
       onPressed: () async {
-        HapticFeedback.lightImpact();
+        unawaited(HapticFeedback.lightImpact());
         final bool nowSaved = await context.read<SavedController>().toggle(article);
         if (!context.mounted) return;
         context.showSnack(nowSaved ? context.strings.savedLabel : context.strings.removeSaved);

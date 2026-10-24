@@ -108,3 +108,66 @@ coverage of Bangladeshi newspapers** and the app does not claim to be.
   scraping when a feed is missing.
 - The About screen states that the app is not affiliated with any newspaper and that all content
   belongs to its publisher.
+# Verified sources — 2026-10-25
+
+This file records what the app actually fetches and why. It is written from the
+live evidence produced by the `Verify sources` workflow (run `40121635019`,
+164 candidate URLs, 27 publishers) and is regenerated whenever the registry
+changes.
+
+## Feeds that answered (shipped as `verified_working`)
+
+| # | Publication | Language | Feed | Items that run |
+| - | --- | --- | --- | --- |
+| 1 | Prothom Alo | bn | `https://www.prothomalo.com/stories.rss` | 60 (60 dated) |
+| 2 | JagoNews24 | bn | `https://www.jagonews24.com/rss/rss.xml` | 100 (100 dated) |
+| 3 | Ajker Patrika | bn | `https://www.ajkerpatrika.com/feed` | 20 (20 dated) |
+| 4 | Dhaka Post | bn | `https://www.dhakapost.com/rss/rss.xml` | 20 (20 dated) |
+| 5 | Suprobhat | bn | `https://www.suprobhat.com/rss` | 10 (10 dated) |
+| 6 | Sarabangla | bn | `https://sarabangla.net/rss` | 10 (10 dated) |
+| 7 | Dainik Azadi (Chattogram) | bn | `https://www.dainikazadi.net/rss` | 10 (10 dated) |
+| 8 | The Daily Star | en | `https://www.thedailystar.net/frontpage/rss.xml` | 10 (**0 dated**) |
+| 9 | The Business Standard | en | `https://www.tbsnews.net/rss.xml` | 10 (10 dated) |
+| 10 | BBC News Bengali | bn | `https://feeds.bbci.co.uk/bengali/rss.xml` | 14 (14 dated) |
+| 11 | Al Jazeera English | en | `https://www.aljazeera.com/xml/rss/all.xml` | 25 (25 dated) |
+| 12 | DW News (English) | en | `https://rss.dw.com/rdf/rss-en-all` | 131 (131 dated) |
+| 13 | BBC News (World) | en | `https://feeds.bbci.co.uk/news/world/rss.xml` | 30 (30 dated) |
+
+The Daily Star publishes no item timestamps. Its stories are shown with
+"publication time unknown" and are sorted after dated stories; the probe flags
+this explicitly (`allowUndated`) rather than silently passing an undated feed.
+
+## Requested publishers that could not be integrated
+
+| Publication | What the network said on 2026-10-25 |
+| --- | --- |
+| bdnews24 (bn/en) | 16 paths probed on both hosts; the host answers but nothing returns RSS/Atom (HTML bodies only). |
+| Jugantor | 11 paths, HTTP 403 on every one. |
+| Samakal | 10 paths, HTTP 403 on every one. |
+| Kaler Kantho | 11 paths, HTTP 403 on every one. |
+| Ittefaq | 10 paths, HTTP 403 on every one. |
+| Bangladesh Pratidin | 11 paths, HTTP 403 on every one. |
+| Bangla Tribune | 10 paths, HTTP 403 on every one. |
+| Dhaka Tribune | 10 paths, HTTP 403 on every one. |
+| Reuters | `feeds.reuters.com` no longer resolves; `outboundfeeds` answers 404/401. No public RSS. |
+
+None of these is presented as an active feed. Each keeps its directory entry,
+e-paper link and metadata, and opens the publisher's own website in the in-app
+reader. The app's per-source status says "no feed — use the website" instead of
+showing an empty headline list.
+
+## Other publishers
+
+38 further registry entries are unverified hypotheses. They no longer ship a
+feed URL at all: their candidate URLs live in `assets/data/feed_candidates.json`,
+and a URL is only promoted into `assets/data/sources.json` after the probe
+qualifies it. `test/unit/registry_test.dart` asserts that rule.
+
+## Reproducing this
+
+```bash
+gh workflow run verify-sources.yml          # or push a change to the data files
+gh run list --workflow=verify-sources.yml   # pick the newest run
+# the run's check annotations carry the per-publisher summary
+python3 scripts/probe_feeds.py --only prothomalo --delay 1.0
+```
