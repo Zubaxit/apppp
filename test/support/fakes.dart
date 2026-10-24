@@ -256,6 +256,8 @@ NewsSource sampleSource({
   SourceLanguage language = SourceLanguage.bn,
   List<SourceCategory> categories = const <SourceCategory>[SourceCategory.national],
   PublicationType type = PublicationType.dailyNewspaper,
+  String? epaperUrl,
+  bool featured = false,
 }) {
   return NewsSource(
     id: id,
@@ -266,6 +268,8 @@ NewsSource sampleSource({
     language: language,
     categories: categories,
     type: type,
+    epaperUrl: epaperUrl,
+    featured: featured,
   );
 }
 

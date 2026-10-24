@@ -312,7 +312,8 @@ void main() {
       await tester.pump();
       expect(h.settings.prefs.language, AppLanguage.en);
       expect(find.text('Settings'), findsWidgets);
-      expect(find.text('Appearance'), findsWidgets);
+      // Section headers are rendered upper-case by the settings screen.
+      expect(find.text('APPEARANCE'), findsWidgets);
     });
 
     testWidgets('about screen reports real registry counts', (WidgetTester tester) async {
@@ -430,7 +431,9 @@ void main() {
       await tester.pumpWidget(h.wrap(const HomeScreen()));
       await h.feed.start();
       await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+      final Object? error = tester.takeException();
+      if (error != null) debugPrint('LAYOUT-ERROR: $error');
+      expect(error, isNull);
       expect(find.text(bnArticle.title), findsOneWidget);
     });
 

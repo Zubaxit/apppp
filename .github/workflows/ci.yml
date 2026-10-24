@@ -85,6 +85,11 @@ jobs:
 
           emit(f'{len(failing)} failing tests:', names[:40])
 
+          layout = [line for line in lines
+                    if 'LAYOUT-ERROR' in line or 'overflowed by' in line
+                    or 'error-causing widget' in line]
+          emit('Layout diagnostics:', layout)
+
           first = next((i for i, line in enumerate(lines) if 'EXCEPTION CAUGHT' in line), None)
           if first is not None:
               emit('First exception:', lines[first:first + 160])

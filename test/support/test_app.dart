@@ -116,7 +116,10 @@ class TestHarness {
 SourceRegistry testRegistry({List<Article> articles = const <Article>[]}) {
   return SourceRegistry(
     sources: <NewsSource>[
-      sampleSource(),
+      sampleSource(
+        epaperUrl: 'https://epaper.prothomalo.com/',
+        featured: true,
+      ),
       sampleSource(
         id: 'daily_star',
         name: 'The Daily Star',
