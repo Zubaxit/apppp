@@ -5,6 +5,14 @@ name: Verify sources
 # report as an artifact. It never edits the registry — promoting a feed to
 # `verified_working` is a reviewed commit based on this evidence.
 on:
+  # Also runs whenever the registry or the verifier changes, so a data PR gets
+  # live evidence attached automatically.
+  push:
+    branches: ["main", "arena/**", "feature/**"]
+    paths:
+      - "assets/data/sources.json"
+      - "scripts/verify_sources.py"
+      - ".github/workflows/verify-sources.yml"
   workflow_dispatch:
     inputs:
       only:
@@ -65,7 +73,7 @@ jobs:
           for start in range(0, min(len(payload), 240), 12):
               chunk = payload[start:start + 12]
               message = '%0A'.join(item.replace('%', '%25') for item in chunk)
-              print(f'::error::{message}')
+              print(f'::notice::{message}')
           PY
 
       - name: Upload report
