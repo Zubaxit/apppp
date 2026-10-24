@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -100,8 +99,8 @@ class WebViewBrowserEngine extends BrowserEngine {
   double get progress => _progress;
 
   @override
-  void load(String value) {
-    _controller.loadRequest(Uri.parse(value));
+  void load(String url) {
+    _controller.loadRequest(Uri.parse(url));
   }
 
   @override

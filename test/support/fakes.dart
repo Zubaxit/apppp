@@ -258,6 +258,9 @@ NewsSource sampleSource({
   PublicationType type = PublicationType.dailyNewspaper,
   String? epaperUrl,
   bool featured = false,
+  bool curated = false,
+  String? division,
+  String? district,
 }) {
   return NewsSource(
     id: id,
@@ -270,6 +273,9 @@ NewsSource sampleSource({
     type: type,
     epaperUrl: epaperUrl,
     featured: featured,
+    curated: curated,
+    division: division,
+    district: district,
   );
 }
 

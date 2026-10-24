@@ -15,9 +15,12 @@ import '../widgets/editorial.dart';
 /// The curated set leads. Everything else in the registry stays reachable
 /// behind "all publications" so nothing is hidden, only prioritised.
 class NewspapersScreen extends StatefulWidget {
-  const NewspapersScreen({super.key, this.standalone = false});
+  const NewspapersScreen({super.key, this.standalone = false, this.initialDivision});
 
   final bool standalone;
+
+  /// Pre-selects a division when arriving from the regional browse chips.
+  final String? initialDivision;
 
   @override
   State<NewspapersScreen> createState() => _NewspapersScreenState();
@@ -27,6 +30,14 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
   final TextEditingController _search = TextEditingController();
   String _query = '';
   bool _showAll = false;
+  String? _division;
+  String? _district;
+
+  @override
+  void initState() {
+    super.initState();
+    _division = widget.initialDivision;
+  }
 
   @override
   void dispose() {
@@ -49,6 +60,23 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
         .where((NewsSource s) => !s.curated)
         .toList()
       ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name));
+
+    final List<String> divisions = <String>{
+      ...registry.divisionsWithSources,
+      // A division passed in from another screen stays visible even if the
+      // registry currently has no publication for it.
+      if (_division != null) _division!,
+    }.toList()
+      ..sort();
+    final List<NewsSource> regional = _division == null
+        ? const <NewsSource>[]
+        : registry.sources
+            .where((NewsSource s) =>
+                s.division == _division && (_district == null || s.district == _district))
+            .toList()
+          ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name));
+    final List<String> districts =
+        _division == null ? const <String>[] : registry.districtsIn(_division!);
 
     final Widget body = CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -87,8 +115,95 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
             ),
           ),
         ),
+        if (divisions.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 2),
+              child: Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: <Widget>[
+                  ChoiceChip(
+                    label: Text(context.strings.allDivisions),
+                    selected: _division == null,
+                    onSelected: (bool _) => setState(() {
+                      _division = null;
+                      _district = null;
+                    }),
+                  ),
+                  for (final String division in divisions)
+                    ChoiceChip(
+                      label: Text(Labels.division(division, bengali: context.isBengali)),
+                      selected: _division == division,
+                      onSelected: (bool selected) => setState(() {
+                        _division = selected ? division : null;
+                        _district = null;
+                      }),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        if (_division != null && districts.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 2),
+              child: Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: <Widget>[
+                  ChoiceChip(
+                    label: Text(context.strings.all),
+                    selected: _district == null,
+                    onSelected: (bool _) => setState(() => _district = null),
+                  ),
+                  for (final String district in districts)
+                    ChoiceChip(
+                      label: Text(district),
+                      selected: _district == district,
+                      onSelected: (bool selected) =>
+                          setState(() => _district = selected ? district : null),
+                    ),
+                ],
+              ),
+            ),
+          ),
         if (_searching)
           _searchResults(matches, settings, feed)
+        else if (_division != null) ...<Widget>[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
+              child: Kicker(
+                '${context.strings.regionalSources} · '
+                '${Labels.division(_division!, bengali: context.isBengali)}',
+              ),
+            ),
+          ),
+          if (regional.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 0),
+                child: Text(context.strings.regionalEmpty, style: context.texts.bodySmall),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) => _SourceRow(
+                  source: regional[index],
+                  following: settings.isFollowing(regional[index].id),
+                  health: feed.healthFor(regional[index].id),
+                  webOnly: !regional[index].hasFeed,
+                  last: index == regional.length - 1,
+                  onTap: () => openSource(context, regional[index]),
+                  onToggleFollow: () => settings.toggleFollow(regional[index].id),
+                ),
+                childCount: regional.length,
+              ),
+            ),
+          const SizedBox(height: 120),
+        ]
         else ...<Widget>[
           SliverToBoxAdapter(
             child: Padding(

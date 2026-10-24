@@ -8,6 +8,23 @@ import '../../data/models/source_health.dart';
 class Labels {
   const Labels._();
 
+  /// Divisions are stored in the registry by their official English names;
+  /// the Bengali UI shows the Bengali names for the same eight divisions.
+  static String division(String name, {required bool bengali}) {
+    if (!bengali) return name;
+    const Map<String, String> names = <String, String>{
+      'Dhaka': 'ঢাকা',
+      'Chattogram': 'চট্টগ্রাম',
+      'Rajshahi': 'রাজশাহী',
+      'Khulna': 'খুলনা',
+      'Barishal': 'বরিশাল',
+      'Sylhet': 'সিলেট',
+      'Rangpur': 'রংপুর',
+      'Mymensingh': 'ময়মনসিংহ',
+    };
+    return names[name] ?? name;
+  }
+
   static String topic(ArticleTopic topic, {required bool bengali}) {
     if (!bengali) {
       switch (topic) {

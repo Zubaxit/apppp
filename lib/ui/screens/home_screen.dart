@@ -8,14 +8,11 @@ import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/feed_controller.dart';
-import '../../theme/app_theme.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
-import '../widgets/common.dart';
 import '../widgets/editorial.dart';
 import '../widgets/editorial_story.dart';
 import '../widgets/feed_filter_sheet.dart';
-import '../widgets/feed_widgets.dart';
 import 'search_screen.dart';
 
 /// The front page.
@@ -44,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<Article> articles = feed.articles;
     final bool hasArticles = articles.isNotEmpty;
     final Article? lead = hasArticles ? articles.first : null;
+    final NewsSource? leadSource = lead == null ? null : registry.byId(lead.sourceId);
     final List<Article> river = hasArticles ? articles.skip(1).toList() : const <Article>[];
 
     return Scaffold(
@@ -106,9 +104,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       RiseIn(
                         child: LeadStory(
                           article: lead,
-                          source: registry.byId(lead.sourceId),
+                          source: leadSource,
                           onTap: () => openArticle(context, lead),
-                          onOpenSource: () => openSource(context, registry.byId(lead.sourceId)),
+                          onOpenSource: leadSource == null
+                              ? null
+                              : () => openSource(context, leadSource),
                         ),
                       ),
                     Padding(
@@ -508,7 +508,7 @@ class _EmptyState extends StatelessWidget {
           Row(
             children: <Widget>[
               FilledButton(
-                onPressed: () => onRetry(),
+                onPressed: onRetry,
                 style: FilledButton.styleFrom(
                   backgroundColor: context.colors.primary,
                   shape: RoundedRectangleBorder(

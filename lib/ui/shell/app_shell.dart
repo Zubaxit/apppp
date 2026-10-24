@@ -3,18 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/extensions.dart';
 import '../../data/models/app_preferences.dart';
 import '../../state/feed_controller.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
+import '../../theme/app_theme.dart';
 import '../screens/categories_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/newspapers_screen.dart';
 import '../screens/saved_screen.dart';
 import '../screens/settings_screen.dart';
-import '../../core/extensions.dart';
-import '../../theme/app_theme.dart';
-import '../../theme/tokens.dart';
 import '../widgets/editorial.dart';
 
 /// Bottom-navigation shell. Each tab keeps its own scroll state; the detail
