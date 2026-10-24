@@ -34,6 +34,30 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(context.read<FeedController>().setFollowedOnly(following));
   }
 
+  /// Masthead actions stay next to the title rather than in a trailing row of
+  /// their own, so the pinning app bar has a single, stable height.
+  Row _mastheadActions(BuildContext context, FeedController feed) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _GlassAction(
+          icon: Icons.tune_rounded,
+          tooltip: context.strings.filterTitle,
+          badge: feed.query.sourceIds.isNotEmpty || feed.query.languages.isNotEmpty,
+          onTap: () => showFeedFilterSheet(context),
+        ),
+        const SizedBox(width: 6),
+        _GlassAction(
+          icon: Icons.search_rounded,
+          tooltip: context.strings.searchTitle,
+          onTap: () => Navigator.of(context).push<void>(
+            editorialRoute<void>(const SearchScreen(), name: 'search'),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final FeedController feed = context.watch<FeedController>();
@@ -54,33 +78,31 @@ class _HomeScreenState extends State<HomeScreen> {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: <Widget>[
-            SliverPersistentHeader(
+            SliverAppBar(
               pinned: true,
-              delegate: _MastheadDelegate(
-                child: Masthead(
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      _GlassAction(
-                        icon: Icons.tune_rounded,
-                        tooltip: context.strings.filterTitle,
-                        badge: feed.query.sourceIds.isNotEmpty ||
-                            feed.query.languages.isNotEmpty,
-                        onTap: () => showFeedFilterSheet(context),
-                      ),
-                      const SizedBox(width: 6),
-                      _GlassAction(
-                        icon: Icons.search_rounded,
-                        tooltip: context.strings.searchTitle,
-                        onTap: () => Navigator.of(context).push<void>(
-                          editorialRoute<void>(const SearchScreen(), name: 'search'),
+              toolbarHeight: 72,
+              automaticallyImplyLeading: false,
+              backgroundColor: context.theme.scaffoldBackgroundColor.withValues(alpha: 0.92),
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              titleSpacing: 0,
+              title: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(child: Masthead(trailing: _mastheadActions(context, feed))),
+                    if (feed.isRefreshing)
+                      const Padding(
+                        padding: EdgeInsetsDirectional.only(start: 8),
+                        child: SizedBox(
+                          width: 13,
+                          height: 13,
+                          child: CircularProgressIndicator(strokeWidth: 1.6),
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
-                refreshing: feed.isRefreshing,
-                onRefresh: _refresh,
               ),
             ),
             SliverToBoxAdapter(
@@ -152,49 +174,6 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 /// Pinned masthead with a frosted backdrop once content scrolls beneath it.
-class _MastheadDelegate extends SliverPersistentHeaderDelegate {
-  const _MastheadDelegate({
-    required this.child,
-    required this.refreshing,
-    required this.onRefresh,
-  });
-
-  final Widget child;
-  final bool refreshing;
-  final Future<void> Function() onRefresh;
-
-  @override
-  double get minExtent => 76;
-
-  @override
-  double get maxExtent => 76;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return GlassBar(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 8),
-      child: Row(
-        children: <Widget>[
-          Expanded(child: child),
-          if (refreshing)
-            const Padding(
-              padding: EdgeInsetsDirectional.only(end: 6),
-              child: SizedBox(
-                width: 13,
-                height: 13,
-                child: CircularProgressIndicator(strokeWidth: 1.6),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _MastheadDelegate old) =>
-      old.refreshing != refreshing || old.child != child;
-}
-
 class _GlassAction extends StatelessWidget {
   const _GlassAction({
     required this.icon,

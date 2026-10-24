@@ -67,8 +67,9 @@ jobs:
           import re
 
           lines = Path('test.log').read_text(encoding='utf-8', errors='replace').splitlines()
-          noise = re.compile(r'^(#\d+|<asynchronous|package:flutter|package:stack_trace|'
-                             r'\(elided|════|══╡|When the exception|\s*$)')
+          noise = re.compile(r'^(<asynchronous|package:flutter|package:stack_trace|'
+                             r'\(elided|════|══╡|When the exception|'
+                             r'\.\.\.\s+Normal element mounting|\s*$)')
 
           failing = [line for line in lines if '[E]' in line]
           names = []
@@ -84,6 +85,11 @@ jobs:
               print(f'::error::{prefix}%0A{message}')
 
           emit(f'{len(failing)} failing tests:', names[:40])
+          emit('App frames in the log:', [line for line in lines
+                                          if 'bangladesh_newspaper_hub/' in line][:25])
+          first_fail = next((i for i, line in enumerate(lines) if '[E]' in line), None)
+          if first_fail is not None:
+              emit('First failing test:', lines[first_fail:first_fail + 30])
 
           start = next((i for i, line in enumerate(lines) if 'LAYOUT-ERROR' in line), None)
           layout = lines[start:start + 60] if start is not None else []
@@ -91,7 +97,7 @@ jobs:
 
           first = next((i for i, line in enumerate(lines) if 'EXCEPTION CAUGHT' in line), None)
           if first is not None:
-              emit('First exception:', lines[first:first + 160])
+              emit('First exception:', lines[first:first + 200])
           else:
               emit('Log tail:', lines[-160:])
           PY
