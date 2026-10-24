@@ -87,9 +87,9 @@ jobs:
           emit(f'{len(failing)} failing tests:', names[:40])
           emit('App frames in the log:', [line for line in lines
                                           if 'bangladesh_newspaper_hub/' in line][:25])
-          first_fail = next((i for i, line in enumerate(lines) if '[E]' in line), None)
-          if first_fail is not None:
-              emit('First failing test:', lines[first_fail:first_fail + 30])
+          failures = [i for i, line in enumerate(lines) if '[E]' in line][:6]
+          for index, start_at in enumerate(failures, start=1):
+              emit(f'Failure {index}:', lines[start_at:start_at + 14])
 
           start = next((i for i, line in enumerate(lines) if 'LAYOUT-ERROR' in line), None)
           layout = lines[start:start + 60] if start is not None else []

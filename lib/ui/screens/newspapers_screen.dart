@@ -68,13 +68,15 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
       if (_division != null) _division!,
     }.toList()
       ..sort();
+    // The cascade has to sit inside the conditional: `a ? b : c..sort()` sorts
+    // the whole conditional, and the "no division" branch is a const list.
     final List<NewsSource> regional = _division == null
         ? const <NewsSource>[]
-        : registry.sources
-            .where((NewsSource s) =>
-                s.division == _division && (_district == null || s.district == _district))
-            .toList()
-          ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name));
+        : (registry.sources
+              .where((NewsSource s) =>
+                  s.division == _division && (_district == null || s.district == _district))
+              .toList()
+            ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name)));
     final List<String> districts =
         _division == null ? const <String>[] : registry.districtsIn(_division!);
 

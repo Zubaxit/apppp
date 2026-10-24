@@ -143,7 +143,14 @@ class Article {
     List<String> tags = const <String>[],
     bool breaking = false,
   }) {
-    final DateTime fetched = (fetchedAt ?? DateTime.now()).toUtc();
+    // Rows store epoch milliseconds, so an article is normalised to that
+    // precision at creation: an in-memory article then equals its persisted
+    // form, and a round trip cannot fail on sub-millisecond digits.
+    DateTime toMillis(DateTime value) => DateTime.fromMillisecondsSinceEpoch(
+          value.toUtc().millisecondsSinceEpoch,
+          isUtc: true,
+        );
+    final DateTime fetched = toMillis(fetchedAt ?? DateTime.now());
     final String cleanTitle = TextUtils.normalizeSpaces(title);
     return Article(
       id: Ids.articleId(sourceId: sourceId, link: link, title: cleanTitle),
@@ -152,7 +159,7 @@ class Article {
       link: link,
       excerpt: TextUtils.nullIfBlank(excerpt),
       imageUrl: TextUtils.nullIfBlank(imageUrl),
-      publishedAt: publishedAt?.toUtc(),
+      publishedAt: publishedAt == null ? null : toMillis(publishedAt),
       fetchedAt: fetched,
       guid: TextUtils.nullIfBlank(guid),
       author: TextUtils.nullIfBlank(author),
