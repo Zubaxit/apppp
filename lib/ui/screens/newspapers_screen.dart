@@ -452,18 +452,25 @@ class _SourceRow extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Pressable(
-                    onTap: onToggleFollow,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        following
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_border_rounded,
-                        size: 19,
-                        color: following
-                            ? context.colors.primary
-                            : context.colors.onSurfaceVariant,
+                  Tooltip(
+                    message: following
+                        ? context.strings.followingLabel
+                        : context.strings.follow,
+                    child: Pressable(
+                      onTap: onToggleFollow,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        // Follow uses the same pair of icons as the publication
+                        // page; a bookmark would read as "save this article".
+                        child: Icon(
+                          following
+                              ? Icons.check_circle_rounded
+                              : Icons.add_circle_outline_rounded,
+                          size: 20,
+                          color: following
+                              ? context.colors.primary
+                              : context.colors.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ),
