@@ -42,6 +42,8 @@ publication time, and sends readers to the original article on the publisher's s
   `Breaking News:` in its own feed. The label can be switched off in Settings.
 - Topic rail (Bangladesh, politics, economy, international, sports, entertainment, technology,
   education, health, lifestyle) that filters the feed in place.
+- **Filter sheet** (toolbar *Filter feed*) to narrow the unified feed to specific publications and
+  Bengali/English, with a searchable publication list, selection summary and a badge while active.
 - "All / Following" feed switch, followed-publication strip, featured publications rail and a
   prominent route into the full directory.
 - Status bar that states when the feed was last refreshed, and clearly says when cached or

@@ -20,16 +20,23 @@ claimed unless it actually ran.
 ```
 $ ./tool/verify.sh
 ==> source registry JSON is valid
-    60 sources, 6 e-papers
+    60 sources, 6 e-papers, 6 candidates
+==> every asset declared in pubspec.yaml exists
+    all 10 declared asset files present
 ```
 
-Checks: JSON parses, ids unique, every website/feed/e-paper URL is `https`.
+Checks: JSON parses; ids unique; every website/feed/e-paper URL is `https`; enums
+(`type`, `status`, `feedClaim`, `categories`) contain only values that resolve to a real Dart enum
+member after key normalization — this catches the failure mode where `needs_review` silently becomes
+`active`; a `verified_working` claim must carry a `lastVerifiedAt` date; regional entries must name a
+division; e-papers must point at a known source; and every asset declared in `pubspec.yaml`
+(JSON data, three Noto Bengali families, the OFL text) must exist on disk and be non-trivial.
 
 ### 2. Dart static checks (tree-sitter, no SDK) — passed
 
 ```
 $ node tool/dart_static_check.js        # NODE_PATH points at tree-sitter + tree-sitter-dart
-checked 54 Dart files, 176 top-level symbols
+checked 55 Dart files, 180 top-level symbols
 all static checks passed
 ```
 
@@ -53,7 +60,7 @@ It found and fixed three real defects during development (`SectionHeader` and
 
 ### 3. App-string completeness — passed
 
-All 152 `AppStrings` getters are implemented by both `BanglaStrings` and `EnglishStrings`
+All 153 `AppStrings` getters are implemented by both `BanglaStrings` and `EnglishStrings`
 (verified by a script; a missing override would be a compile error).
 
 ### 4. Store-interface completeness — passed
