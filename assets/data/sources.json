@@ -26,7 +26,7 @@
       "status": "active",
       "featured": true,
       "epaperUrl": "https://epaper.prothomalo.com/",
-      "notes": "Largest circulating Bengali daily. Publisher feed returns Bengali items (checked 2026-10-24); section feeds also exist under /bangladesh/feed.",
+      "notes": "Feed fetched and parsed 2026-10-24: 88 items, 88 with timestamps, 76 on-domain links, Bengali headlines; valid XML.",
       "lastVerifiedAt": "2026-10-24"
     },
     {
@@ -376,8 +376,8 @@
         "bhorerkagoj",
         "ভোরের কাগজ"
       ],
-      "website": "https://www.bhorerkagoj.com/",
-      "feedUrl": "https://www.bhorerkagoj.com/rss",
+      "website": "https://www.bhorerkagoj.net/",
+      "feedUrl": "https://www.bhorerkagoj.net/rss",
       "feedFormat": "rss",
       "feedClaim": "candidate",
       "language": "bn",
@@ -390,7 +390,7 @@
       "status": "active",
       "featured": false,
       "epaperUrl": null,
-      "notes": ""
+      "notes": "bhorerkagoj.com now redirects to bhorerkagoj.net (checked 2026-10-24); the feed path is still unverified."
     },
     {
       "id": "protidiner_sangbad",
@@ -549,7 +549,7 @@
       "website": "https://www.tbsnews.net/",
       "feedUrl": "https://www.tbsnews.net/rss.xml",
       "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedClaim": "verified_working",
       "language": "en",
       "type": "daily_newspaper",
       "categories": [
@@ -561,7 +561,8 @@
       "status": "active",
       "featured": true,
       "epaperUrl": null,
-      "notes": "Business-focused English daily with a Bengali edition on the same domain."
+      "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, English headlines; valid XML.",
+      "lastVerifiedAt": "2026-10-24"
     },
     {
       "id": "financial_express",
@@ -743,9 +744,9 @@
         "business post"
       ],
       "website": "https://businesspostbd.com/",
-      "feedUrl": "https://businesspostbd.com/rss",
-      "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
       "language": "en",
       "type": "daily_newspaper",
       "categories": [
@@ -754,10 +755,9 @@
       ],
       "division": null,
       "district": null,
-      "status": "active",
+      "status": "needs_review",
       "featured": false,
-      "epaperUrl": null,
-      "notes": ""
+      "notes": "businesspostbd.com redirected to an unrelated hosting page on 2026-10-24, so the publication has moved or closed. Kept listed until the current official domain is confirmed; no feed is claimed."
     },
     {
       "id": "bdnews24",
@@ -962,7 +962,7 @@
       "website": "https://sarabangla.net/",
       "feedUrl": "https://sarabangla.net/rss",
       "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedClaim": "verified_working",
       "language": "bn",
       "type": "online_portal",
       "categories": [
@@ -973,7 +973,8 @@
       "status": "active",
       "featured": false,
       "epaperUrl": null,
-      "notes": ""
+      "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, Bengali headlines; valid XML.",
+      "lastVerifiedAt": "2026-10-24"
     },
     {
       "id": "orthoneeti",
@@ -1108,7 +1109,7 @@
       "website": "https://www.dainikazadi.net/",
       "feedUrl": "https://www.dainikazadi.net/rss",
       "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedClaim": "verified_working",
       "language": "bn",
       "type": "daily_newspaper",
       "categories": [
@@ -1119,7 +1120,8 @@
       "status": "active",
       "featured": false,
       "epaperUrl": null,
-      "notes": "Published from Chattogram since 1960."
+      "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, Bengali headlines; valid XML.",
+      "lastVerifiedAt": "2026-10-24"
     },
     {
       "id": "purbokone",
@@ -1157,7 +1159,7 @@
       "website": "https://www.suprobhat.com/",
       "feedUrl": "https://www.suprobhat.com/rss",
       "feedFormat": "rss",
-      "feedClaim": "candidate",
+      "feedClaim": "verified_working",
       "language": "bn",
       "type": "daily_newspaper",
       "categories": [
@@ -1168,7 +1170,8 @@
       "status": "active",
       "featured": false,
       "epaperUrl": null,
-      "notes": ""
+      "notes": "Feed fetched and parsed 2026-10-24: 10 items, 10 with timestamps, 10 on-domain links, Bengali headlines; valid XML.",
+      "lastVerifiedAt": "2026-10-24"
     },
     {
       "id": "sylheter_dak",
@@ -1264,7 +1267,7 @@
       "status": "active",
       "featured": false,
       "epaperUrl": null,
-      "notes": "BBC Bengali. Documented public RSS endpoint, confirmed returning items on 2026-10-24. Editorial control rests with the BBC; the app only links to it.",
+      "notes": "Feed fetched and parsed 2026-10-24: 14 items, 14 with timestamps, 14 on-domain links, Bengali headlines; valid XML.",
       "lastVerifiedAt": "2026-10-24"
     },
     {

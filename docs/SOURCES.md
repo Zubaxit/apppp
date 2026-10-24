@@ -30,8 +30,39 @@ The directory is the product. It is therefore curated like editorial content, no
 
 Only `scripts/verify_sources.py --write` may write `verified_working`, and only after a successful
 fetch; it also writes `lastVerifiedAt`. A failing URL is demoted back to `candidate` — the entry is
-never deleted, and a claim is never upgraded by guesswork. As of 2026-10-24 exactly two feeds have
-been confirmed: `prothomalo` (`verified_working`) and `bbc_bangla` (`official_documented`).
+never deleted, and a claim is never upgraded by guesswork.
+
+**A 200 response is not enough.** The verifier only qualifies a feed when the body parses as real
+XML, it yields at least three items with links, at least half the items carry a genuine timestamp,
+at least half the links point at the publisher's own host, and a Bengali publication actually
+contains Bengali headlines.
+
+### Verification run — 2026-10-24
+
+Run on a machine with normal internet access (GitHub Actions, `Verify sources` workflow).
+
+| Source | Result | Items | Timestamped | On-domain | Bengali | Evidence for |
+| --- | --- | --- | --- | --- | --- | --- |
+| `prothomalo` | verified working | 88 | 88 | 76 | yes | `verified_working` |
+| `bbc_bangla` | verified working | 14 | 14 | 14 | yes | stays `official_documented` |
+| `suprobhat` | verified working | 10 | 10 | 10 | yes | `verified_working` |
+| `sarabangla` | verified working | 10 | 10 | 10 | yes | `verified_working` |
+| `dainik_azadi` | verified working | 10 | 10 | 10 | yes | `verified_working` |
+| `tbs` | verified working | 10 | 10 | 10 | n/a (English) | `verified_working` |
+
+Everything else stayed `candidate`: 51 configured feeds failed the check (mostly HTTP 403
+bot-protection on conventional paths, several HTTP 404, DNS failures and one TLS hostname mismatch).
+Those URLs are **not** removed — they remain honestly labelled as unverified, and the app reports the
+live result per publication.
+
+Other findings from the same run:
+
+- `business_post`: `businesspostbd.com` redirects to an unrelated hosting page, so the entry is now
+  `needs_review` with no feed claim. It stays in the directory until the current domain is confirmed.
+- `bhorer_kagoj`: the `.com` host redirects to `bhorerkagoj.net`, so the registry now points at the
+  canonical domain (feed path still unverified).
+- Only 21 of 60 websites answered an automated GET. Most of the rest returned HTTP 403 (bot
+  protection), which is **not** evidence that a newspaper has closed, so no entry was demoted for it.
 
 Runtime health is stored separately (`source_health`) and never rewrites `status`. A publication
 whose feed fails stays in the directory, keeps its "open website" action, and is listed first in

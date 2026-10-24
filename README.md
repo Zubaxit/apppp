@@ -103,20 +103,24 @@ publication time, and sends readers to the original article on the publisher's s
 | --- | --- | --- |
 | Publications in the registry | Curated entries with an official website | **60** |
 | Sources with an e-paper destination | Publisher-hosted e-paper links | **6** e-papers |
-| Sources with a **feed URL configured** | URLs the app checks at runtime | **57** |
-| Sources **verified working feeds** | Feed fetched and parsed, returning items | **1** (`prothomalo`) |
+| Sources with a **feed URL configured** | URLs the app checks at runtime | **56** |
+| Sources **verified working feeds** | Fetched, parsed, timestamped, on-domain | **5** |
 | Sources with a **documented** feed | Publisher documents the endpoint; also fetched successfully | **1** (`bbc_bangla`) |
-| Feed **candidates** never confirmed | Guessed/plausible paths, validated only at runtime | **55** |
-| Entries with **no feed** | Website-only, by design | **3** |
+| Feed **candidates** never confirmed | Guessed/plausible paths, validated only at runtime | **50** |
+| Entries with **no feed** | Website-only, by design | **4** |
 
-> **Honest status.** Only two feed URLs have actually been fetched and parsed successfully
-> (`https://www.prothomalo.com/stories.rss` and `https://feeds.bbci.co.uk/bengali/rss.xml`, both on
-> 2026-10-24, returning Bengali items with publication dates). The remaining 55 URLs are educated
-> candidates — mostly conventional `/rss` paths — that were **not** confirmed, because the build
-> sandbox cannot reach publisher hosts (only GitHub/npm/PyPI are allow-listed). The app never claims
-> otherwise: each publication shows *verified working feed*, *documented*, *candidate (unverified)* or
-> *no feed* in its detail sheet, plus live health collected while you use the app. Run
-> `python3 scripts/verify_sources.py --write` from a normal connection to promote what actually works.
+Verified on 2026-10-24 by fetching each endpoint and requiring valid XML, ≥3 items, ≥50 % items with
+real timestamps, ≥50 % on-domain article links and Bengali headlines for Bengali publications:
+`prothomalo` (88 items), `bbc_bangla` (14), `suprobhat`, `sarabangla`, `dainik_azadi`, `tbs` (10 each).
+Per-feed numbers and the failures are in [docs/SOURCES.md](docs/SOURCES.md).
+
+> **Honest status.** Six feeds have actually been fetched, parsed and quality-checked (see the table
+> above); the other 50 configured URLs are educated candidates — mostly conventional `/rss` paths —
+> that returned HTTP 403 (bot protection), 404, or a DNS/TLS failure when checked, and could not be
+> confirmed. The app never claims otherwise: each publication shows *verified working feed*,
+> *documented*, *candidate (unverified)* or *no feed* in its detail sheet, plus live health collected
+> while you use the app. Re-run `python3 scripts/verify_sources.py --write` (or the `Verify sources`
+> workflow) from a normal connection to promote whatever works later.
 
 The directory *itself* is fully usable offline and independent of feeds: every publication's official
 website opens even when its feed is missing or broken.
