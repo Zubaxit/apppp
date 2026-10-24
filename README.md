@@ -310,12 +310,33 @@ publisher logos.
 
 ## Known limitations
 
-1. **Six feeds are verified working; fifty publisher URLs are not.** The verification workflow
-   (`Verify sources`) fetched each candidate on 2026-10-24: 6 feeds returned well-formed items
-   (Prothom Alo, Bhorer Kagoj-free Suprobhat, Sarabangla, Dainik Azadi, The Business Standard, BBC
-   Bangla), 22 websites were reachable but exposed no usable feed, and 50 candidates failed (mostly
-   HTTP 403 bot protection, then 404 and DNS failures). Those 50 stay marked `candidate` in the
-   directory and the app reports the failure at runtime rather than pretending to have news.
+1. **Thirteen feeds are verified working against the live internet; the rest are website-only.**
+   On 2026-10-25 the `Verify sources` workflow probed 164 candidate URLs across 27 publishers
+   (run `40123781895`): 13 feeds returned valid, on-domain, timestamped items, 12 publishers
+   answered HTTP 403 to a non-browser client (Jugantor, Samakal, Kaler Kantho, Ittefaq, Bangladesh
+   Pratidin, Bangla Tribune, Dhaka Tribune and others), bdnews24 answered with HTML instead of a
+   feed, and Reuters no longer publishes public RSS. Those publishers keep their directory entry,
+   e-paper link and notes but are shown as **website only**; the app never claims their headlines
+   are in the unified feed. `docs/SOURCES.md` has the measured table.
+
+### Verified feed set (what the home screen actually shows)
+
+| Publication | Language | Items in the last check |
+| --- | --- | --- |
+| Prothom Alo | bn | 50–63 |
+| JagoNews24 | bn | 100 |
+| Ajker Patrika | bn | 20 |
+| Dhaka Post | bn | 20 |
+| Suprobhat | bn | 10 |
+| Sarabangla | bn | 10 |
+| Dainik Azadi (Chattogram) | bn | 10 |
+| The Daily Star | en | 10 (the feed carries no timestamps) |
+| The Business Standard | en | 10 |
+| BBC News Bengali | bn | 14 |
+| Al Jazeera English | en | 25 |
+| DW News | en | 131 |
+| BBC News (World) | en | 30 |
+
 2. Bengali and English publication *names* are curated; logos are not shipped (licensing), so
    text monograms are used.
 3. Regional coverage is intentionally conservative: only publications whose official domain is
@@ -330,14 +351,19 @@ publisher logos.
 7. There is no cloud sync, no full-text reading, and no commenting — by design.
 8. The in-app reader needs a live connection — saving from it stores the headline and link, not
    the page, and the reader cannot display a PDF-only e-paper.
-9. Analysis, the 124-test suite and the debug/release APK builds ran in GitHub Actions and pass
-   (see *Testing*); this development sandbox itself has no Flutter/JDK toolchain, so
-   `./tool/verify.sh` is the only gate that runs locally.
+9. The Daily Star's feed publishes no item timestamps. Those stories are labelled "publication time
+   unknown" and sort after dated ones; the registry carries an explicit `allowUndated` flag for
+   that one entry rather than accepting undated feeds generally.
+10. Analysis, the 142-test suite and the debug/release APK builds ran in GitHub Actions and pass
+    (see *Testing*); this development sandbox itself has no Flutter/Android SDK, so
+    `./tool/verify.sh` is the only gate that runs locally. **No physical device or emulator test has
+    been performed** — the APK artifact from the CI run is the build to install for a hands-on check.
 
 ## Roadmap
 
-- Keep promoting feed candidates with the `Verify sources` workflow; 50 URLs still need a confirmed
-  path (most currently answer 403 to automated clients).
+- Keep promoting feed candidates with the `Verify sources` workflow. The 403 publishers need either
+  a documented feed endpoint from the publisher or a change in their bot policy; the probe list
+  already covers the conventional paths for all of them.
 - Extend regional coverage (all eight divisions) once each domain is confirmed.
 - Optional Firebase-free backend for centralized feed aggregation, if per-device fetching ever
   becomes impolite at scale.

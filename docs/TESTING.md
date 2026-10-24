@@ -110,15 +110,18 @@ This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates r
 | --- | --- | --- |
 | Formatting | not gated (kept out of CI on purpose; `dart format lib test` locally) | — |
 | Static analysis | `flutter analyze --fatal-warnings` | **success**, 0 issues |
-| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 124 tests |
+| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 142 tests |
 | Debug APK | `flutter build apk --debug` | **success** |
 | Release APK | `flutter build apk --release` | **success** (artifact `apk`, ~118 MB combined) |
 | `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |
 | On-device / emulator smoke test | not run | manual, see checklist below |
 
-Run IDs for the latest green build: CI run `40117972337` (analyze & test + APK, commit `d8261ad`, which
-includes the in-app reader) and Verify sources run `40107364030`. Earlier green runs:
-`40107367502` (pre-reader) and `40108517164`. Because runner logs are not reachable from this sandbox, the workflows republish
+Run IDs for the latest green build: CI run `40123785564` (analyze & test + APK, commit `da64f8e`) and
+Verify sources run `40123781895` (13 of 13 shipped feeds verified live, 0 failing). Earlier green
+runs: `40117972337`, `40107367502`, `40108517164`.
+
+The APK is rebuilt by CI on every commit; the artifact named `apk` is attached to the
+`Build Android APK` job of the newest run on the branch. Because runner logs are not reachable from this sandbox, the workflows republish
 analyzer and test diagnostics as check annotations — that is also how each failure below was
 diagnosed and fixed.
 
@@ -156,6 +159,22 @@ override; source/topic/language/text filters; followed-only semantics; publicati
 with undated items last; bookmark persistence across a cache wipe; history write/clear; related
 coverage excludes the same publisher and the article itself; cache clearing keeps bookmarks.
 
+**`test/unit/http_client_test.dart`**
+The transport policy: Bengali survives a feed that omits its charset (the old `response.body`
+default of latin-1 is exactly why headlines could arrive as mojibake), a declared latin-1 charset is
+still honoured, a UTF-8 BOM is skipped, a descriptive user agent and RSS `Accept` header are sent,
+304 is reported as not-modified, 403 fails once without retrying, 5xx retries once and then reports
+honestly, an oversized body is rejected, and an unsafe URL never leaves the device.
+
+**`test/unit/refresh_pipeline_test.dart`**
+The path that produced the empty app, end to end: real `NewsHttpClient` (MockClient transport) →
+real parser → real `FeedService` → real `ArticleRepository` → an `ArticleStore` that rejects any key
+the real DDL does not declare, exactly like SQLite. Asserts six articles persisted with Bengali
+titles, tracking parameters stripped, `+0600` converted to UTC, topics assigned, and category
+queries reaching the same rows; that one publisher answering 403 never blocks the other two; that
+the per-source refresh floor holds and `force` overrides it; and that a broken store is reported as
+`storageError` rather than looking like a successful refresh.
+
 **`test/unit/storage_contract_test.dart`**
 Reads the real `CREATE TABLE` DDL out of `app_database.dart` and asserts `Article.toRow()` /
 `SourceHealth.toRow()` keys equal the column names, round-trips a Bengali breaking article (tags,
@@ -190,13 +209,15 @@ Layouts at 360×640 dp and 800×1280 dp without overflow.
 3. `Settings → Source health` → failing sources listed first with their error; retry one.
 4. Open a publication with no feed → only website/e-paper actions are offered.
 5. Bookmark three stories → force-stop → relaunch → Saved intact.
-6. Open a story → "Read in app" → the publisher page loads with its real domain in the bar; follow a
+6. Home → the counter should read eleven-ish publishers; a publisher that fails must show in
+   `Source health` with its HTTP status while the other publishers' headlines stay on screen.
+7. Open a story → "Read in app" → the publisher page loads with its real domain in the bar; follow a
    link inside it → back returns through page history before leaving the reader; "open in browser"
    hands the same URL to the system browser; bookmarking from the reader warns that only the
    headline and link are kept.
-6. Search in Bengali and in English → both find publications and headlines.
-7. Toggle dark theme, 140 % text size, reduce motion → no clipped Bengali headlines.
-8. Android back: detail → list → Home tab → app exits (no navigation loop).
-9. Rotate and use split-screen → no overflow stripes.
-10. Let the app idle for the configured interval → "last updated" advances; no request storm in
+8. Search in Bengali and in English → both find publications and headlines.
+9. Toggle dark theme, 140 % text size, reduce motion → no clipped Bengali headlines.
+10. Android back: detail → list → Home tab → app exits (no navigation loop).
+11. Rotate and use split-screen → no overflow stripes.
+12. Let the app idle for the configured interval → "last updated" advances; no request storm in
     a proxy trace.
