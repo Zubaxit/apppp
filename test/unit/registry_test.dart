@@ -144,7 +144,13 @@ void main() {
       expect(registry.byCategory(SourceCategory.business), isNotEmpty);
       expect(registry.byCategory(SourceCategory.regional), isNotEmpty);
       expect(registry.byLanguage(SourceLanguage.en), isNotEmpty);
-      expect(registry.withFeeds.length, greaterThan(20));
+      // Only verified feeds ship a URL, so this count is the promise the app
+      // makes on the home screen; it is deliberately checked both ways.
+      expect(registry.withFeeds, isNotEmpty);
+      expect(registry.withFeeds.length, greaterThanOrEqualTo(10));
+      for (final NewsSource source in registry.withFeeds) {
+        expect(source.hasVerifiedFeed, isTrue, reason: source.id);
+      }
       expect(registry.epapers, isNotEmpty);
     });
 

@@ -46,6 +46,8 @@ class SchemaStrictArticleStore extends FakeArticleStore {
   }
 }
 
+/// Parsed lazily inside a test: reading the file and asserting at the top of
+/// `main` would run outside the test zone and fail the whole suite.
 Set<String> articleColumns() {
   final String schema = File('lib/data/services/app_database.dart').readAsStringSync();
   final RegExp create = RegExp(r"CREATE TABLE articles \((.*?)\)\s*'", dotAll: true);
@@ -127,7 +129,8 @@ String bbcBanglaFeed() => '''
 ''';
 
 void main() {
-  final Set<String> columns = articleColumns();
+  // Computed per test, never during collection.
+  Set<String> columns() => articleColumns();
 
   NewsSource source(String id, String name, String feed, SourceLanguage language) {
     return NewsSource(
@@ -154,7 +157,7 @@ void main() {
       about: 'pipeline test',
     );
 
-    final SchemaStrictArticleStore articles = SchemaStrictArticleStore(columns);
+    final SchemaStrictArticleStore articles = SchemaStrictArticleStore(columns());
     final AppStores stores = fakeStores(articles: articles);
     final DateTime clock = DateTime.utc(2026, 10, 25, 10);
     final NewsHttpClient httpClient = NewsHttpClient(
@@ -217,7 +220,7 @@ void main() {
       updatedAt: DateTime.utc(2026, 10, 25),
       about: 'pipeline test',
     );
-    final SchemaStrictArticleStore articles = SchemaStrictArticleStore(columns);
+    final SchemaStrictArticleStore articles = SchemaStrictArticleStore(columns());
     final AppStores stores = fakeStores(articles: articles);
     final NewsHttpClient httpClient = NewsHttpClient(
       client: MockClient((http.Request request) async {
@@ -261,7 +264,7 @@ void main() {
       about: 'pipeline test',
     );
     var calls = 0;
-    final AppStores stores = fakeStores(articles: SchemaStrictArticleStore(columns));
+    final AppStores stores = fakeStores(articles: SchemaStrictArticleStore(columns()));
     final NewsHttpClient httpClient = NewsHttpClient(
       client: MockClient((http.Request request) async {
         calls += 1;
