@@ -36,6 +36,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 ROOT = __import__("os").path.dirname(__import__("os").path.dirname(__import__("os").path.abspath(__file__)))
@@ -94,29 +95,100 @@ def fetch(url: str, method: str = "GET") -> Tuple[Optional[int], Optional[str], 
         return None, None, f"{type(error).__name__}: {error}"
 
 
+BENGALI_RE = re.compile(r"[\u0980-\u09FF]")
+
+
+def _feed_links(block: str) -> List[str]:
+    links = [match.strip() for match in LINK_RE.findall(block)]
+    links += [match.strip() for match in HREF_RE.findall(block)]
+    return [link for link in links if link.startswith(("http://", "https://"))]
+
+
 def analyse_feed(body: str) -> Dict[str, Any]:
-    """Count items and detect the feed dialect without a real XML parser."""
+    """Evaluate a feed body: structure, links, dates and Bengali text."""
     items = ITEM_RE.findall(body)
-    titles = [re.sub(r"<[^>]+>", "", match).strip() for match in TITLE_RE.findall(body)]
-    dates = [match[1].strip() for match in DATE_RE.findall(body)]
+    titles = [re.sub(r"<\[CDATA\[|\]\]>|<[^>]+>", "", match).strip()
+              for match in TITLE_RE.findall(body)]
     first_item = items[0][1] if items else ""
     format_name = "unknown"
-    if "<feed" in body[:2000].lower():
+    head = body[:2000].lower()
+    if "<feed" in head:
         format_name = "atom"
-    elif "<rss" in body[:2000].lower():
+    elif "<rss" in head:
         format_name = "rss"
-    elif "<rdf" in body[:2000].lower():
+    elif "<rdf" in head:
         format_name = "rdf"
-    looks_like_html = "<html" in body[:400].lower()
+
+    dated = 0
+    on_domain = 0
+    bengali_items = 0
+    item_dates: List[str] = []
+    for _tag, block in items:
+        date_match = DATE_RE.search(block)
+        if date_match and date_match.group(2).strip():
+            raw = date_match.group(2).strip()
+            try:
+                # RFC 822 as used by RSS; the app parses this itself, we only
+                # need to know it is a real timestamp rather than a placeholder.
+                datetime.strptime(raw[:25].strip(), "%a, %d %b %Y %H:%M:%S")
+                dated += 1
+                if len(item_dates) < 3:
+                    item_dates.append(raw)
+            except ValueError:
+                try:
+                    datetime.fromisoformat(raw.replace("Z", "+00:00"))
+                    dated += 1
+                    if len(item_dates) < 3:
+                        item_dates.append(raw)
+                except ValueError:
+                    pass
+        links = _feed_links(block)
+        if links and _same_site(links[0], body):
+            on_domain += 1
+        title_match = TITLE_RE.search(block)
+        if title_match and BENGALI_RE.search(title_match.group(1)):
+            bengali_items += 1
+
+    total = len(items)
     return {
         "format": format_name,
-        "itemCount": len(items),
-        "sampleTitles": [t for t in titles[:3] if t],
-        "sampleDates": dates[:3],
+        "itemCount": total,
+        "datedItems": dated,
+        "onDomainLinks": on_domain,
+        "bengaliItems": bengali_items,
+        "sampleTitles": [t for t in titles[1:4] if t],
+        "sampleDates": item_dates,
         "hasLink": bool(LINK_RE.search(first_item) or HREF_RE.search(first_item)),
-        "looksLikeHtml": looks_like_html,
-        "usable": len(items) > 0 and bool(LINK_RE.search(first_item) or HREF_RE.search(first_item)),
+        "looksLikeHtml": "<html" in body[:400].lower(),
+        "wellFormedXml": _looks_like_wellformed_xml(body),
+        "usable": total > 0 and bool(LINK_RE.search(first_item) or HREF_RE.search(first_item)),
     }
+
+
+def _same_site(link: str, body: str) -> bool:
+    """True when an item link sits on the publisher host the feed advertises."""
+    channel_link = re.search(r"<link[^>]*>(https?://[^<]+)</link>", body[:4000])
+    host = urllib.parse.urlparse(link).netloc.lower().replace("www.", "")
+    if not host:
+        return False
+    if channel_link:
+        feed_host = urllib.parse.urlparse(channel_link.group(1).strip()).netloc.lower().replace("www.", "")
+        if feed_host:
+            return host.endswith(feed_host) or feed_host.endswith(host)
+    return "." in host
+
+
+def _looks_like_wellformed_xml(body: str) -> bool:
+    """Parse with the real XML parser when one is available (never required)."""
+    try:
+        import xml.etree.ElementTree as ElementTree
+    except ImportError:  # pragma: no cover - always available in CPython
+        return False
+    try:
+        ElementTree.fromstring(body.encode("utf-8", errors="replace"))
+        return True
+    except Exception:  # noqa: BLE001 - malformed feed is a finding, not a crash
+        return False
 
 
 def check_website(url: str) -> Dict[str, Any]:
@@ -139,6 +211,29 @@ def check_website(url: str) -> Dict[str, Any]:
     }
 
 
+def qualifies(analysis: Dict[str, Any], language: str) -> Tuple[bool, str]:
+    """Decide whether a fetched feed is enough evidence for `verified_working`.
+
+    A 200 response is not enough: the body must parse as XML, carry several
+    items with real timestamps and links back to the publisher's own host, and —
+    for a Bengali publication — actual Bengali headlines.
+    """
+    items = int(analysis.get("itemCount") or 0)
+    if not analysis.get("usable") or items < 3:
+        return False, "fewer than 3 usable items"
+    if not analysis.get("wellFormedXml"):
+        return False, "body does not parse as XML"
+    dated = int(analysis.get("datedItems") or 0)
+    if dated < max(1, items // 2):
+        return False, f"only {dated}/{items} items carry a timestamp"
+    on_domain = int(analysis.get("onDomainLinks") or 0)
+    if on_domain < max(1, items // 2):
+        return False, f"only {on_domain}/{items} links point at the publisher"
+    if language == "bn" and int(analysis.get("bengaliItems") or 0) < 1:
+        return False, "no Bengali headlines in a Bengali publication's feed"
+    return True, "ok"
+
+
 def check_feed(url: str) -> Dict[str, Any]:
     status, body, note = fetch(url)
     if status is None or body is None:
@@ -146,7 +241,7 @@ def check_feed(url: str) -> Dict[str, Any]:
     if not (200 <= status < 300):
         return {"status": status, "note": note or f"HTTP {status}", "usable": False, "itemCount": 0}
     analysis = analyse_feed(body)
-    analysis.update({"status": status, "note": note})
+    analysis.update({"status": status, "note": note, "finalUrl": url})
     return analysis
 
 
@@ -187,18 +282,20 @@ def main(argv: Optional[List[str]] = None) -> int:
         if source.get("feedUrl"):
             feed_result = check_feed(source["feedUrl"])
             time.sleep(args.delay)
-            if feed_result.get("usable"):
+            ok, reason = qualifies(feed_result, source.get("language", ""))
+            feed_result["qualified"] = ok
+            feed_result["qualification"] = reason
+            if ok:
                 counts["feedOk"] += 1
                 print(
-                    f"  + {source['id']:<24} feed OK ({feed_result['itemCount']} items, "
-                    f"{feed_result['format']})"
+                    f"  + {source['id']:<24} feed ok: {feed_result['itemCount']} items, "
+                    f"{feed_result['datedItems']} dated, {feed_result['onDomainLinks']} on-domain, "
+                    f"{feed_result['bengaliItems']} bn, xml={feed_result['wellFormedXml']}"
                 )
             else:
                 counts["feedFail"] += 1
-                print(
-                    f"  x {source['id']:<24} feed unusable: "
-                    f"{feed_result.get('note') or feed_result.get('format', 'unknown')}"
-                )
+                detail = feed_result.get("note") or reason
+                print(f"  x {source['id']:<24} feed not verified: {detail}")
         else:
             counts["noFeed"] += 1
             feed_result = {"usable": False, "note": "no feed configured"}
@@ -231,8 +328,8 @@ def main(argv: Optional[List[str]] = None) -> int:
             # Only a real fetch may change the claim: a documented URL stays
             # documented, everything that returned items becomes verified_working,
             # and a failing URL is demoted back to candidate (never deleted).
-            if feed_result.get("usable"):
-                source["lastVerifiedAt"] = now
+            if feed_result.get("qualified"):
+                source["lastVerifiedAt"] = now[:10]
                 if source.get("feedClaim") != "official_documented":
                     source["feedClaim"] = "verified_working"
             elif source.get("feedUrl"):
