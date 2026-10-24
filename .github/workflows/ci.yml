@@ -55,7 +55,39 @@ jobs:
           if-no-files-found: ignore
 
       - name: Unit and widget tests
-        run: flutter test --reporter expanded --coverage
+        run: |
+          set -o pipefail
+          flutter test --reporter expanded --coverage 2>&1 | tee test.log
+
+      - name: Surface test failures
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          text = Path('test.log').read_text(encoding='utf-8', errors='replace')
+          lines = text.splitlines()
+          interesting = [
+              line for line in lines
+              if any(marker in line for marker in (
+                  'Error:', 'error:', 'Failure', 'FAILED', 'Expected:', 'Actual:',
+                  'Which:', 'test/unit/', 'test/widget/', 'Some tests failed',
+                  'compilation failed', 'Error: ',
+              ))
+          ] or lines[-120:]
+          for start in range(0, min(len(interesting), 240), 12):
+              chunk = interesting[start:start + 12]
+              message = '%0A'.join(item.replace('%', '%25') for item in chunk)
+              print(f'::error::{message}')
+          PY
+
+      - name: Upload test output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log
+          path: test.log
+          if-no-files-found: ignore
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
