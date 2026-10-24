@@ -72,6 +72,7 @@ abstract class AppStrings {
   String get searchHint;
   String get filterCategory;
   String get filterLanguage;
+  String get filterTitle;
   String get filterDivision;
   String get allCategories;
   String get allLanguages;
@@ -295,6 +296,8 @@ class BanglaStrings extends AppStrings {
   String get filterCategory => 'ধরন';
   @override
   String get filterLanguage => 'ভাষা';
+  @override
+  String get filterTitle => 'ফিড ফিল্টার';
   @override
   String get filterDivision => 'বিভাগ';
   @override
@@ -631,6 +634,8 @@ class EnglishStrings extends AppStrings {
   String get filterCategory => 'Type';
   @override
   String get filterLanguage => 'Language';
+  @override
+  String get filterTitle => 'Filter feed';
   @override
   String get filterDivision => 'Division';
   @override

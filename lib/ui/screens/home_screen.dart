@@ -13,6 +13,7 @@ import '../../theme/app_theme.dart';
 import '../helpers/app_nav.dart';
 import '../widgets/article_card.dart';
 import '../widgets/common.dart';
+import '../widgets/feed_filter_sheet.dart';
 import '../widgets/feed_widgets.dart';
 import 'newspapers_screen.dart';
 import 'search_screen.dart';
@@ -100,6 +101,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             actions: <Widget>[
+              IconButton(
+                tooltip: context.strings.filterTitle,
+                onPressed: () => showFeedFilterSheet(context),
+                icon: Badge(
+                  isLabelVisible: feed.query.sourceIds.isNotEmpty ||
+                      feed.query.languages.isNotEmpty,
+                  child: const Icon(Icons.tune_rounded),
+                ),
+              ),
               IconButton(
                 tooltip: context.strings.searchTitle,
                 onPressed: () => Navigator.of(context).push<void>(
