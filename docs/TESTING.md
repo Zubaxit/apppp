@@ -116,12 +116,14 @@ This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates r
 | `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |
 | On-device / emulator smoke test | not run | manual, see checklist below |
 
-Run IDs for the latest green build: CI run `40123785564` (analyze & test + APK, commit `da64f8e`) and
-Verify sources run `40123781895` (13 of 13 shipped feeds verified live, 0 failing). Earlier green
-runs: `40117972337`, `40107367502`, `40108517164`.
+Green runs referenced while building this: CI `40123785564` (analyze & test + APK) and Verify
+sources `40123781895` (13 of 13 shipped feeds verified live, 0 failing); earlier: `40117972337`,
+`40107367502`, `40108517164`.
 
-The APK is rebuilt by CI on every commit; the artifact named `apk` is attached to the
-`Build Android APK` job of the newest run on the branch. Because runner logs are not reachable from this sandbox, the workflows republish
+The APK is rebuilt by CI on **every** commit, so the run that matches the branch head is always the
+newest one under *Actions → CI*: its `Build Android APK` job attaches the artifact named `apk`
+(debug + release). This wording is deliberate — a hard-coded run id would point at the previous
+commit as soon as the next commit lands. Because runner logs are not reachable from this sandbox, the workflows republish
 analyzer and test diagnostics as check annotations — that is also how each failure below was
 diagnosed and fixed.
 
