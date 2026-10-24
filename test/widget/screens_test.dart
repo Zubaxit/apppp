@@ -433,8 +433,8 @@ void main() {
       // Capture layout errors ourselves so the full diagnostics (including the
       // offending widget and its source line) reach the CI log.
       final List<FlutterErrorDetails> layoutErrors = <FlutterErrorDetails>[];
-      final FlutterExceptionHandler? previousHandler = FlutterError.onError;
-      FlutterError.onError = (FlutterErrorDetails details) => layoutErrors.add(details);
+      final previousHandler = FlutterError.onError;
+      FlutterError.onError = layoutErrors.add;
       await tester.pumpAndSettle();
       FlutterError.onError = previousHandler;
       for (final FlutterErrorDetails details in layoutErrors) {
