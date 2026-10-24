@@ -423,7 +423,8 @@ void main() {
 
   group('responsive layout', () {
     testWidgets('renders on a small phone without overflow', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(720, 1280);
+      // 360 x 640 dp: a common small Android phone.
+      tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
 
@@ -442,6 +443,25 @@ void main() {
       }
       expect(layoutErrors, isEmpty);
       expect(find.text(bnArticle.title), findsOneWidget);
+    });
+
+    testWidgets('survives an ultra-narrow 320dp viewport', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(640, 960);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      final List<FlutterErrorDetails> layoutErrors = <FlutterErrorDetails>[];
+      final previousHandler = FlutterError.onError;
+      FlutterError.onError = layoutErrors.add;
+      await tester.pumpAndSettle();
+      FlutterError.onError = previousHandler;
+      for (final FlutterErrorDetails details in layoutErrors) {
+        debugPrint('LAYOUT-ERROR: $details');
+      }
+      expect(layoutErrors, isEmpty);
     });
 
     testWidgets('renders on a tablet width without overflow', (WidgetTester tester) async {

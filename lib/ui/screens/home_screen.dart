@@ -158,9 +158,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       );
-                      final Widget toggle = _FollowingToggle(
-                        following: feed.query.followedOnly,
-                        onChanged: _setFollowing,
+                      // The pill row has an intrinsic width; scale it down
+                      // rather than overflow however narrow the header gets.
+                      final Widget toggle = FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _FollowingToggle(
+                          following: feed.query.followedOnly,
+                          onChanged: _setFollowing,
+                        ),
                       );
                       // Below ~300dp the pill row and the Bengali heading cannot
                       // share a line without squeezing the heading into columns.
@@ -180,15 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       return Row(
                         children: <Widget>[
                           Expanded(child: heading),
-                          // The pill row has an intrinsic width; scale it down
-                          // rather than overflow a narrow header.
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: AlignmentDirectional.centerEnd,
-                              child: toggle,
-                            ),
-                          ),
+                          Flexible(child: toggle),
                         ],
                       );
                     },
