@@ -234,6 +234,37 @@ void main() {
       }
     });
 
+    test('only a verified feed ships a feed URL', () {
+      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
+      // A shipped feed URL is a promise: the app will fetch it and the home
+      // screen will present its headlines as news. Unverified hypotheses live in
+      // assets/data/feed_candidates.json, never here.
+      for (final NewsSource source in registry.sources) {
+        if (!source.hasFeed) continue;
+        expect(
+          <FeedClaim>{FeedClaim.verifiedWorking, FeedClaim.officialDocumented},
+          contains(source.feedClaim),
+          reason: '${source.id} ships an unverified feed URL',
+        );
+        expect(source.lastVerifiedAt, isNotNull, reason: '${source.id} has no verification date');
+      }
+    });
+
+    test('the curated reading set is entirely feed-backed', () {
+      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
+      expect(registry.curatedWithFeeds.length, greaterThanOrEqualTo(10));
+      expect(
+        registry.feedSources.map((NewsSource s) => s.id).toSet(),
+        registry.curatedWithFeeds.map((NewsSource s) => s.id).toSet(),
+        reason: 'the unified feed must only fetch curated, verified publications',
+      );
+      for (final NewsSource source in registry.curatedWithFeeds) {
+        expect(source.hasVerifiedFeed, isTrue, reason: source.id);
+      }
+    });
+
     test('verification claims are explicit and dated', () {
       final String contents = File('assets/data/sources.json').readAsStringSync();
       final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
