@@ -291,7 +291,14 @@ def main(argv: Optional[List[str]] = None) -> int:
         if source.get("feedUrl"):
             feed_result = check_feed(source["feedUrl"])
             time.sleep(args.delay)
-            ok, reason = qualifies(feed_result, source.get("language", ""))
+            ok, reason = qualifies(
+                feed_result,
+                source.get("language", ""),
+                # A publisher whose feed genuinely publishes no item timestamps
+                # is flagged in the registry itself, so the automated check and
+                # the shipped claim cannot disagree.
+                allow_undated=bool(source.get("allowUndated")),
+            )
             feed_result["qualified"] = ok
             feed_result["qualification"] = reason
             if ok:

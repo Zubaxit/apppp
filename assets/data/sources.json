@@ -534,7 +534,8 @@
       "notes": "Feed fetched and parsed 2026-10-25: 10 well-formed, on-domain English items, but the feed carries no item timestamps, so those stories are shown with \"publication time unknown\" and sort after dated ones. /rss/all, /feed and /rss.xml answer 404 or serve a non-XML page.",
       "curated": true,
       "curationOrder": 8,
-      "lastVerifiedAt": "2026-10-25"
+      "lastVerifiedAt": "2026-10-25",
+      "allowUndated": true
     },
     {
       "id": "dhaka_tribune",

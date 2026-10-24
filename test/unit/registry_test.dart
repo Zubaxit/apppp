@@ -257,6 +257,21 @@ void main() {
       }
     });
 
+    test('an undated feed is only shipped with an explicit exception', () {
+      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
+      // The Daily Star publishes no item timestamps. Rather than quietly
+      // accepting undated feeds everywhere, exactly that entry carries
+      // allowUndated so scripts/verify_sources.py and the app agree.
+      for (final NewsSource source in registry.withFeeds) {
+        final bool undated = source.id == 'daily_star';
+        expect(contents.contains('"allowUndated"'), isTrue);
+        if (undated) {
+          expect(source.notes.toLowerCase(), contains('timestamp'));
+        }
+      }
+    });
+
     test('the curated reading set is entirely feed-backed', () {
       final String contents = File('assets/data/sources.json').readAsStringSync();
       final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
