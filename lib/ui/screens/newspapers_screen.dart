@@ -227,14 +227,14 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
             ),
           ),
           if (curatedWeb.isNotEmpty) ...<Widget>[
-            const SizedBox(height: 26),
+            const SliverPadding(padding: EdgeInsets.only(top: 26)),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 0),
                 child: Kicker(context.strings.readOnWeb),
               ),
             ),
-            const SizedBox(height: 6),
+            const SliverPadding(padding: EdgeInsets.only(top: 6)),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 6),
@@ -259,7 +259,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 30),
+          const SliverPadding(padding: EdgeInsets.only(top: 30)),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
@@ -296,7 +296,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
             ),
           ),
           if (_showAll) ...<Widget>[
-            const SizedBox(height: 8),
+            const SliverPadding(padding: EdgeInsets.only(top: 8)),
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) => _SourceRow(
