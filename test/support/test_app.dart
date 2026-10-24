@@ -11,6 +11,7 @@ import 'package:bangladesh_newspaper_hub/state/saved_controller.dart';
 import 'package:bangladesh_newspaper_hub/state/settings_controller.dart';
 import 'package:bangladesh_newspaper_hub/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
@@ -52,6 +53,14 @@ class TestHarness {
       connectivity: FakeConnectivity(online: online),
     );
     saved = SavedController(repository: repository, settings: settings);
+    // The controllers are app-scoped in production, so nothing else disposes
+    // them; in a test the periodic refresh timer would otherwise outlive the
+    // widget tree and fail teardown.
+    addTearDown(() {
+      feed.dispose();
+      saved.dispose();
+      settings.dispose();
+    });
   }
 
   final SourceRegistry registry;

@@ -63,11 +63,17 @@ void main() {
     });
 
     testWidgets('marks cached content instead of pretending it is live', (WidgetTester tester) async {
-      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      // Every publisher fails: the headlines on screen can only come from the
+      // local cache, so the UI must say so rather than claim a live feed.
+      final TestHarness h = TestHarness(
+        stores: fakeStores(seed: <Article>[bnArticle]),
+        gateway: FakeFeedGateway(failing: <String>{'prothomalo', 'daily_star'}),
+      );
       await tester.pumpWidget(h.wrap(const HomeScreen()));
       await h.feed.start();
       await tester.pumpAndSettle();
 
+      expect(find.text(bnArticle.title), findsOneWidget);
       expect(find.textContaining('ক্যাশ'), findsWidgets);
     });
 
