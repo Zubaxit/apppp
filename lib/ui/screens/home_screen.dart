@@ -380,18 +380,26 @@ class _FollowingToggle extends StatelessWidget {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          pill(context.strings.all, !following, () => onChanged(false)),
-          pill(context.strings.followingLabel, following, () => onChanged(true)),
-        ],
+    // The pill row has an intrinsic width; on very narrow screens it scales
+    // down instead of pushing the section header into an overflow.
+    return Flexible(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: AlignmentDirectional.centerEnd,
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: context.colors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              pill(context.strings.all, !following, () => onChanged(false)),
+              pill(context.strings.followingLabel, following, () => onChanged(true)),
+            ],
+          ),
+        ),
       ),
     );
   }
