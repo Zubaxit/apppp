@@ -44,6 +44,15 @@ class FeedParseResult {
   bool get isEmpty => articles.isEmpty;
 }
 
+/// Result of the pre-parse repair step: the body handed to the XML parser and
+/// whether the publisher's markup actually had to be repaired.
+class _PreparedXml {
+  const _PreparedXml({required this.body, required this.repaired});
+
+  final String body;
+  final bool repaired;
+}
+
 /// Tolerant RSS / Atom / RDF parser.
 ///
 /// Design goals:
@@ -79,7 +88,7 @@ class FeedParser {
     required DateTime fetchedAt,
     FeedParserConfig config = const FeedParserConfig(),
   }) {
-    final ({String body, bool repaired}) prepared = _prepareXml(body);
+    final _PreparedXml prepared = _prepareXml(body);
     final String cleaned = prepared.body;
     // `repaired` is true only when the publisher's markup was genuinely broken
     // (bare '&', illegal control characters) — not for the routine
@@ -512,7 +521,7 @@ class FeedParser {
   // XML helpers
   // ---------------------------------------------------------------------------
 
-  ({String body, bool repaired}) _prepareXml(String input) {
+  _PreparedXml _prepareXml(String input) {
     var value = input;
     var repaired = false;
     if (value.startsWith('\uFEFF')) value = value.substring(1);
@@ -548,7 +557,7 @@ class FeedParser {
         return replacement ?? '&amp;${match.group(1)};';
       },
     );
-    return (body: value, repaired: repaired);
+    return _PreparedXml(body: value, repaired: repaired);
   }
 
   String _cleanText(String input) {
