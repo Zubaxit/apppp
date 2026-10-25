@@ -345,20 +345,21 @@ class _Segment extends StatelessWidget {
           width: 0.9,
         ),
       ),
-      child: Stack(
+      child: SizedBox(
+        width: 156,
+        height: 28,
+        child: Stack(
         children: <Widget>[
           AnimatedAlign(
             duration: motion.reduce ? Duration.zero : const Duration(milliseconds: 330),
             curve: Curves.easeOutBack,
             alignment: following ? Alignment.centerRight : Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: 0.5,
-              child: Container(
-                height: 28,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(Tokens.radiusPill),
-                  color: context.colors.primary,
-                ),
+            child: Container(
+              width: 78,
+              height: 28,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(Tokens.radiusPill),
+                color: context.colors.primary,
               ),
             ),
           ),
@@ -378,6 +379,7 @@ class _Segment extends StatelessWidget {
             ],
           ),
         ],
+        ),
       ),
     );
   }

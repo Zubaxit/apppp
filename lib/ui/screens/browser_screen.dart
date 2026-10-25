@@ -281,15 +281,9 @@ class _BrowserChrome extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (loading)
-                          SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.6,
-                              color: context.colors.primary,
-                            ),
-                          ),
+                        // Progress is stated by the hairline under the chrome;
+                        // a spinner here would run forever on a failed page.
+
                       ],
                     ),
                   ),

@@ -36,11 +36,7 @@ class _AppShellState extends State<AppShell>
   int _index = 0;
   bool _started = false;
 
-  late final AnimationController _tabFade = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 260),
-    value: 1,
-  );
+  late final AnimationController _tabFade;
 
   static const List<Widget> _tabs = <Widget>[
     HomeScreen(),
@@ -53,6 +49,11 @@ class _AppShellState extends State<AppShell>
   @override
   void initState() {
     super.initState();
+    _tabFade = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+      value: 1,
+    );
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_start()));
   }

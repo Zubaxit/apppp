@@ -45,10 +45,14 @@ class BookmarkAction extends StatefulWidget {
 
 class _BookmarkActionState extends State<BookmarkAction>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _pop = AnimationController.unbounded(
-    vsync: this,
-    value: 1,
-  );
+  late final AnimationController _pop;
+
+  @override
+  void initState() {
+    super.initState();
+    // Eager creation keeps dispose() off the ticker provider.
+    _pop = AnimationController.unbounded(vsync: this, value: 1);
+  }
 
   @override
   void dispose() {

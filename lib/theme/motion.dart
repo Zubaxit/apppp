@@ -150,11 +150,16 @@ class JellySurface extends StatefulWidget {
 
 class _JellySurfaceState extends State<JellySurface>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _spring = AnimationController.unbounded(
-    vsync: this,
-    value: 1,
-  );
+  // Created eagerly in initState: a controller that is first touched inside
+  // dispose() would ask a deactivated element for its ticker.
+  late final AnimationController _spring;
   bool _held = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _spring = AnimationController.unbounded(vsync: this, value: 1);
+  }
 
   @override
   void dispose() {
@@ -393,15 +398,16 @@ class Reveal extends StatefulWidget {
 }
 
 class _RevealState extends State<Reveal> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 620),
-  );
+  late final AnimationController _controller;
   Timer? _delay;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 620),
+    );
     final int step = widget.index.clamp(0, widget.maxIndex) * 55;
     _delay = Timer(Duration(milliseconds: step), () {
       if (mounted) _controller.animateTo(1, curve: Curves.easeOutCubic);
