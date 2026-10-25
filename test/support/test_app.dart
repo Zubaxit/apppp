@@ -33,7 +33,7 @@ class FakeConnectivity implements ConnectivityService {
 class TestHarness {
   TestHarness({
     SourceRegistry? registry,
-    AppPreferences prefs = const AppPreferences(),
+    AppPreferences prefs = const AppPreferences(language: AppLanguage.bn),
     AppStores? stores,
     FakeFeedGateway? gateway,
     bool online = true,
@@ -106,6 +106,15 @@ class TestHarness {
                   child: MaterialApp(
                     debugShowCheckedModeBanner: false,
                     theme: brightness == Brightness.dark ? AppTheme.dark() : AppTheme.light(),
+                    builder: (BuildContext context, Widget? child) {
+                      final MediaQueryData data = MediaQuery.of(context);
+                      return MediaQuery(
+                        data: data.copyWith(
+                          textScaler: TextScaler.linear(settings.textScale),
+                        ),
+                        child: child ?? const SizedBox.shrink(),
+                      );
+                    },
                     // Screens are always mounted inside a Scaffold in the app
                     // (AppShell), so the harness mirrors that.
                     home: Scaffold(body: child),

@@ -47,6 +47,7 @@ class FeedController extends ChangeNotifier {
   DateTime? _lastAttemptAt;
   bool _busy = false;
   bool _loading = true;
+  bool _comparisonIndexReady = false;
   bool _offline = false;
   String? _error;
   String? _lastFailureDetail;
@@ -68,6 +69,7 @@ class FeedController extends ChangeNotifier {
   DateTime? get lastRefreshAt => _lastRefreshAt;
   bool get isRefreshing => _busy;
   bool get isLoading => _loading;
+  bool get comparisonIndexReady => _comparisonIndexReady;
   bool get isOffline => _offline;
   String? get lastError => _error;
   RefreshReport? get lastReport => _lastReport;
@@ -121,11 +123,15 @@ class FeedController extends ChangeNotifier {
         _query,
         followedSourceIds: settings.followedSourceIds,
       );
-      _related = StoryMatcher.index(_articles);
+      final List<Article> comparisonPool =
+          await repository.comparisonCandidates();
+      _related = StoryMatcher.index(comparisonPool);
+      _comparisonIndexReady = true;
       _error = null;
     } catch (error) {
       _articles = const <Article>[];
       _related = const <String, List<Article>>{};
+      _comparisonIndexReady = true;
       _error = 'Could not read the local cache';
       if (kDebugMode) debugPrint('Feed cache read failed: $error');
     }
@@ -257,6 +263,8 @@ class FeedController extends ChangeNotifier {
     await repository.clearCache();
     _lastRefreshAt = null;
     _articles = const <Article>[];
+    _related = const <String, List<Article>>{};
+    _comparisonIndexReady = true;
     _notify();
   }
 

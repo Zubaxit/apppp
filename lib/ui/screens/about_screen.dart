@@ -55,19 +55,15 @@ class _AboutScreenState extends State<AboutScreen>
   @override
   Widget build(BuildContext context) {
     final bool bengali = context.isBengali;
-    final List<String> purpose = bengali
-        ? const <String>[
-            'আমার নিউজ বিশ্বস্ত সংবাদ উৎসের শিরোনাম এক জায়গায় আনে।',
-            'মূল প্রকাশকের পরিচয় ও লিংক সব সময় দৃশ্যমান থাকে।',
-            'সংরক্ষিত খবর, অনুসরণ ও পছন্দ এই ডিভাইসেই থাকে।',
-            'দ্রুত তুলনা ও মনোযোগী পড়াই এর উদ্দেশ্য।',
-          ]
-        : const <String>[
-            'Amar News brings headlines from established news sources together.',
-            'The original publisher and link always remain visible.',
-            'Saved stories, follows, and preferences stay on this device.',
-            'Its purpose is faster comparison and focused reading.',
-          ];
+    final String purpose = bengali
+        ? 'আমার নিউজ একটি সহজ, ব্যক্তিগতকরণযোগ্য সংবাদ অ্যাপ। বিভিন্ন '
+            'সংবাদমাধ্যমের খবর এক জায়গায় পড়ুন, গুরুত্বপূর্ণ বিষয় অনুসরণ করুন '
+            'এবং একই ঘটনা সম্পর্কে একাধিক সূত্রের প্রতিবেদন দেখুন। আপনার পছন্দ, '
+            'পাঠাভ্যাস ও ভাষার সঙ্গে মিলিয়ে সংবাদপাঠের অভিজ্ঞতা সাজিয়ে নিন।'
+        : 'Amar News is a simple, customizable news reader that brings reports '
+            'from multiple publishers into one place. Follow the topics and '
+            'publications you care about, compare coverage of the same event, '
+            'and shape a reading experience that suits your preferences.';
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -143,17 +139,13 @@ class _AboutScreenState extends State<AboutScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          for (int i = 0; i < purpose.length; i++) ...<Widget>[
-                            Text(
-                              purpose[i],
-                              style: context.texts.bodyMedium?.copyWith(
-                                height: 1.6,
-                                fontSize: 13.2,
-                              ),
+                          Text(
+                            purpose,
+                            style: context.texts.bodyMedium?.copyWith(
+                              height: 1.6,
+                              fontSize: 13.2,
                             ),
-                            if (i != purpose.length - 1)
-                              const SizedBox(height: 6),
-                          ],
+                          ),
                         ],
                       ),
                     ),

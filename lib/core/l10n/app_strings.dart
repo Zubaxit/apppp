@@ -67,6 +67,8 @@ abstract class AppStrings {
   String get noPublicationDate;
   String get readOriginal;
   String get relatedCoverage;
+  String get relatedCoverageLoading;
+  String get relatedCoverageEmpty;
   String get topicRailTitle;
 
   // Directory
@@ -346,6 +348,10 @@ class BanglaStrings extends AppStrings {
   String get readOriginal => 'মূল প্রতিবেদন পড়ুন';
   @override
   String get relatedCoverage => 'একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে';
+  @override
+  String get relatedCoverageLoading => 'সম্পর্কিত খবর খোঁজা হচ্ছে…';
+  @override
+  String get relatedCoverageEmpty => 'কোনো সম্পর্কিত খবর পাওয়া যায়নি।';
   @override
   String get topicRailTitle => 'বিভাগ';
 
@@ -799,7 +805,11 @@ class EnglishStrings extends AppStrings {
   @override
   String get readOriginal => 'Read the original story';
   @override
-  String get relatedCoverage => 'Source comparison';
+  String get relatedCoverage => 'Related Coverage';
+  @override
+  String get relatedCoverageLoading => 'Looking for related coverage…';
+  @override
+  String get relatedCoverageEmpty => 'No related news found.';
   @override
   String get topicRailTitle => 'Sections';
 

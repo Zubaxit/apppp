@@ -36,7 +36,7 @@ void main() {
 
   TestHarness harness({
     List<Article> artwork = const <Article>[],
-    AppPreferences prefs = const AppPreferences(),
+    AppPreferences prefs = const AppPreferences(language: AppLanguage.bn),
   }) {
     return TestHarness(
       prefs: prefs,
@@ -451,6 +451,15 @@ void main() {
       expect(AboutScreen.developerProfileUrl,
           'https://www.facebook.com/muhammad.emon.738798');
       expect(find.byIcon(Icons.open_in_new_rounded), findsOneWidget);
+      expect(find.textContaining('আমার নিউজ একটি সহজ'), findsOneWidget);
+
+      await h.settings.setLanguage(AppLanguage.en);
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Amar News is a simple, customizable news reader'),
+        findsOneWidget,
+      );
+      expect(find.text('Md. Emon'), findsOneWidget);
     });
 
     testWidgets('About respects reduced motion and settles without a loop',
@@ -475,6 +484,54 @@ void main() {
   });
 
   group('typography', () {
+    testWidgets('global text scale reaches feed, detail, controls, settings and About',
+        (WidgetTester tester) async {
+      final Article related = sampleArticle(
+        sourceId: 'daily_star',
+        title: 'Related publisher report for typography',
+        link: 'https://www.thedailystar.net/type-related',
+      );
+      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+      expect(
+        MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title))).scale(10),
+        10,
+      );
+
+      await h.settings.setTextScale(1.4);
+      await tester.pumpAndSettle();
+      expect(
+        MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title))).scale(10),
+        14,
+      );
+
+      await tester.pumpWidget(h.wrap(
+        ArticleDetailScreen(article: bnArticle, related: <Article>[related]),
+      ));
+      await tester.pumpAndSettle();
+      for (final Finder finder in <Finder>[
+        find.text('সম্পূর্ণ খবর পড়ুন'),
+        find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'),
+        find.text(related.title),
+      ]) {
+        expect(MediaQuery.textScalerOf(tester.element(finder)).scale(10), 14);
+      }
+
+      await tester.pumpWidget(h.wrap(const SettingsScreen()));
+      await tester.pumpAndSettle();
+      expect(
+        MediaQuery.textScalerOf(tester.element(find.text('সেটিংস').first)).scale(10),
+        14,
+      );
+
+      await tester.pumpWidget(h.wrap(const AboutScreen()));
+      await tester.pumpAndSettle();
+      final Finder aboutCopy = find.textContaining('আমার নিউজ একটি সহজ');
+      expect(MediaQuery.textScalerOf(tester.element(aboutCopy)).scale(10), 14);
+    });
+
     test('Bengali numerals are used for relative times in the Bengali UI', () {
       final DateTime now = DateTime.utc(2026, 10, 24, 12);
       expect(
@@ -547,6 +604,7 @@ void main() {
       await h.settings.setLanguage(AppLanguage.en);
       await tester.pumpAndSettle();
       expect(find.text('Read full story'), findsOneWidget);
+      expect(find.text('Related Coverage'), findsOneWidget);
 
       final NavigatorState navigator =
           tester.state<NavigatorState>(find.byType(Navigator).first);
@@ -602,15 +660,21 @@ void main() {
         language: SourceLanguage.en,
         publishedAt: now,
       );
-      final TestHarness h = harness(artwork: <Article>[primary, other]);
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(language: AppLanguage.bn),
+        stores: fakeStores(),
+        gateway: FakeFeedGateway(
+          articlesBySource: <String, List<Article>>{
+            'prothomalo': <Article>[primary],
+            'daily_star': <Article>[other],
+          },
+        ),
+      );
       await tester.pumpWidget(h.wrap(
         ArticleDetailScreen(article: primary, related: const <Article>[]),
       ));
       await tester.pumpAndSettle();
-      expect(
-        find.byKey(const ValueKey<String>('source-comparison-section')),
-        findsNothing,
-      );
+      expect(find.text('সম্পর্কিত খবর খোঁজা হচ্ছে…'), findsOneWidget);
 
       await h.feed.start();
       await tester.pumpAndSettle();
@@ -619,23 +683,128 @@ void main() {
       expect(find.text(other.title), findsOneWidget);
     });
 
-    testWidgets('renders no comparison placeholders when there are no matches',
+    testWidgets('merges archive and live matches and excludes duplicates',
+        (WidgetTester tester) async {
+      final DateTime now = DateTime.now().toUtc();
+      Article event(String source, String title, String link) => sampleArticle(
+            sourceId: source,
+            title: title,
+            link: link,
+            language: SourceLanguage.en,
+            publishedAt: now,
+          );
+      final Article primary = event(
+        'prothomalo',
+        'Cyclone forces coastal evacuation before landfall tonight',
+        'https://www.prothomalo.com/cyclone-main',
+      );
+      final Article archive = event(
+        'daily_star',
+        'Coastal evacuation begins as cyclone nears landfall tonight',
+        'https://www.thedailystar.net/cyclone-archive',
+      );
+      final Article live = event(
+        'bonik_barta',
+        'Cyclone nears landfall tonight after coastal evacuation begins',
+        'https://www.bonikbarta.com/cyclone-live',
+      );
+      final Article samePublisher = event(
+        'prothomalo',
+        'Coastal evacuation begins before cyclone landfall tonight',
+        'https://www.prothomalo.com/cyclone-update',
+      );
+      final Article duplicateUrl = event(
+        'bonik_barta',
+        archive.title,
+        '${archive.link}?utm_source=duplicate',
+      );
+      final TestHarness h = harness(
+        artwork: <Article>[
+          primary,
+          archive,
+          live,
+          samePublisher,
+          duplicateUrl,
+        ],
+      );
+      await h.feed.start();
+      await tester.pumpWidget(h.wrap(
+        ArticleDetailScreen(article: primary, related: <Article>[archive]),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text(archive.title), findsOneWidget);
+      expect(find.text(live.title), findsOneWidget);
+      expect(find.text(samePublisher.title), findsNothing);
+      expect(find.text(duplicateUrl.title), findsNothing);
+
+      for (final Article candidate in <Article>[archive, live]) {
+        await tester.ensureVisible(find.text(candidate.title));
+        await tester.tap(find.text(candidate.title));
+        await tester.pumpAndSettle();
+        expect(find.text(candidate.title), findsWidgets);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+      }
+    });
+
+    testWidgets('renders a localized completed empty comparison state',
         (WidgetTester tester) async {
       final TestHarness h = harness();
+      await h.feed.start();
       await tester.pumpWidget(h.wrap(
         ArticleDetailScreen(article: bnArticle, related: const <Article>[]),
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsNothing);
+      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsOneWidget);
+      expect(find.text('কোনো সম্পর্কিত খবর পাওয়া যায়নি।'), findsOneWidget);
       expect(
-        find.byKey(const ValueKey<String>('source-comparison-section')),
-        findsNothing,
+        find.byKey(const ValueKey<String>('source-comparison-empty')),
+        findsOneWidget,
       );
+
+      await h.settings.setLanguage(AppLanguage.en);
+      await tester.pumpAndSettle();
+      expect(find.text('Related Coverage'), findsOneWidget);
+      expect(find.text('No related news found.'), findsOneWidget);
     });
   });
 
   group('AppShell navigation', () {
+    testWidgets('reselecting Home refreshes once and returns its feed to the top',
+        (WidgetTester tester) async {
+      final List<Article> articles = List<Article>.generate(
+        35,
+        (int index) => sampleArticle(
+          title: 'দীর্ঘ সংবাদ তালিকার শিরোনাম $index',
+          link: 'https://www.prothomalo.com/reselect-$index',
+          publishedAt: DateTime.now().toUtc().subtract(Duration(minutes: index)),
+        ),
+      );
+      final TestHarness h = harness(artwork: articles);
+      await tester.pumpWidget(h.wrap(const AppShell()));
+      await tester.pumpAndSettle();
+
+      final CustomScrollView homeScroll =
+          tester.widget<CustomScrollView>(find.byType(CustomScrollView).first);
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -900));
+      await tester.pumpAndSettle();
+      expect(homeScroll.controller!.offset, greaterThan(100));
+      final int callsBefore = h.gateway.calls;
+
+      await tester.tap(find.text('হোম'));
+      await tester.tap(find.text('হোম'));
+      await tester.pumpAndSettle();
+
+      expect(homeScroll.controller!.offset, 0);
+      expect(
+        h.gateway.calls - callsBefore,
+        h.registry.feedSources.length,
+        reason: 'rapid reselection starts one repository refresh only',
+      );
+    });
+
     testWidgets('switches tabs and stays on Home after switching', (WidgetTester tester) async {
       final TestHarness h = harness(artwork: <Article>[bnArticle]);
       await tester.pumpWidget(h.wrap(const AppShell()));

@@ -25,7 +25,7 @@ enum DefaultFeed { latest, following }
 /// uploaded anywhere.
 class AppPreferences {
   const AppPreferences({
-    this.language = AppLanguage.bn,
+    this.language = AppLanguage.en,
     this.theme = AppThemeChoice.system,
     this.font = AppFontChoice.system,
     this.motion = MotionChoice.system,
@@ -153,7 +153,7 @@ class AppPreferences {
     }
 
     return AppPreferences(
-      language: enumOr(AppLanguage.values, map['language'], AppLanguage.bn),
+      language: enumOr(AppLanguage.values, map['language'], AppLanguage.en),
       theme: enumOr(AppThemeChoice.values, map['theme'], AppThemeChoice.system),
       font: enumOr(AppFontChoice.values, map['font'], AppFontChoice.system),
       motion: enumOr(MotionChoice.values, map['motion'], MotionChoice.system),

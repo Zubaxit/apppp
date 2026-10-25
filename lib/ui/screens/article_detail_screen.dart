@@ -44,6 +44,7 @@ class ArticleDetailScreen extends StatefulWidget {
 
 class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   List<Article> _repositoryRelated = const <Article>[];
+  bool _repositoryLookupPending = true;
 
   final ScrollController _scroll = ScrollController();
 
@@ -65,8 +66,11 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     // across an asynchronous gap.
     final SavedController saved = context.read<SavedController>();
     final ArticleRepository repository = context.read<ArticleRepository>();
-    await saved.recordHistory(widget.article);
-    if (widget.related != null) return;
+    try {
+      await saved.recordHistory(widget.article);
+    } catch (_) {
+      // History persistence must not prevent Source Comparison from loading.
+    }
     try {
       final List<Article> related =
           await repository.relatedCoverage(widget.article);
@@ -74,6 +78,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     } catch (_) {
       // The live controller index remains authoritative and can still update
       // this screen after a cache lookup failure.
+    } finally {
+      if (mounted) setState(() => _repositoryLookupPending = false);
     }
   }
 
@@ -100,9 +106,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     final Article article = widget.article;
     final SourceRegistry registry = context.registry;
     final NewsSource? source = registry.byId(article.sourceId);
-    final SettingsController settings = context.watch<SettingsController>();
-    final List<Article> liveRelated =
-        context.watch<FeedController>().relatedFor(article);
+    final FeedController feed = context.watch<FeedController>();
+    final List<Article> liveRelated = feed.relatedFor(article);
     final List<Article> related = _mergeRelated(
       article,
       <Article>[
@@ -111,7 +116,11 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
         ..._repositoryRelated,
       ],
     );
-    final double scale = settings.textScale;
+    final bool comparisonPending = related.isEmpty &&
+        (_repositoryLookupPending ||
+            !feed.comparisonIndexReady ||
+            feed.isLoading ||
+            feed.isRefreshing);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -160,8 +169,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                 child: _ArticleBody(
                   article: article,
                   source: source,
-                  scale: scale,
                   related: related,
+                  comparisonPending: comparisonPending,
                 ),
               ),
             ],
@@ -187,14 +196,14 @@ class _ArticleBody extends StatelessWidget {
   const _ArticleBody({
     required this.article,
     required this.source,
-    required this.scale,
     required this.related,
+    required this.comparisonPending,
   });
 
   final Article article;
   final NewsSource? source;
-  final double scale;
   final List<Article> related;
+  final bool comparisonPending;
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +244,7 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                 article.title,
                 style: context.texts.displaySmall?.copyWith(
                   fontFamily: Tokens.serif,
-                  fontSize: 26 * scale,
+                  fontSize: 26,
                   height: 1.38,
                   letterSpacing: -0.25,
                   fontWeight: FontWeight.w700,
@@ -268,7 +277,7 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                   article.excerpt!,
                   style: context.texts.bodyLarge?.copyWith(
                     fontFamily: Tokens.serif,
-                    fontSize: 16.8 * scale,
+                    fontSize: 16.8,
                     height: 1.92,
                     letterSpacing: 0.02,
                   ),
@@ -292,40 +301,70 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                 ),
               ),
               const SizedBox(height: 24),
-              if (related.isNotEmpty) ...<Widget>[
-                const SizedBox(key: ValueKey<String>('source-comparison-section')),
-                Kicker(context.strings.relatedCoverage),
-                const SizedBox(height: 4),
-                Text(
-                  context.isBengali
-                      ? 'আরও ${related.length}টি সংবাদমাধ্যমে'
-                      : 'Also from ${related.length} other ${related.length == 1 ? 'source' : 'sources'}',
-                  style: context.texts.labelMedium?.copyWith(
-                    color: context.colors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  context.isBengali
-                      ? 'শিরোনামের মিল; স্বাধীন সত্যতা যাচাই নয়। উপলভ্য উৎসেই সীমিত।'
-                      : 'Headline match, not independent verification. Limited to available sources.',
-                  style: context.texts.labelSmall?.copyWith(
-                    fontSize: 9.5,
-                    color: context.colors.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                for (final Article other in related)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _RelatedRow(
-                      article: other,
-                      source: registry.byId(other.sourceId),
+              Column(
+                key: const ValueKey<String>('source-comparison-section'),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Kicker(context.strings.relatedCoverage),
+                  const SizedBox(height: 6),
+                  if (related.isNotEmpty) ...<Widget>[
+                    Text(
+                      context.isBengali
+                          ? 'আরও ${related.length}টি সংবাদমাধ্যমে'
+                          : 'Also from ${related.length} other ${related.length == 1 ? 'source' : 'sources'}',
+                      style: context.texts.labelMedium?.copyWith(
+                        color: context.colors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 16),
-              ],
+                    const SizedBox(height: 4),
+                    Text(
+                      context.isBengali
+                          ? 'শিরোনামের মিল; স্বাধীন সত্যতা যাচাই নয়। উপলভ্য উৎসেই সীমিত।'
+                          : 'Headline match, not independent verification. Limited to available sources.',
+                      style: context.texts.labelSmall?.copyWith(
+                        fontSize: 9.5,
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    for (final Article other in related)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _RelatedRow(
+                          article: other,
+                          source: registry.byId(other.sourceId),
+                        ),
+                      ),
+                  ] else
+                    Row(
+                      key: ValueKey<String>(
+                        comparisonPending
+                            ? 'source-comparison-loading'
+                            : 'source-comparison-empty',
+                      ),
+                      children: <Widget>[
+                        if (comparisonPending) ...<Widget>[
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 1.5),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Flexible(
+                          child: Text(
+                            comparisonPending
+                                ? context.strings.relatedCoverageLoading
+                                : context.strings.relatedCoverageEmpty,
+                            style: context.texts.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 16),
+                ],
+              ),
               if (source != null)
                 _SourceFooter(
                   key: const ValueKey<String>('publisher-identity'),
@@ -478,7 +517,21 @@ class _RelatedRow extends StatelessWidget {
         padding: const EdgeInsets.all(11),
         child: Row(
           children: <Widget>[
-            if (source != null) ...<Widget>[
+            if (article.imageUrl != null) ...<Widget>[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(Tokens.radiusXs),
+                child: SizedBox(
+                  width: 58,
+                  height: 58,
+                  child: RemoteImage(
+                    url: article.imageUrl!,
+                    decodeWidth: 58,
+                    fade: false,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ] else if (source != null) ...<Widget>[
               SourceAvatar(source: source!, size: 30),
               const SizedBox(width: 10),
             ],

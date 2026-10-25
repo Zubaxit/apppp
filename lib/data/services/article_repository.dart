@@ -106,15 +106,21 @@ class ArticleRepository {
     };
   }
 
+  /// A query-independent live pool for Source Comparison. Building the index
+  /// from the visible 80-row feed used to lose reports hidden by pagination,
+  /// language, topic, following, or source filters.
+  Future<List<Article>> comparisonCandidates({int limit = 5000}) async {
+    final List<Article> cached = await stores.articles.latest(limit: limit);
+    return ArticleFreshness.eligible(cached, now: _clock());
+  }
+
   /// Publications that conservatively match [article], excluding the current
-  /// report and duplicate publishers. This is a fallback for details opened
-  /// before FeedController has built its in-memory comparison index.
+  /// report and duplicate publishers. Unlike the live index this scans retained
+  /// cache too, so Article Detail opened from Archive can merge older matches.
   Future<List<Article>> relatedCoverage(Article article, {int limit = 6}) async {
     final List<Article> cached = await stores.articles.latest(limit: 5000);
-    final List<Article> eligible =
-        ArticleFreshness.eligible(cached, now: _clock());
     final Map<String, Article> byPublisher = <String, Article>{};
-    for (final Article candidate in eligible) {
+    for (final Article candidate in cached) {
       if (candidate.id == article.id ||
           candidate.sourceId == article.sourceId ||
           !StoryMatcher.matches(article, candidate)) {

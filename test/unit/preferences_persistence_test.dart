@@ -6,6 +6,22 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('theme and language persistence', () {
+    test('fresh install is English and explicit saved languages are preserved', () {
+      expect(AppPreferences.decode(null).language, AppLanguage.en);
+      expect(
+        AppPreferences.decode(
+          const AppPreferences(language: AppLanguage.bn).encode(),
+        ).language,
+        AppLanguage.bn,
+      );
+      expect(
+        AppPreferences.decode(
+          const AppPreferences(language: AppLanguage.en).encode(),
+        ).language,
+        AppLanguage.en,
+      );
+    });
+
     test('a theme change is written through the store and re-read on restart',
         () async {
       final InMemoryPreferencesStore store = InMemoryPreferencesStore();

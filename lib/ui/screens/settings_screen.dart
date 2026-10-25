@@ -654,13 +654,14 @@ class _TextScaleRow extends StatelessWidget {
               max: AppPreferences.textScaleSteps.last,
               divisions: AppPreferences.textScaleSteps.length - 1,
               onChanged: settings.setTextScale,
+              onChangeEnd: (_) => Haptics.tick(),
             ),
           ),
         ),
         Text(
           settings.strings.appTagline,
           style: context.texts.headlineSmall?.copyWith(
-            fontSize: 16 * settings.textScale,
+            fontSize: 16,
             height: 1.4,
           ),
         ),

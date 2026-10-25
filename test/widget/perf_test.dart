@@ -140,6 +140,25 @@ void main() {
   });
 
   group('motion tokens', () {
+    testWidgets('central haptic surface invokes its action exactly once',
+        (WidgetTester tester) async {
+      HapticFeedbackProxy.enabled = false;
+      addTearDown(() => HapticFeedbackProxy.enabled = true);
+      int calls = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: JellySurface(
+            onTap: () => calls += 1,
+            child: const SizedBox(width: 80, height: 48),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(JellySurface));
+      await tester.pump();
+      expect(calls, 1);
+    });
+
     test('the press and release springs still overshoot on purpose', () {
       // Expressive springs are part of the design; this pins them so a later
       // "performance" pass cannot quietly replace them with a fade.

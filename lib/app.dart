@@ -33,13 +33,16 @@ class NewspaperHubApp extends StatelessWidget {
           darkTheme: AppTheme.dark(),
           home: const AppShell(),
           builder: (BuildContext context, Widget? child) {
-            // Clamp the OS font scale so the editorial grid stays intact on
-            // devices with extreme accessibility settings.
+            // Apply the app preference at the root so every native Text widget
+            // scales once: headlines, metadata, controls, dialogs and pages.
+            // Publisher WebViews remain independent third-party documents.
             final MediaQueryData data = MediaQuery.of(context);
-            final double scale = data.textScaler.scale(14) / 14;
+            final double systemScale = data.textScaler.scale(14) / 14;
+            final double effectiveScale =
+                (systemScale * settings.textScale).clamp(0.85, 2.0);
             return MediaQuery(
               data: data.copyWith(
-                textScaler: TextScaler.linear(scale.clamp(0.85, 1.6)),
+                textScaler: TextScaler.linear(effectiveScale),
               ),
               child: child ?? const SizedBox.shrink(),
             );

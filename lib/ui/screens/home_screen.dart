@@ -30,8 +30,16 @@ import 'search_screen.dart';
 /// Following and the topic rail, then the river of headlines. The page sits on
 /// the aurora backdrop so the glass at the top and the floating controls have
 /// something real to refract as the content scrolls under them.
+class HomeReselectController {
+  Future<void> Function()? _handler;
+
+  Future<void> reselect() => _handler?.call() ?? Future<void>.value();
+}
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.reselectController});
+
+  final HomeReselectController? reselectController;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -41,11 +49,24 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Stories built with the header rather than on demand.
   static const int _eagerRiver = 2;
   final ScrollController _scroll = ScrollController();
+  bool _handlingReselect = false;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_reportViewport);
+    widget.reselectController?._handler = _onReselect;
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.reselectController != widget.reselectController) {
+      if (oldWidget.reselectController?._handler == _onReselect) {
+        oldWidget.reselectController?._handler = null;
+      }
+      widget.reselectController?._handler = _onReselect;
+    }
   }
 
   void _reportViewport() {
@@ -55,9 +76,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    if (widget.reselectController?._handler == _onReselect) {
+      widget.reselectController?._handler = null;
+    }
     _scroll.removeListener(_reportViewport);
     _scroll.dispose();
     super.dispose();
+  }
+
+  Future<void> _onReselect() async {
+    if (_handlingReselect || !mounted) return;
+    _handlingReselect = true;
+    try {
+      final FeedController feed = context.read<FeedController>();
+      final Future<void> refresh = feed.refresh(force: true);
+      if (_scroll.hasClients) {
+        await _scroll.animateTo(
+          0,
+          duration: Motion.of(context).standard,
+          curve: Motion.of(context).curve,
+        );
+      }
+      await refresh;
+    } finally {
+      _handlingReselect = false;
+    }
   }
 
   Future<void> _showPending() async {

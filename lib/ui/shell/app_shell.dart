@@ -38,12 +38,13 @@ class _AppShellState extends State<AppShell>
 
   late final AnimationController _tabFade;
 
-  static const List<Widget> _tabs = <Widget>[
-    HomeScreen(),
-    CategoriesScreen(),
-    NewspapersScreen(),
-    SavedScreen(),
-    SettingsScreen(),
+  final HomeReselectController _homeReselect = HomeReselectController();
+  late final List<Widget> _tabs = <Widget>[
+    HomeScreen(reselectController: _homeReselect),
+    const CategoriesScreen(),
+    const NewspapersScreen(),
+    const SavedScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -94,7 +95,13 @@ class _AppShellState extends State<AppShell>
   }
 
   void _select(int index) {
-    if (index == _index) return;
+    if (index == _index) {
+      if (index == 0) {
+        unawaited(Haptics.tick());
+        unawaited(_homeReselect.reselect());
+      }
+      return;
+    }
     unawaited(Haptics.tick());
     setState(() => _index = index);
     context.read<FeedController>().setPollingActive(index == 0);

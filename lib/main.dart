@@ -91,7 +91,7 @@ class _SplashScreenState extends State<_SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    const AppStrings strings = BanglaStrings();
+    const AppStrings strings = EnglishStrings();
     final ThemeData theme = AppTheme.light();
     final bool reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final CurvedAnimation rise = CurvedAnimation(
@@ -160,7 +160,7 @@ class _BootstrapError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const AppStrings strings = BanglaStrings();
+    const AppStrings strings = EnglishStrings();
     final ThemeData theme = AppTheme.light();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
