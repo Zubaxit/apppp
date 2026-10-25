@@ -38,11 +38,15 @@ void main() {
       link: 'https://www.thedailystar.net/original-report',
     );
     await tester.pumpWidget(h.wrap(
-      NewsCard(
-        article: primary,
-        source: h.registry.byId(primary.sourceId),
-        related: <Article>[other],
-        onTap: () {},
+      ListView(
+        children: <Widget>[
+          NewsCard(
+            article: primary,
+            source: h.registry.byId(primary.sourceId),
+            related: <Article>[other],
+            onTap: () {},
+          ),
+        ],
       ),
     ));
     await tester.pump();
