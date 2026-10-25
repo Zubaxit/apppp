@@ -58,14 +58,12 @@ class SourceHealthScreen extends StatelessWidget {
             margin: const EdgeInsets.fromLTRB(20, 6, 20, 14),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: <Color>[
-                  context.colors.primary.withValues(alpha: 0.12),
-                  context.colors.primary.withValues(alpha: 0.03),
-                ],
+              color: context.colors.primary.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: context.colors.primary.withValues(alpha: 0.18),
+                width: 0.8,
               ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: context.colors.primary.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

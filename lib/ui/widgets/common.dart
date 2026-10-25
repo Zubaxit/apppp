@@ -8,6 +8,7 @@ import '../../data/models/news_source.dart';
 import '../../data/models/source_health.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/motion.dart';
+import '../../theme/tokens.dart';
 
 /// Network image with disk caching, a calm fade-in and a graceful failure
 /// state. Uses [CachedNetworkImageProvider] under a standard [Image] widget so
@@ -47,61 +48,40 @@ class RemoteImage extends StatelessWidget {
 }
 
 /// Publication identity without any unlicensed logo art: a deterministic
-/// two-tone monogram derived from the publication id.
+/// monogram derived from the publication id.
+///
+/// The feed is grayscale plus one accent, so the avatar is too: a paper sunken
+/// circle with a serif monogram in the accent. No per-publisher palette — eight
+/// colours would fight the rest of the interface for attention.
 class SourceAvatar extends StatelessWidget {
   const SourceAvatar({super.key, required this.source, this.size = 44});
 
   final NewsSource source;
   final double size;
 
-  static const List<List<Color>> _palettes = <List<Color>>[
-    <Color>[Color(0xFF0B5A46), Color(0xFF12866A)],
-    <Color>[Color(0xFF8C2F39), Color(0xFFC05A4A)],
-    <Color>[Color(0xFF1F3A5F), Color(0xFF3A6EA5)],
-    <Color>[Color(0xFF6B4E16), Color(0xFFA87F2A)],
-    <Color>[Color(0xFF3D2C4E), Color(0xFF6B4B86)],
-    <Color>[Color(0xFF17504F), Color(0xFF2C8C7E)],
-    <Color>[Color(0xFF4A2B1F), Color(0xFF8A5A3B)],
-    <Color>[Color(0xFF263238), Color(0xFF4C5C63)],
-  ];
-
-  List<Color> get _colors {
-    final int hash = source.id.codeUnits.fold<int>(7, (int a, int b) => (a * 31 + b) & 0x7fffffff);
-    return _palettes[hash % _palettes.length];
-  }
-
   @override
   Widget build(BuildContext context) {
-    final List<Color> colors = _colors;
+    final bool dark = context.isDark;
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ),
-        borderRadius: BorderRadius.circular(size * 0.3),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: colors.first.withValues(alpha: 0.22),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: dark ? Tokens.nightRaised : Tokens.paperSunken,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: dark ? Tokens.nightHairline : Tokens.hairline,
+          width: 0.8,
+        ),
+      ),
       child: Text(
         source.monogram,
-        textAlign: TextAlign.center,
-        maxLines: 1,
         style: TextStyle(
-          color: Colors.white,
-          fontFamily: 'NotoSansBengali',
+          fontFamily: Tokens.serif,
+          fontSize: size * 0.36,
+          height: 1.1,
           fontWeight: FontWeight.w700,
-          fontSize: size * 0.34,
-          height: 1.0,
+          color: context.colors.primary,
         ),
       ),
     );
