@@ -122,11 +122,11 @@ This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates r
 | Static analysis | `flutter analyze --fatal-warnings` | **success**, 0 issues |
 | Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 165 tests (counted from the declarations in `test/`) |
 | Debug APK | `flutter build apk --debug` | **success** |
-| Release APK | `flutter build apk --release` | **success** (artifact `apk`, 118 773 285 B; `coverage` 13 897 B) |
+| Release APK | `flutter build apk --release` | **success** (artifact `apk`, 118 774 948 B; `coverage` 13 830 B) |
 | `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |
 | On-device / emulator smoke test | not run | manual, see checklist below |
 
-Green runs for the Amar News build: CI **`40160869158`** on head `66847d1` — Analyze & test
+Green runs for the Amar News build: CI **`40162182346`** on head `89c7e4d` — Analyze & test
 (0 analyzer issues, 165 tests) and Build Android APK both succeeded; Verify sources
 **`40123781895`** verified all 13 shipped feeds live with 0 failing. Earlier green runs while
 building the reader and transport fixes: `40125397570`, `40123785564`, `40117972337`,

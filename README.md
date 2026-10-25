@@ -410,7 +410,8 @@ still produce an installable artifact. **APKs are build artifacts, not committed
 12. Analysis, the test suite (165 tests) and the debug/release APK builds run in GitHub Actions; this
     sandbox has no Flutter SDK, so `./tool/verify.sh` is the only local gate. **No physical device or
     emulator test has been performed** — install the APK artifact from the CI run for a hands-on
-    check. For this build: CI run `40160869158` on head `66847d1`, `apk` artifact 118 773 285 B.
+    check. For this build: CI run `40162182346` on head `89c7e4d`, `apk` artifact 118 774 948 B,
+    `coverage` 13 830 B.
     (CI rebuilds the APK on every commit, so the newest run matching the branch head always has the
     current artifact.)
 
