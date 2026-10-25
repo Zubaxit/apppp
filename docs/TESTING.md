@@ -26,7 +26,7 @@ $ ./tool/verify.sh
 ==> every asset declared in pubspec.yaml exists
     all 11 declared asset files present
 ==> Dart structural checks (no SDK required)
-checked 81 Dart files: structure, imports and class visibility OK
+checked 84 Dart files: structure, imports and class visibility OK
 ```
 
 Checks: JSON parses; ids unique; every website/feed/e-paper URL is `https`; enums
@@ -149,6 +149,21 @@ fake, connectivity is faked, and no test performs an HTTP request.
 
 ## Test inventory (what the suites assert)
 
+**`test/widget/perf_test.dart`** — the render-pipeline budget: a jelly press animates exactly one
+transform over a `RepaintBoundary`; an `ArticleSkeleton` opens one `ShimmerScope` and every
+`ShimmerBox` is stateless; a `ShimmerBox` outside a scope schedules no frames; a `NewsCard` and a
+`LeadStory` contain no `BackdropFilter`; the reading-progress rule follows a `ValueNotifier` and the
+page is not rebuilt; the release spring is still underdamped (a "fast" refactor may not turn the jelly
+into a fade).
+
+**`test/widget/publisher_logo_test.dart`** — icon resolution order and origin pinning, registry
+round-trip of `logoUrl`, identity and feed status unchanged when no asset exists, the monogram
+fallback with no image stack, fixed 44/40 dp tiles so rows cannot jump, and the accent-filled variant.
+
+**`test/widget/browser_test.dart`** — the real domain (never a bare title), history-gated back,
+one-row layout at 412 dp, narrow 320 dp with an ellipsised headline and no overflow, retry after a
+load failure, and bookmark-then-saved.
+
 **`test/unit/feed_parser_test.dart`**
 RSS 2.0 detection; CDATA headlines; HTML-stripped excerpts; tracking-parameter removal; `+0600`
 → UTC conversion; naive dates parsed with the +06:00 assumption; missing dates stay `null`;
@@ -247,6 +262,25 @@ a malformed profile link.
 E-paper directory. AppShell: tab switching, Android back behaviour, detail push/pop. Dark theme.
 Layouts at 360×640 dp and 800×1280 dp without overflow.
 
+## What this performance-and-browser pass could and could not verify
+
+- **Verified in CI**: `flutter analyze --fatal-warnings` clean; the widget suite green, including new
+  cases in `test/widget/perf_test.dart` (one transform per press over a repaint boundary; one ticker
+  for a whole skeleton; zero backdrop filters behind river rows and the lead card; the progress rule
+  driven by a notifier; the release spring still underdamped), `test/widget/publisher_logo_test.dart`
+  (asset → touch icon → favicon resolution, origin pinning, registry round-trip, monogram fallback,
+  fixed tile size, accent variant) and `test/widget/browser_test.dart` (one-row toolbar at 412 dp and
+  at 320 dp, every control inside the screen and ≥ 32 dp, the domain preserved with an ellipsised
+  headline).
+- **Not verified anywhere**: frame timings, jank, startup time and memory. There is no device, no
+  emulator and no Flutter SDK here, so nothing was profiled and no before/after frame number exists.
+  `docs/PERFORMANCE.md` lists the defects found by inspection, and the exact DevTools steps needed to
+  measure them on hardware. It states expectations as expectations.
+- **Also not verified**: that a publisher's touch icon or favicon actually resolves for each of the 64
+  entries. The fallback chain is tested; the live fetch needs a device or a normal network.
+- **APK size is verified** — from the workflow's own measurements of the built artifacts, not from an
+  estimate. See `docs/PERFORMANCE.md` section C.
+
 ## What the redesign pass could and could not verify
 
 - **Verified in CI**: analyzer clean, 170 test declarations green, release APK builds. The new cases
@@ -284,6 +318,12 @@ Layouts at 360×640 dp and 800×1280 dp without overflow.
 11. Reader → the progress rule advances with scrolling; the translation sheet reports unknown words
     as unknown and states that it is word-by-word.
 12. Android back: detail → list → Home tab → app exits (no navigation loop).
+12a. Browser toolbar at 360 dp and 411 dp: close, pill, back, reload, external and save on **one**
+    line; the domain never truncates before the headline does; the page scrolls under it without the
+    bar moving.
+12b. Publisher marks: the directory shows real publication icons (light or thin wordmarks must stay
+    legible on the tile); in airplane mode they fall back to monograms at exactly the same box size.
+12c. Profile the five interactions listed in `docs/PERFORMANCE.md` §D and record the frame chart.
 13. Rotate and use split-screen → no overflow stripes.
 14. Let the app idle for the configured interval → "last updated" advances; no request storm in
     a proxy trace.

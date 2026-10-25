@@ -14,14 +14,20 @@ can be judged against intent instead of taste.
 | Application ID | `com.zubaxit.bdnewspaperhub` (intentionally unchanged) |
 | Dart package | `bangladesh_newspaper_hub` (unchanged; renaming it would add churn for no user-visible gain) |
 
-The mark is a front page with a folded corner: graphite tile, white sheet, one printed-red masthead
-rule, three ink text lines. It exists in three places that share one geometry:
+The mark is a front page with a folded corner: graphite tile, warm-white sheet, one printed-red
+masthead rule, three ink text lines, and a red inner fold — the only saturated colour in the icon.
+One master artwork drives every surface:
 
-1. `scripts/generate_icons.py` → PNG launcher icons in `android/app/src/main/res/mipmap-*` and
-   `assets/icons/`;
-2. `android/app/src/main/res/drawable/ic_launcher_foreground.xml` (adaptive icon) and
-   `drawable/launch_background.xml` (splash);
-3. `lib/ui/widgets/brand.dart` → `AmarNewsMark`, the in-app vector version.
+1. `assets/brand/icon_master.png` — the master design (gemini-generated, reviewed by eye);
+2. `scripts/build_launcher_icons.py` — lifts the page off the master tile and emits every density:
+   legacy launcher icons, adaptive foregrounds (page alone, inside the 66 dp safe zone),
+   `drawable-nodpi/launch_mark.png` for the splash, and the store/docs copies in `assets/icons/`;
+3. `lib/ui/widgets/brand.dart` — `AmarNewsMark`, the in-app vector with the same geometry, used by
+   the splash and About.
+
+The icon is regenerated with `python3 -m venv .venv && .venv/bin/pip install pillow` once, then
+`.venv/bin/python scripts/build_launcher_icons.py`. Pillow is a build-time dependency only; the app
+ships the emitted PNGs.
 
 No emoji is used as an icon. No raster image is used for an ordinary UI icon.
 
@@ -110,10 +116,53 @@ Glass is used **selectively** so it keeps meaning hierarchy:
 - the river cards (they float over the aurora),
 - bottom sheets, the browser chrome, and the reader's quoted note.
 
-Blur sigma is 0 for anything that does not overlap moving content (a chip on flat paper does not pay
-for a `BackdropFilter`), 12 for small floating controls, 22–30 for bars and sheets. Large scrolling
-areas never blur more than the pinned masthead, and every glass surface is clipped so the blur cannot
-bleed.
+Blur sigma is 0 for anything that does not overlap moving content, 22–30 for bars and sheets, and 12
+for the few small floating controls that do. The rule is stated as a budget because it is a
+performance rule as much as a visual one: a `BackdropFilter` re-runs every time anything above it
+moves, so a blur behind a row inside a scrolling column costs a full-screen `saveLayer` per frame.
+
+| Surface | Blur |
+| --- | --- |
+| Pinned masthead | 22 (`blurBar`) |
+| Floating bottom navigation | 30 (`blurStrong`) |
+| Browser toolbar bar | 22 |
+| Bottom sheets (translation, filters) | 30 |
+| Everything else — cards, chips, tiles, fields, panels, pills on photographs, masthead discs | 0, with the full layered fill/hairline/sheen/shadow |
+
+Large scrolling areas never blur more than the pinned masthead, and every glass surface is clipped so
+the blur cannot bleed.
+
+## Publisher identity
+
+A publisher is identified by its own mark, never by a letter set in the app's typeface. `PublisherLogo`
+resolves candidates in this order:
+
+1. `NewsSource.logoUrl` — an asset a maintainer has explicitly checked (no entry carries one today,
+   because none has been verified against a source the project may redistribute);
+2. the touch icon the publisher's own site advertises (`https://<host>/apple-touch-icon.png`);
+3. the site's favicon (`https://<host>/favicon.ico`).
+
+Logos are fetched at runtime from the publisher's own origin, through the image disk cache, and are
+never bundled in the APK — the app shows a publisher's trademark to identify that publisher, and does
+not redistribute the artwork. Every candidate stays on the publisher's own host. When all of them
+fail (offline, no icon, corrupt file) the same tile paints the publisher's serif monogram, so a row
+never shows a broken-image glyph and never shifts its layout. Tiles stay light in both themes so a
+dark or thin wordmark remains legible at 20 dp.
+
+## The browser toolbar
+
+One row, always: `close · address pill · back · reload · external · save`.
+
+- The pill takes the leftover width; the five discs are fixed 36 dp (32 dp under 360 dp of available
+  width, where the type also steps down one size). Nothing is pushed off screen and nothing clips.
+- The pill states the real origin on its first line and the article headline on a quieter second line,
+  both single-line and ellipsised.
+- Disabled controls stay in place and dim rather than disappearing, so the row does not reflow while a
+  page loads.
+- Loading is a 2 px rule under the bar — determinate when the engine reports progress — and it is
+  absent entirely once the page is in, so a failed page is never left spinning.
+- It is a `GlassBar` over a static page: the blur has something real to sit on and costs nothing per
+  scroll frame, and the platform view keeps its own scrolling below it.
 
 ## Motion
 
@@ -133,6 +182,10 @@ bleed.
 - **Reading progress**: a 2 px rule driven by scroll offset; nothing else animates on scroll.
 - **Reduced motion**: every duration collapses to zero, springs become single-step state changes, and
   feedback remains through colour and geometry. Nothing loops.
+
+Each press frame costs one matrix and one cached layer: the content inside a `JellySurface` is a
+`RepaintBoundary`, and touch-down does not rebuild anything. See `docs/PERFORMANCE.md` for the
+per-frame defects this replaced.
 
 ## Honesty rules that affect design
 

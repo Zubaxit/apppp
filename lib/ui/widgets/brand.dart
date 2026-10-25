@@ -5,10 +5,13 @@ import '../../theme/tokens.dart';
 
 /// The Amar News mark, drawn as vector shapes rather than an image asset.
 ///
-/// A front page with a folded corner: white sheet, one printed-red masthead
-/// rule, three ink text lines. It matches the launcher icon (which is generated
-/// from the same geometry by `scripts/generate_icons.py`) and the Android
-/// splash drawable, so the three never drift apart.
+/// A front page with a folded corner: warm-white sheet, one printed-red masthead
+/// rule, three ink text lines, a red inner fold. It is the same design as the
+/// launcher icon and the Android splash, which are both derived from the single
+/// master artwork `assets/brand/icon_master.png` by
+/// `scripts/build_launcher_icons.py`. The vector is used in-app because it stays
+/// crisp at any size and needs no bitmap; the geometry is intentionally the
+/// same, so the icon cannot drift away from the app.
 class AmarNewsMark extends StatelessWidget {
   const AmarNewsMark({super.key, this.size = 64, this.tile = true});
 

@@ -151,30 +151,57 @@ jobs:
 
       # Size evidence, published as check annotations because runner logs are
       # not reachable from a headless session. These are measurements of the
-      # real artifacts, not estimates.
-      - name: Report artifact sizes and the largest APK entries
+      # real artifacts and their entries, not estimates. GitHub keeps only a
+      # handful of annotations per job, so each one is packed with lines.
+      - name: Report artifact sizes and the composition of the release APK
         run: |
           set -euo pipefail
           mkdir -p dist/split
           cp build/app/outputs/flutter-apk/app-release.apk dist/
           cp build/app/outputs/flutter-apk/app-debug.apk dist/
           cp build/app/outputs/flutter-apk/app-*-release.apk dist/split/ 2>/dev/null || true
-          note() { echo "::notice::$1"; }
-          note "APK sizes (bytes) — universal release, per-ABI release slices, debug:"
-          for f in dist/*.apk dist/split/*.apk; do
-            [ -f "$f" ] || continue
-            note "$(basename "$f") = $(stat -c%s "$f")"
-          done
-          note "Universal release APK, largest entries by uncompressed size:"
-          unzip -l dist/app-release.apk \
-            | awk 'NF>=4 && $1 ~ /^[0-9]+$/ {print $1" "$4}' \
-            | sort -k1,1 -nr | head -18 \
-            | while read -r size name; do note "  $size  $name"; done
-          note "Compressed contribution by top-level group:"
-          unzip -lv dist/app-release.apk \
-            | awk 'NF>=8 && $1 ~ /^[0-9]+$/ {n=$8; split(n,p,"/"); g=p[1]; c[g]+=$3} END {for (k in c) print c[k]" "k}' \
-            | sort -k1,1 -nr | head -8 \
-            | while read -r bytes group; do note "  $bytes  $group"; done
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+
+          def emit(title, lines):
+              body = '%0A'.join(line.replace('%', '%25') for line in lines)
+              print(f'::notice title={title}::{body}')
+
+          files = sorted(Path('dist').rglob('*.apk'))
+          emit('APK sizes (bytes)', [f'{f} = {f.stat().st_size}' for f in files])
+
+          apk = Path('dist/app-release.apk')
+          with zipfile.ZipFile(apk) as z:
+              entries = [(i.file_size, i.filename) for i in z.infolist()]
+          entries.sort(reverse=True)
+          total = sum(size for size, _ in entries)
+          emit('Universal release APK: largest entries (uncompressed bytes)',
+               [f'{size:>10}  {name}' for size, name in entries[:16]])
+
+          groups = {}
+          for size, name in entries:
+              if name.startswith('lib/'):
+                  key = 'lib/' + name.split('/')[1] + ' native'
+              elif name.startswith('assets/flutter_assets/fonts'):
+                  key = 'assets/flutter_assets/fonts'
+              elif name.startswith('assets/flutter_assets/assets'):
+                  key = 'assets/flutter_assets/assets (registry, glossary, icons)'
+              elif name.startswith('assets/flutter_assets'):
+                  key = 'assets/flutter_assets (Dart code, kernel blobs)'
+              elif name.startswith('res/'):
+                  key = 'res (compiled Android resources)'
+              elif name.endswith('.dex'):
+                  key = 'classes*.dex'
+              elif name.startswith('META-INF'):
+                  key = 'META-INF (signature, services)'
+              else:
+                  key = 'other'
+              groups[key] = groups.get(key, 0) + size
+          lines = [f'{size / 1048576:6.2f} MB  {size * 100 / total:5.1f}%  {key}'
+                   for key, size in sorted(groups.items(), key=lambda kv: -kv[1])]
+          emit(f'Release APK composition (total {total / 1048576:.2f} MB uncompressed)', lines)
+          PY
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4

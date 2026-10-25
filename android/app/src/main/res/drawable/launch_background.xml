@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Warm paper with the Amar News page mark, matching the Flutter splash. -->
+<!-- Warm paper with the Amar News mark, matching the Flutter splash. The mark
+     is the launcher artwork (drawable-nodpi/launch_mark.png), generated from
+     assets/brand/icon_master.png so the splash cannot drift from the icon. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/launch_background" />
-    <item android:gravity="center" android:width="88dp" android:height="88dp">
-        <shape android:shape="rectangle">
-            <solid android:color="#FFFFFF" />
-            <corners android:radius="22dp" />
-            <stroke android:width="0.8dp" android:color="#E3DFD9" />
-        </shape>
-    </item>
-    <item android:gravity="center_horizontal|top" android:top="46dp"
-        android:width="44dp" android:height="4dp">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/brand_red" />
-            <corners android:radius="2dp" />
-        </shape>
+    <item android:gravity="center" android:width="104dp" android:height="104dp">
+        <bitmap android:gravity="fill" android:src="@drawable/launch_mark" />
     </item>
 </layer-list>
