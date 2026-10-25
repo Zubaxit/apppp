@@ -21,6 +21,7 @@ publication time, and sends readers to the original article on the publisher's s
 - [Design system](#design-system)
 - [Motion system](#motion-system)
 - [Translation (offline glossary)](#translation-offline-glossary)
+- [Reader mode and machine translation](#reader-mode-and-machine-translation)
 - [Source coverage (verified vs. listed)](#source-coverage-verified-vs-listed)
 - [Quick start](#quick-start)
 - [Project layout](#project-layout)
@@ -177,9 +178,30 @@ edit. Every duration and curve the interface uses is declared in `Tokens`.
   English words that appear in an otherwise Bengali feed.
 - **Availability**: if the asset is missing or unreadable the sheet shows an unavailable state and
   the rest of the app is unaffected — the app is fully usable with no translation feature at all.
-- **Why not more**: a real translator needs either a paid API or a large offline model. No paid
-  service, no ToS-violating scraping and no invented meanings are acceptable, so the honest option
-  is a small, verified word list.
+- **Why not more offline**: a real translator needs either a paid API or a large offline model. No
+  paid service, no ToS-violating scraping and no invented meanings are acceptable, so the honest
+  offline option is a small, verified word list.
+
+## Reader mode and machine translation
+
+- **Reader mode** opens on the page you are already looking at: the browser's own DOM is read once
+  through the engine, headings and paragraphs are extracted, and the article is re-set in the app's
+  serif type. Nothing is re-fetched, no scraping service is called, and the publisher page is still
+  there when you go back (`Return to the original page`).
+- **What it refuses to do**: a page that yields fewer than two blocks or under 200 characters is
+  reported as unreadable — the app says so and offers the original site rather than showing an empty
+  reader.
+- **Bengali under the English**: each paragraph is sent to **MyMemory**
+  (`api.mymemory.translated.net`), a free, key-less public endpoint. Requests are split at sentence
+  boundaries (≤ 420 characters per request), serialised two at a time, cached in memory, and
+  duplicate paragraphs cost one request. The English is never replaced — the translation sits
+  beneath it, in the app's Bengali font, always labelled *machine translation · MyMemory*.
+- **Its limits, stated plainly**: it needs a connection (there is no on-device model, so this is not
+  an offline feature); the anonymous tier has a small daily allowance, and when that or the service
+  is unavailable the paragraph says so with a retry and keeps the English; output is statistical and
+  can be wrong. Offline, the 269-word glossary above is still the only lookup, and it says so.
+- **No key, no secret**: the endpoint needs no API key, so nothing to leak in the APK, and no request
+  carries anything but the paragraph text being translated.
 
 ## Source coverage (verified vs. listed)
 
@@ -335,7 +357,12 @@ Test suites (see [docs/TESTING.md](docs/TESTING.md) for the full matrix):
 | `test/unit/preferences_persistence_test.dart` | Theme, language, motion, text size and follows survive a restart; a failing store never loses the session value |
 | `test/widget/screens_test.dart` | Home (live/empty/cached/breaking/topic filter), directory, publication detail, bookmarks, search, settings, About (registry counts, author profile, runtime editing, link rejection), e-paper list, shell navigation + Android back, dark theme, small-phone and tablet layouts |
 | `test/widget/translation_sheet_test.dart` | Known word, unknown word, missing glossary, tapping a word chip |
-| `test/widget/browser_test.dart`, `directory_filter_test.dart` | Reader chrome, error state, back handling; directory filters |
+| `test/unit/reader_extract_test.dart` | Reader extraction: blocks, headings, dedupe, size caps, malformed and double-encoded payloads, honest refusal |
+| `test/unit/machine_translation_test.dart` | Sentence-boundary splitting, request size cap, GET shape, error mapping (429/403/5xx/unreadable), caching, concurrency, per-paragraph isolation, dispose safety |
+| `test/unit/publisher_logos_test.dart` | The shipped manifest read from disk: every id exists in the registry, files present, distinct, square 128 px PNGs, no orphans |
+| `test/widget/reader_mode_test.dart` | Bilingual reading surface: English kept, Bengali beneath, hide/show, one failing paragraph, lazy start, machine-output label |
+| `test/widget/publisher_logo_test.dart` | Bundled mark painted with no network request; clean monogram fallback; fixed tile size; accent variant |
+| `test/widget/browser_test.dart`, `directory_filter_test.dart` | Reader chrome, error state, page-history back, reader entry and its failure state, selection translation; directory filters |
 
 **Verified in this environment:** `./tool/verify.sh` passes — registry JSON validation (enum
 resolution, verification claims, website-only entries), glossary validation, asset-existence checks
@@ -393,11 +420,16 @@ still produce an installable artifact. **APKs are build artifacts, not committed
    for the measured table, including why each unintegrated publisher is unintegrated.
 2. Only **nine** Bangladeshi feeds could be verified, not the ten or eleven the brief hoped for; the
    app does not invent the difference.
-3. Publisher marks are the publishers' own icons, fetched at runtime from each publisher's origin
-   (checked asset → advertised touch icon → favicon) and shown only to identify that publisher; they
-   are never bundled in the APK, because the project may not redistribute those trademarks. When no
-   icon can be fetched — offline, missing, corrupt — the same tile shows the publisher's monogram, so
-   nothing breaks and no logo is invented.
+3. Publisher marks are the publishers' own icons, used only to identify that publisher. Nine of the
+   22 curated publications ship as 128 px marks inside the APK (`assets/publishers/`, ~50 KB, with
+   provenance and rights notes in `assets/publishers/SOURCES.md`); the rest are fetched at runtime
+   from the publisher's own origin (advertised touch icon → favicon). The resolution order is
+   *bundled mark → verified registry asset → touch icon → favicon → monogram*. The thirteen that are
+   not bundled — including The Daily Star, The Business Standard, Jago News 24, Jugantor, Samakal,
+   Sarabangla, Suprobhat, bdnews24, Ittefaq, Bangladesh Pratidin, Bangla Tribune, Dhaka Tribune and
+   Reuters — could not be obtained from a source that verifiably belonged to the publisher, so they
+   use the runtime chain and then the monogram. No logo is ever invented, and a mark that fails to
+   decode falls back to the monogram instead of a broken-image glyph.
 4. Regional coverage stays conservative: only publications whose official domain is known with
    confidence are listed. Remaining divisions are parked in `assets/data/source_candidates.json`.
 5. Only 6 e-paper destinations are listed, all on the publisher's own domain; access terms are the
@@ -412,9 +444,15 @@ still produce an installable artifact. **APKs are build artifacts, not committed
 10. The Daily Star's feed publishes no item timestamps. Those stories are labelled "publication time
     unknown" and sort after dated ones; the registry carries an explicit `allowUndated` flag for that
     one entry rather than accepting undated feeds generally.
-11. The translation feature is a 269-word offline glossary, not a translator. It cannot translate a
-    page, and it will mark most literary vocabulary as unknown.
-12. Analysis, the widget/unit suites and the debug/release APK builds run in GitHub Actions; this
+11. Translation is two different things and the app never conflates them: the bundled 269-word
+    glossary works offline and will mark most literary vocabulary as unknown; reader-mode paragraph
+    translation needs a connection, uses the free key-less MyMemory endpoint with a small daily
+    allowance, and is always labelled as machine output. Neither replaces the English original.
+12. Reader mode reads the page already open in the browser. It cannot read a PDF e-paper, a page
+    that renders its text inside a canvas, or a paywalled page that never sends the text.
+13. Nine publisher marks are bundled; the other curated publications resolve their icon at runtime or
+    show a monogram. `assets/publishers/SOURCES.md` records where each bundled file came from.
+14. Analysis, the widget/unit suites and the debug/release APK builds run in GitHub Actions; this
     sandbox has no Flutter SDK, so `./tool/verify.sh` is the only local gate. **No physical device or
     emulator test has been performed, and no frame timing has been measured** — install the APK from
     the newest run matching the branch head for a hands-on check, and follow `docs/PERFORMANCE.md` §D

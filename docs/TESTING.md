@@ -281,6 +281,31 @@ Layouts at 360×640 dp and 800×1280 dp without overflow.
 - **APK size is verified** — from the workflow's own measurements of the built artifacts, not from an
   estimate. See `docs/PERFORMANCE.md` section C.
 
+## What this reader-mode, logo and Back pass could and could not verify
+
+- **Verified in CI** (latest green *Analyze & test* on the branch head): `flutter analyze
+  --fatal-warnings` clean; the full suite green, including four new files —
+  `test/unit/reader_extract_test.dart`, `test/unit/machine_translation_test.dart`,
+  `test/unit/publisher_logos_test.dart` (which reads the real bundled files from disk through a
+  `DiskAssetBundle`, not a fixture), `test/widget/reader_mode_test.dart` — plus extended cases in
+  `test/widget/browser_test.dart` (one-row toolbar, page-history-first Back, single-flight back,
+  reader entry, extraction failure, selection translation) and `test/widget/publisher_logo_test.dart`
+  (bundled asset painted with no network request; clean monogram fallback).
+- **Verified locally without an SDK**: `./tool/verify.sh`, which now also checks the bundled marks
+  against the registry — every manifest id exists in `assets/data/sources.json`, every file exists,
+  is a distinct square 128 px PNG, and no orphan PNG sits in the asset folder. It prints the coverage
+  (`9/22 curated`) and lists the publications that fall back at runtime.
+- **Not verified anywhere**: frame timings. Nothing was profiled — no device, no emulator and no
+  Flutter SDK in this sandbox — so the scroll work is described structurally (fewer inherited-widget
+  rebuilds, no per-row shadows, no keep-alives in the river sliver) and never as a measured frame
+  improvement. `docs/PERFORMANCE.md` §D has the on-device steps.
+- **Not verified anywhere**: that MyMemory answers, and that its allowance is available on the day of
+  use. The client is tested against a mock transport for the whole error map; the live endpoint needs
+  a normal network. If it fails, the paragraphs say so and keep the English.
+- The reference green run for this pass is recorded in the run log of the branch head rather than
+  hard-coded here: the apex APK is rebuilt on every commit, and a hard-coded run id would be stale as
+  soon as the next commit lands.
+
 ## What the redesign pass could and could not verify
 
 - **Verified in CI**: analyzer clean, 170 test declarations green, release APK builds. The new cases
