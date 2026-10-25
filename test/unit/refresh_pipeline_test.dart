@@ -189,10 +189,12 @@ void main() {
     expect(report.sourcesFailed, 0);
     expect(report.newArticles, 6);
 
-    // The rows that reached "SQLite" are complete, Bengali and correctly dated.
+    // All publisher records reach SQLite, including undated rows retained only
+    // for explicit archive search. Unknown publication times never enter live UI.
     expect(articles.inserted, hasLength(6));
+    expect(await repository.searchArchiveCandidates(), hasLength(6));
     final List<Article> feed = await repository.loadFeed(const FeedQuery());
-    expect(feed, hasLength(6));
+    expect(feed, hasLength(4));
     expect(feed.first.title, 'নির্বাচন কমিশনের নতুন তফসিল ঘোষণা');
     expect(feed.first.link, 'https://www.prothomalo.com/bangladesh/politics/abc123');
     expect(feed.first.sourceId, 'prothomalo');
@@ -249,8 +251,9 @@ void main() {
     expect(report.sourcesFailed, 1);
     expect(report.failures['jugantor'], contains('403'));
     expect(await repository.articleCount(), 6);
+    expect(await repository.searchArchiveCandidates(), hasLength(6));
     final List<Article> feed = await repository.loadFeed(const FeedQuery());
-    expect(feed, hasLength(6));
+    expect(feed, hasLength(4));
     expect(feed.map((Article a) => a.sourceId).toSet(), <String>{'prothomalo', 'bbc_bangla'});
   });
 
@@ -282,7 +285,7 @@ void main() {
 
     await repository.refresh(force: true);
     expect(calls, 1);
-    now = now.add(const Duration(minutes: 3));
+    now = now.add(const Duration(minutes: 1));
     final RefreshReport second = await repository.refresh();
     expect(calls, 1, reason: 'the per-source floor must hold on device');
     expect(second.sourcesAttempted, 0);
