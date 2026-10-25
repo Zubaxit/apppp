@@ -81,7 +81,20 @@ void main() {
       // pointer-down compression is what makes it feel instant on a device.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
-      expect(scaleOf(tester), lessThan(idle - 0.005));
+      final List<double> diagScales = tester
+          .widgetList<Transform>(find.descendant(
+            of: find.byType(JellySurface),
+            matching: find.byType(Transform),
+          ))
+          .map((Transform t) => t.transform.getMaxScaleOnAxis())
+          .toList();
+      expect(
+        scaleOf(tester),
+        lessThan(idle - 0.005),
+        reason: 'DIAG scales=$diagScales listeners=${find.byType(Listener).evaluate().length} '
+            'size=${tester.getSize(find.byType(JellySurface))} '
+            'centre=${tester.getCenter(find.text('ট্যাপ'))}',
+      );
 
       await gesture.up();
       await tester.pumpAndSettle();
