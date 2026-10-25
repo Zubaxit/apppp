@@ -247,8 +247,12 @@ class _FeaturedCard extends StatelessWidget {
                       letterSpacing: -0.2,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
-                      shadows: <Shadow>[
-                        Shadow(color: Color(0x80000000), blurRadius: 18, offset: Offset(0, 2)),
+                      shadows: const <Shadow>[
+                        Shadow(
+                          color: Color(0x80000000),
+                          blurRadius: 18,
+                          offset: Offset(0, 2),
+                        ),
                       ],
                     ),
                   ),

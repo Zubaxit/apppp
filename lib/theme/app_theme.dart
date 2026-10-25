@@ -306,7 +306,7 @@ class AppTheme {
   static TextStyle headlineStyle(ThemeData theme, {double scale = 1, bool hero = false}) {
     final TextStyle base =
         (hero ? theme.textTheme.displaySmall : theme.textTheme.headlineSmall) ??
-            TextStyle();
+            const TextStyle();
     return base.copyWith(fontSize: (base.fontSize ?? 18) * scale);
   }
 }

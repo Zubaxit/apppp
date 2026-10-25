@@ -11,7 +11,7 @@ import '../../state/saved_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
-import '../screens/article_detail_screen.dart' show LinkLauncherShare;
+import '../services/link_launcher.dart';
 
 /// Bookmark toggle with a jelly pop.
 ///
@@ -194,7 +194,16 @@ class ShareAction extends StatelessWidget {
       button: true,
       label: context.strings.share,
       child: JellySurface(
-        onTap: () => LinkLauncherShare.shareArticle(context, article),
+        onTap: () {
+          final String sourceName = context.registry.nameOf(
+            article.sourceId,
+            bengali: context.isBengali,
+          );
+          return LinkLauncher.share(
+            '${article.title}\n\n$sourceName\n${article.link}',
+            subject: article.title,
+          );
+        },
         scale: 0.9,
         child: onSurface
             ? SizedBox(
