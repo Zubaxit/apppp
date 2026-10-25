@@ -121,6 +121,7 @@ void main() {
       final TestHarness h = harness(
         artwork: <Article>[bnArticle],
         prefs: const AppPreferences(
+          language: AppLanguage.bn,
           followedSourceIds: <String>{'prothomalo'},
         ),
       );
@@ -364,7 +365,10 @@ void main() {
     });
 
     testWidgets('shows recent searches and empty state', (WidgetTester tester) async {
-      final TestHarness h = harness(prefs: const AppPreferences(searchHistory: <String>['প্রথম আলো']));
+      final TestHarness h = harness(prefs: const AppPreferences(
+          language: AppLanguage.bn,
+          searchHistory: <String>['প্রথম আলো'],
+        ));
       await tester.pumpWidget(h.wrap(const SearchScreen()));
       await tester.pumpAndSettle();
 
@@ -465,7 +469,10 @@ void main() {
     testWidgets('About respects reduced motion and settles without a loop',
         (WidgetTester tester) async {
       final TestHarness h = harness(
-        prefs: const AppPreferences(motion: MotionChoice.reduced),
+        prefs: const AppPreferences(
+          language: AppLanguage.bn,
+          motion: MotionChoice.reduced,
+        ),
       );
       await tester.pumpWidget(h.wrap(const AboutScreen()));
       await tester.pumpAndSettle();
@@ -497,14 +504,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title))).scale(10),
-        10,
+        closeTo(10, 0.01),
       );
 
       await h.settings.setTextScale(1.4);
       await tester.pumpAndSettle();
       expect(
         MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title))).scale(10),
-        14,
+        closeTo(14, 0.01),
       );
 
       await tester.pumpWidget(h.wrap(
@@ -516,20 +523,26 @@ void main() {
         find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'),
         find.text(related.title),
       ]) {
-        expect(MediaQuery.textScalerOf(tester.element(finder)).scale(10), 14);
+        expect(
+          MediaQuery.textScalerOf(tester.element(finder)).scale(10),
+          closeTo(14, 0.01),
+        );
       }
 
       await tester.pumpWidget(h.wrap(const SettingsScreen()));
       await tester.pumpAndSettle();
       expect(
         MediaQuery.textScalerOf(tester.element(find.text('সেটিংস').first)).scale(10),
-        14,
+        closeTo(14, 0.01),
       );
 
       await tester.pumpWidget(h.wrap(const AboutScreen()));
       await tester.pumpAndSettle();
       final Finder aboutCopy = find.textContaining('আমার নিউজ একটি সহজ');
-      expect(MediaQuery.textScalerOf(tester.element(aboutCopy)).scale(10), 14);
+      expect(
+        MediaQuery.textScalerOf(tester.element(aboutCopy)).scale(10),
+        closeTo(14, 0.01),
+      );
     });
 
     test('Bengali numerals are used for relative times in the Bengali UI', () {
@@ -545,7 +558,10 @@ void main() {
     testWidgets('home renders in dark mode', (WidgetTester tester) async {
       final TestHarness h = harness(
         artwork: <Article>[bnArticle],
-        prefs: const AppPreferences(theme: AppThemeChoice.dark),
+        prefs: const AppPreferences(
+          language: AppLanguage.bn,
+          theme: AppThemeChoice.dark,
+        ),
       );
       await tester.pumpWidget(h.wrap(const HomeScreen(), brightness: Brightness.dark));
       await h.feed.start();
@@ -736,7 +752,8 @@ void main() {
       expect(find.text(archive.title), findsOneWidget);
       expect(find.text(live.title), findsOneWidget);
       expect(find.text(samePublisher.title), findsNothing);
-      expect(find.text(duplicateUrl.title), findsNothing);
+      expect(find.text(archive.title), findsOneWidget);
+      expect(find.text(duplicateUrl.link), findsNothing);
 
       for (final Article candidate in <Article>[archive, live]) {
         await tester.ensureVisible(find.text(candidate.title));

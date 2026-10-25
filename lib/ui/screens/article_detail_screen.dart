@@ -305,7 +305,13 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                 key: const ValueKey<String>('source-comparison-section'),
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Kicker(context.strings.relatedCoverage),
+                  Text(
+                    context.strings.relatedCoverage,
+                    style: context.texts.labelLarge?.copyWith(
+                      color: context.colors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   if (related.isNotEmpty) ...<Widget>[
                     Text(
@@ -345,10 +351,10 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                       ),
                       children: <Widget>[
                         if (comparisonPending) ...<Widget>[
-                          const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(strokeWidth: 1.5),
+                          Icon(
+                            Icons.manage_search_rounded,
+                            size: 16,
+                            color: context.colors.onSurfaceVariant,
                           ),
                           const SizedBox(width: 8),
                         ],

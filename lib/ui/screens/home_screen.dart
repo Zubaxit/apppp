@@ -91,11 +91,16 @@ class _HomeScreenState extends State<HomeScreen> {
       final FeedController feed = context.read<FeedController>();
       final Future<void> refresh = feed.refresh(force: true);
       if (_scroll.hasClients) {
-        await _scroll.animateTo(
-          0,
-          duration: Motion.of(context).standard,
-          curve: Motion.of(context).curve,
-        );
+        final Motion motion = Motion.of(context);
+        if (motion.standard == Duration.zero) {
+          _scroll.jumpTo(0);
+        } else {
+          await _scroll.animateTo(
+            0,
+            duration: motion.standard,
+            curve: motion.curve,
+          );
+        }
       }
       await refresh;
     } finally {
