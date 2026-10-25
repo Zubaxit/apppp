@@ -166,7 +166,9 @@ class FeedParser {
         continue;
       }
       final String value = (link.getAttribute('href') ?? link.innerText).trim();
-      if (value.isNotEmpty) return value;
+      if (value.isNotEmpty) {
+        return value;
+      }
     }
     return null;
   }
@@ -174,11 +176,21 @@ class FeedParser {
   FeedFormatDetected _detectFormat(XmlDocument document) {
     final XmlElement root = document.rootElement;
     final String rootName = root.name.local.toLowerCase();
-    if (rootName == 'feed') return FeedFormatDetected.atom;
-    if (rootName == 'rdf') return FeedFormatDetected.rdf;
-    if (rootName == 'rss') return FeedFormatDetected.rss2;
-    if (root.findAllElements('channel').isNotEmpty) return FeedFormatDetected.rss2;
-    if (root.findAllElements('entry').isNotEmpty) return FeedFormatDetected.atom;
+    if (rootName == 'feed') {
+      return FeedFormatDetected.atom;
+    }
+    if (rootName == 'rdf') {
+      return FeedFormatDetected.rdf;
+    }
+    if (rootName == 'rss') {
+      return FeedFormatDetected.rss2;
+    }
+    if (root.findAllElements('channel').isNotEmpty) {
+      return FeedFormatDetected.rss2;
+    }
+    if (root.findAllElements('entry').isNotEmpty) {
+      return FeedFormatDetected.atom;
+    }
     return FeedFormatDetected.unknown;
   }
 
