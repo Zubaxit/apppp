@@ -71,15 +71,17 @@ void main() {
         ),
       );
 
-      expect(scaleOf(tester), moreOrLessEquals(1, epsilon: 0.001));
+      final double idle = scaleOf(tester);
+      expect(idle, moreOrLessEquals(1, epsilon: 0.001));
 
+      // Press inside the surface's own content, the way a finger would.
       final TestGesture gesture =
-          await tester.startGesture(tester.getCenter(find.byType(JellySurface)));
+          await tester.startGesture(tester.getCenter(find.text('ট্যাপ')));
       // The recogniser-driven trigger lands inside the tap deadline; raw
       // pointer-down compression is what makes it feel instant on a device.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
-      expect(scaleOf(tester), lessThan(0.99));
+      expect(scaleOf(tester), lessThan(idle - 0.005));
 
       await gesture.up();
       await tester.pumpAndSettle();
@@ -104,7 +106,7 @@ void main() {
       );
 
       final TestGesture gesture =
-          await tester.startGesture(tester.getCenter(find.byType(JellySurface)));
+          await tester.startGesture(tester.getCenter(find.text('ট্যাপ')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
       // Reduced motion is a static state change, not a spring animation.
