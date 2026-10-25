@@ -142,7 +142,12 @@ class ReaderTranslationController extends ChangeNotifier {
       // A failed request must not stay deduped, or a retry would simply await
       // the same rejected future. A successful one stays, so a paragraph
       // repeated later in the article costs nothing.
-      if (!_units[index].done) _inFlight.remove(source);
+      if (!_units[index].done) {
+        // The rejection was already handled above; dropping the entry is what
+        // matters, and `ignore` keeps the discarded future from being reported
+        // as unhandled.
+        _inFlight.remove(source)?.ignore();
+      }
     }
   }
 
