@@ -111,6 +111,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(first.requests, isNotEmpty);
 
+    // Remove the route completely, then open a fresh reader session.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
     final FakeTranslator reopened = FakeTranslator();
     await tester.pumpWidget(h.wrap(
       ReaderModeScreen(document: document(), translator: reopened),

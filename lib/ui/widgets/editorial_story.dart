@@ -575,23 +575,17 @@ class _NewsCardState extends State<NewsCard> {
                     ),
                   ),
                 ),
-                AnimatedSize(
-                  duration: Motion.of(context).standard,
-                  curve: Motion.of(context).curve,
-                  alignment: Alignment.topCenter,
-                  child: _expanded
-                      ? Column(
-                          children: <Widget>[
-                            for (final Article other in related)
-                              _CoverageReport(
-                                article: other,
-                                source: registry.byId(other.sourceId),
-                                onTap: () => openArticle(context, other),
-                              ),
-                          ],
-                        )
-                      : const SizedBox.shrink(),
-                ),
+                if (_expanded)
+                  Column(
+                    children: <Widget>[
+                      for (final Article other in related)
+                        _CoverageReport(
+                          article: other,
+                          source: registry.byId(other.sourceId),
+                          onTap: () => openArticle(context, other),
+                        ),
+                    ],
+                  ),
               ],
             ],
           ),

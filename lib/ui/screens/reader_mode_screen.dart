@@ -105,11 +105,15 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
                 ),
               ),
               if (canTranslate)
-                _TranslationBar(
-                  controller: _controller,
-                  onToggle: () => unawaited(_controller.toggle()),
-                  onStart: () => unawaited(_controller.setEnabled(true)),
-                  onRetry: () => unawaited(_controller.translateAll()),
+                ListenableBuilder(
+                  listenable: _controller,
+                  builder: (BuildContext context, Widget? child) =>
+                      _TranslationBar(
+                    controller: _controller,
+                    onToggle: () => unawaited(_controller.toggle()),
+                    onStart: () => unawaited(_controller.setEnabled(true)),
+                    onRetry: () => unawaited(_controller.translateAll()),
+                  ),
                 ),
             ],
           ),
