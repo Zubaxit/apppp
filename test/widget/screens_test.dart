@@ -563,12 +563,19 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
       final TestHarness h = harness();
+      final Article longArticle = sampleArticle(
+        title: bnArticle.title,
+        excerpt: List<String>.filled(
+          30,
+          'This feed excerpt makes the native detail surface vertically scrollable.',
+        ).join(' '),
+      );
       await tester.pumpWidget(h.wrap(
-        ArticleDetailScreen(article: bnArticle, related: const <Article>[]),
+        ArticleDetailScreen(article: longArticle, related: const <Article>[]),
       ));
       await tester.pumpAndSettle();
 
-      final Finder title = find.text(bnArticle.title);
+      final Finder title = find.text(longArticle.title);
       final double before = tester.getTopLeft(title).dy;
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
       await tester.pumpAndSettle();
