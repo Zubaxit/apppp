@@ -1,4 +1,5 @@
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
+import 'package:bangladesh_newspaper_hub/theme/materials.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/newspapers_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,12 +44,13 @@ void main() {
     await tester.pumpWidget(h.wrap(const NewspapersScreen()));
     await tester.pumpAndSettle();
 
-    // Bengali division names come from the label map, not the raw data value.
-    expect(find.widgetWithText(ChoiceChip, 'চট্টগ্রাম'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, 'সিলেট'), findsOneWidget);
+    // Division filters are glass chips; the Bengali names come from the label
+    // map, not the raw data value.
+    expect(find.widgetWithText(GlassChip, 'চট্টগ্রাম'), findsOneWidget);
+    expect(find.widgetWithText(GlassChip, 'সিলেট'), findsOneWidget);
     expect(find.text('প্রথম আলো'), findsWidgets);
 
-    await tester.tap(find.widgetWithText(ChoiceChip, 'চট্টগ্রাম'));
+    await tester.tap(find.widgetWithText(GlassChip, 'চট্টগ্রাম'));
     await tester.pumpAndSettle();
 
     expect(find.text('দৈনিক আজাদী'), findsOneWidget);
@@ -56,8 +58,8 @@ void main() {
     expect(find.text('প্রথম আলো'), findsNothing);
 
     // The district row only lists the districts inside the chosen division.
-    expect(find.widgetWithText(ChoiceChip, 'Chattogram'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, 'Sylhet'), findsNothing);
+    expect(find.widgetWithText(GlassChip, 'Chattogram'), findsOneWidget);
+    expect(find.widgetWithText(GlassChip, 'Sylhet'), findsNothing);
   });
 
   testWidgets('arriving with a division preselects it', (WidgetTester tester) async {
@@ -69,7 +71,7 @@ void main() {
     expect(find.text('দৈনিক আজাদী'), findsNothing);
 
     // Choosing "all divisions" returns to the curated front of the directory.
-    await tester.tap(find.widgetWithText(ChoiceChip, h.settings.strings.allDivisions));
+    await tester.tap(find.widgetWithText(GlassChip, h.settings.strings.allDivisions));
     await tester.pumpAndSettle();
     expect(find.text('দৈনিক আজাদী'), findsNothing);
     expect(find.text('প্রথম আলো'), findsWidgets);

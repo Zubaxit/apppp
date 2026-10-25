@@ -1,26 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
-import '../../core/l10n/labels.dart';
-import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../data/models/source_health.dart';
-import '../../state/feed_controller.dart';
+import '../../theme/materials.dart';
+import '../../theme/motion.dart';
+import '../../theme/tokens.dart';
+import 'actions.dart';
+import 'article_card.dart' show topicLabel;
 import 'common.dart';
+import 'editorial.dart';
 
-/// Horizontal topic rail used on Home and on the Categories screen.
+/// Icon per topic, used by the rail and the category screen so the two agree.
+IconData topicIcon(ArticleTopic topic) {
+  return <ArticleTopic, IconData>{
+    ArticleTopic.bangladesh: Icons.public_rounded,
+    ArticleTopic.politics: Icons.account_balance_rounded,
+    ArticleTopic.economy: Icons.trending_up_rounded,
+    ArticleTopic.international: Icons.language_rounded,
+    ArticleTopic.education: Icons.school_rounded,
+    ArticleTopic.sports: Icons.sports_cricket_rounded,
+    ArticleTopic.entertainment: Icons.theaters_rounded,
+    ArticleTopic.technology: Icons.memory_rounded,
+    ArticleTopic.health: Icons.favorite_border_rounded,
+    ArticleTopic.lifestyle: Icons.local_cafe_rounded,
+    ArticleTopic.other: Icons.more_horiz_rounded,
+  }[topic]!;
+}
+
+/// The topic rail: frosted chips that scroll horizontally, with a leading
+/// "all" chip. Selection is a tinted glass capsule, not a filled block.
 class TopicRail extends StatelessWidget {
   const TopicRail({
     super.key,
     required this.selected,
     required this.onToggle,
-    this.onClear,
-    this.topics = _defaultTopics,
+    required this.onClear,
   });
 
-  static const List<ArticleTopic> _defaultTopics = <ArticleTopic>[
+  final Set<ArticleTopic> selected;
+  final ValueChanged<ArticleTopic> onToggle;
+  final VoidCallback onClear;
+
+  static const List<ArticleTopic> topics = <ArticleTopic>[
     ArticleTopic.bangladesh,
     ArticleTopic.politics,
     ArticleTopic.economy,
@@ -33,91 +56,41 @@ class TopicRail extends StatelessWidget {
     ArticleTopic.lifestyle,
   ];
 
-  final Set<ArticleTopic> selected;
-  final ValueChanged<ArticleTopic> onToggle;
-  final VoidCallback? onClear;
-  final List<ArticleTopic> topics;
-
   @override
   Widget build(BuildContext context) {
     final bool bengali = context.isBengali;
     return SizedBox(
-      height: 42,
-      child: ListView.separated(
+      height: 44,
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: topics.length + 1,
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 8),
-        itemBuilder: (BuildContext context, int index) {
-          if (index == 0) {
-            final bool active = selected.isEmpty;
-            return _Pill(
-              label: context.strings.all,
-              icon: Icons.dynamic_feed_rounded,
-              active: active,
-              onTap: onClear,
-            );
-          }
-          final ArticleTopic topic = topics[index - 1];
-          return _Pill(
-            label: Labels.topic(topic, bengali: bengali),
-            icon: Labels.topicIcon(topic),
-            active: selected.contains(topic),
-            onTap: () => onToggle(topic),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({
-    required this.label,
-    required this.icon,
-    required this.active,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool active;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color bg = active ? context.colors.primary : context.colors.surfaceContainerHighest;
-    final Color fg = active ? context.colors.onPrimary : context.colors.onSurface;
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(icon, size: 15, color: fg.withValues(alpha: 0.85)),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: context.texts.labelLarge?.copyWith(
-                  color: fg,
-                  fontSize: 12.5,
-                  fontWeight: active ? FontWeight.w700 : FontWeight.w600,
-                ),
-              ),
-            ],
+        padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+        physics: const BouncingScrollPhysics(),
+        children: <Widget>[
+          GlassChip(
+            label: context.strings.all,
+            selected: selected.isEmpty,
+            onTap: onClear,
+            icon: Icons.auto_awesome_rounded,
           ),
-        ),
+          const SizedBox(width: 7),
+          for (final ArticleTopic topic in topics) ...<Widget>[
+            GlassChip(
+              label: topicLabel(topic, bengali: bengali),
+              selected: selected.contains(topic),
+              onTap: () => onToggle(topic),
+            ),
+            const SizedBox(width: 7),
+          ],
+        ],
       ),
     );
   }
 }
 
-/// Breaking stories only when a publisher explicitly labelled them as such.
+/// Breaking news, shown only when a publisher labelled an item itself.
+///
+/// The band is a tinted glass strip with a red signal dot, and it slides in
+/// rather than popping.
 class BreakingBanner extends StatelessWidget {
   const BreakingBanner({super.key, required this.articles, required this.onOpen});
 
@@ -127,75 +100,71 @@ class BreakingBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (articles.isEmpty) return const SizedBox.shrink();
-    final bool bengali = context.isBengali;
-    final Color red = context.colors.error;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 6, 20, 16),
-      padding: const EdgeInsets.fromLTRB(14, 12, 8, 6),
-      decoration: BoxDecoration(
-        color: red.withValues(alpha: context.isDark ? 0.16 : 0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: red.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
+    final Article first = articles.first;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter, 0),
+      child: JellySurface(
+        onTap: () => onOpen(first),
+        scale: 0.985,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Tokens.radiusMd),
+            color: context.colors.error.withValues(alpha: 0.08),
+            border: Border.all(
+              color: context.colors.error.withValues(alpha: 0.26),
+              width: 0.9,
+            ),
+          ),
+          child: Row(
             children: <Widget>[
               Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(color: red, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                context.strings.breakingNews.toUpperCase(),
-                style: context.texts.labelSmall?.copyWith(
-                  color: red,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: context.colors.error,
+                  borderRadius: BorderRadius.circular(Tokens.radiusXs),
                 ),
+                child: Text(
+                  context.strings.breakingNews,
+                  style: const TextStyle(
+                    fontFamily: Tokens.sans,
+                    fontSize: 9,
+                    height: 1.2,
+                    letterSpacing: 0.8,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  first.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.texts.titleSmall?.copyWith(
+                    fontFamily: Tokens.serif,
+                    fontSize: 13,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: context.colors.error,
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          ...articles.take(3).map((Article article) {
-            final String time = BengaliText.relative(article.publishedAt, bengali: bengali) ??
-                context.strings.noPublicationDate;
-            return InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () => onOpen(article),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      article.title,
-                      style: context.texts.titleSmall?.copyWith(
-                        fontSize: 14 * context.settings.textScale,
-                        height: 1.4,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${context.registry.nameOf(article.sourceId, bengali: bengali)} · $time',
-                      style: context.texts.labelSmall?.copyWith(color: red.withValues(alpha: 0.85)),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// Shows refresh state, cache age and offline status in one compact bar.
+/// Freshness line with a refresh affordance; states cached/offline honestly.
 class FeedStatusBar extends StatelessWidget {
   const FeedStatusBar({super.key, this.onRefresh});
 
@@ -203,164 +172,108 @@ class FeedStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FeedController feed = context.watch<FeedController>();
-    final bool bengali = context.isBengali;
-    final String? updated = BengaliText.relative(feed.lastRefreshAt, bengali: bengali);
-    final String label = feed.isRefreshing
-        ? '${context.strings.checking} ${feed.progressTotal > 0 ? '${feed.progressDone}/${feed.progressTotal}' : ''}'
-        : updated == null
-            ? context.strings.neverUpdated
-            : '${context.strings.lastUpdated}: $updated';
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-      padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceContainerHighest.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(
-                feed.isOffline
-                    ? Icons.cloud_off_rounded
-                    : feed.isShowingCached
-                        ? Icons.history_rounded
-                        : Icons.cloud_done_rounded,
-                size: 15,
-                color: feed.isOffline ? context.colors.error : context.colors.primary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  label.trim(),
-                  style: context.texts.labelSmall?.copyWith(fontSize: 11),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                onPressed: feed.isRefreshing ? null : onRefresh,
-                iconSize: 18,
-                visualDensity: VisualDensity.compact,
-                tooltip: context.strings.refresh,
-                icon: feed.isRefreshing
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          value: feed.progressTotal > 0 ? feed.progress : null,
-                        ),
-                      )
-                    : const Icon(Icons.refresh_rounded),
-              ),
-            ],
-          ),
-          if (feed.isOffline || feed.isShowingCached)
-            Padding(
-              padding: const EdgeInsets.only(top: 2, right: 6),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      feed.isOffline ? context.strings.offlineNotice : context.strings.cachedNotice,
-                      style: context.texts.labelSmall?.copyWith(
-                        fontSize: 10.5,
-                        color: feed.isOffline ? context.colors.error : context.colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }
 
-/// Directory row for a single publication.
+/// A publisher row: monogram, names, health and a follow control.
 class PublicationTile extends StatelessWidget {
   const PublicationTile({
     super.key,
     required this.source,
-    required this.health,
-    required this.following,
-    required this.onTap,
-    required this.onToggleFollow,
+    this.onTap,
+    this.health,
+    this.following = false,
+    this.onFollow,
+    this.showHealth = true,
   });
 
   final NewsSource source;
+  final VoidCallback? onTap;
   final SourceHealth? health;
   final bool following;
-  final VoidCallback onTap;
-  final VoidCallback onToggleFollow;
+  final VoidCallback? onFollow;
+  final bool showHealth;
 
   @override
   Widget build(BuildContext context) {
     final bool bengali = context.isBengali;
-    final String? secondary = source.secondaryName(bengali: bengali);
-    return InkWell(
+    final String name = source.localizedName(bengali: bengali);
+    final String? other = source.otherName(bengali: bengali);
+    return Pressable(
       onTap: onTap,
+      scale: 0.99,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 10, 12, 10),
+        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 10),
         child: Row(
           children: <Widget>[
-            SourceAvatar(source: source, size: 46),
-            const SizedBox(width: 14),
+            SourceAvatar(source: source, size: 42),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    source.localizedName(bengali: bengali),
-                    style: context.texts.titleMedium?.copyWith(fontSize: 15),
+                    name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: context.texts.titleSmall?.copyWith(
+                      fontFamily: Tokens.serif,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  if (secondary != null)
+                  if (other != null)
                     Text(
-                      secondary,
-                      style: context.texts.labelSmall?.copyWith(fontSize: 11),
+                      other,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: context.texts.labelSmall?.copyWith(fontSize: 10),
                     ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: <Widget>[
-                      HealthBadge(health: health, hasFeed: source.hasFeed),
-                      const SizedBox(width: 8),
-                      if (source.isRegional && source.division != null)
-                        Flexible(
-                          child: Text(
-                            source.division!,
-                            style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    ],
-                  ),
+                  if (showHealth) ...<Widget>[
+                    const SizedBox(height: 5),
+                    HealthBadge(health: health, hasFeed: source.hasFeed),
+                  ],
                 ],
               ),
             ),
-            IconButton(
-              onPressed: onToggleFollow,
-              tooltip: following ? context.strings.followingLabel : context.strings.follow,
-              visualDensity: VisualDensity.compact,
-              icon: Icon(
-                following ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
-                size: 20,
-                color: following ? context.colors.primary : context.colors.onSurfaceVariant,
+            if (onFollow != null)
+              Semantics(
+                button: true,
+                label: following ? context.strings.followingLabel : context.strings.follow,
+                child: JellySurface(
+                  onTap: onFollow,
+                  scale: 0.88,
+                  child: AnimatedContainer(
+                    duration: Motion.of(context).standard,
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: following
+                          ? context.colors.primary.withValues(alpha: 0.14)
+                          : (context.isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.white.withValues(alpha: 0.7)),
+                      border: Border.all(
+                        color: following
+                            ? context.colors.primary.withValues(alpha: 0.4)
+                            : (context.isDark ? Tokens.nightHairline : Tokens.hairline),
+                        width: 0.9,
+                      ),
+                    ),
+                    child: Icon(
+                      following
+                          ? Icons.check_rounded
+                          : Icons.add_circle_outline_rounded,
+                      size: 17,
+                      color: following
+                          ? context.colors.primary
+                          : context.colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 20,
-              color: context.colors.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
           ],
         ),
       ),
@@ -368,9 +281,14 @@ class PublicationTile extends StatelessWidget {
   }
 }
 
-/// Horizontal follow strip used on the home screen.
+/// The followed-publications rail shown under the front page header.
 class FollowStrip extends StatelessWidget {
-  const FollowStrip({super.key, required this.sources, required this.onOpen, required this.onBrowse});
+  const FollowStrip({
+    super.key,
+    required this.sources,
+    required this.onOpen,
+    required this.onBrowse,
+  });
 
   final List<NewsSource> sources;
   final ValueChanged<NewsSource> onOpen;
@@ -378,198 +296,231 @@ class FollowStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (sources.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-        child: InkWell(
-          onTap: onBrowse,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: context.colors.surfaceContainerHighest.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: <Widget>[
-                Icon(Icons.bookmarks_outlined, size: 18, color: context.colors.primary),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    context.strings.noFollowedPapers,
-                    style: context.texts.bodySmall,
-                  ),
-                ),
-                Text(context.strings.browseDirectory, style: context.texts.labelMedium),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    if (sources.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      height: 92,
-      child: ListView.separated(
+      height: 96,
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: sources.length,
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 10),
-        itemBuilder: (BuildContext context, int index) {
-          final NewsSource source = sources[index];
-          return InkWell(
-            onTap: () => onOpen(source),
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              width: 96,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-              decoration: BoxDecoration(
-                color: context.colors.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: context.colors.outlineVariant),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  SourceAvatar(source: source, size: 34),
-                  const SizedBox(height: 8),
-                  Text(
-                    source.localizedName(bengali: context.isBengali),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.texts.labelSmall?.copyWith(
-                      fontSize: 10.5,
-                      color: context.colors.onSurface,
-                      height: 1.25,
+        padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+        physics: const BouncingScrollPhysics(),
+        children: <Widget>[
+          for (final NewsSource source in sources) ...<Widget>[
+            JellySurface(
+              onTap: () => onOpen(source),
+              scale: 0.93,
+              child: SizedBox(
+                width: 64,
+                child: Column(
+                  children: <Widget>[
+                    SourceAvatar(source: source, size: 50),
+                    const SizedBox(height: 6),
+                    Text(
+                      source.localizedName(bengali: context.isBengali),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: context.texts.labelSmall?.copyWith(fontSize: 9.5),
                     ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          JellySurface(
+            onTap: onBrowse,
+            scale: 0.93,
+            child: SizedBox(
+              width: 64,
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: context.colors.outlineVariant,
+                        width: 0.9,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.add_rounded,
+                      size: 20,
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    context.strings.browseDirectory,
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: context.texts.labelSmall?.copyWith(fontSize: 8.5),
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Simple generic filter chip row used by the directory and search screens.
+/// A generic row of filter chips backed by any comparable value.
 class FilterChipRow<T> extends StatelessWidget {
   const FilterChipRow({
     super.key,
-    required this.options,
-    required this.selected,
+    required this.values,
     required this.labelOf,
-    required this.onSelected,
-    this.leadingLabel,
+    required this.selected,
+    required this.onSelect,
+    this.allLabel,
+    this.allValue,
   });
 
-  final List<T?> options;
+  final List<T> values;
+  final String Function(T value) labelOf;
   final T? selected;
-  final String Function(T? value) labelOf;
-  final ValueChanged<T?> onSelected;
-  final String? leadingLabel;
+  final ValueChanged<T?> onSelect;
+  final String? allLabel;
+  final T? allValue;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 38,
-      child: ListView.separated(
+      height: 42,
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: options.length,
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 6),
-        itemBuilder: (BuildContext context, int index) {
-          final T? option = options[index];
-          final bool active = option == selected;
-          return ChoiceChip(
-            label: Text(labelOf(option)),
-            selected: active,
-            onSelected: (_) => onSelected(option),
-            labelStyle: context.texts.labelMedium?.copyWith(
-              fontSize: 11.5,
-              color: active ? context.colors.onPrimary : context.colors.onSurface,
+        padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+        physics: const BouncingScrollPhysics(),
+        children: <Widget>[
+          if (allLabel != null) ...<Widget>[
+            GlassChip(
+              label: allLabel!,
+              selected: selected == allValue,
+              onTap: () => onSelect(allValue),
+              dense: true,
             ),
-            backgroundColor: context.colors.surfaceContainerHighest.withValues(alpha: 0.5),
-            selectedColor: context.colors.primary,
-            side: BorderSide(color: active ? Colors.transparent : context.colors.outlineVariant),
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-          );
-        },
+            const SizedBox(width: 7),
+          ],
+          for (final T value in values) ...<Widget>[
+            GlassChip(
+              label: labelOf(value),
+              selected: selected == value,
+              onTap: () => onSelect(value),
+              dense: true,
+            ),
+            const SizedBox(width: 7),
+          ],
+        ],
       ),
     );
   }
 }
 
+/// Vertical spacer with a fading rule, used between editorial groups.
 class SectionDivider extends StatelessWidget {
   const SectionDivider({super.key, this.height = 26});
 
   final double height;
 
   @override
-  Widget build(BuildContext context) => SizedBox(height: height);
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: height / 2),
+      child: const SoftRule(inset: Tokens.gutter, opacity: 0.7),
+    );
+  }
 }
 
+/// Large tappable panel with an icon, a title and a body — used by Categories
+/// and Search as the entry point into the directory.
 class PrimaryActionCard extends StatelessWidget {
   const PrimaryActionCard({
     super.key,
     required this.icon,
     required this.title,
-    required this.subtitle,
-    required this.onTap,
+    required this.body,
+    this.onTap,
+    this.accent,
+    this.trailingLabel,
   });
 
   final IconData icon;
   final String title;
-  final String subtitle;
-  final VoidCallback onTap;
+  final String body;
+  final VoidCallback? onTap;
+  final Color? accent;
+  final String? trailingLabel;
 
   @override
   Widget build(BuildContext context) {
+    final Color tint = accent ?? context.colors.primary;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-      child: Material(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 12),
+      child: PaperCard(
+        padding: const EdgeInsets.all(15),
+        radius: Tokens.radiusMd,
+        child: Pressable(
           onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: context.colors.outlineVariant),
-            ),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: context.colors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, size: 20, color: context.colors.primary),
+          scale: 0.985,
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 42,
+                height: 42,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(Tokens.radiusSm),
+                  border: Border.all(color: tint.withValues(alpha: 0.2), width: 0.9),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(title, style: context.texts.titleSmall),
-                      const SizedBox(height: 2),
-                      Text(subtitle, style: context.texts.labelSmall),
+                child: Icon(icon, size: 19, color: tint),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      title,
+                      style: context.texts.titleSmall?.copyWith(
+                        fontFamily: Tokens.serif,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.texts.bodySmall?.copyWith(
+                        fontSize: 11.5,
+                        height: 1.5,
+                      ),
+                    ),
+                    if (trailingLabel != null) ...<Widget>[
+                      const SizedBox(height: 6),
+                      Text(
+                        trailingLabel!,
+                        style: context.texts.labelSmall?.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: tint,
+                        ),
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 13,
-                  color: context.colors.onSurfaceVariant,
-                ),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: context.colors.onSurfaceVariant.withValues(alpha: 0.7),
+              ),
+            ],
           ),
         ),
       ),
@@ -577,7 +528,7 @@ class PrimaryActionCard extends StatelessWidget {
   }
 }
 
-/// Small reusable stat block for the About screen.
+/// A number with a caption, used in About and the directory header.
 class StatBlock extends StatelessWidget {
   const StatBlock({super.key, required this.value, required this.label, this.accent});
 
@@ -593,13 +544,176 @@ class StatBlock extends StatelessWidget {
         Text(
           value,
           style: context.texts.headlineMedium?.copyWith(
+            fontFamily: Tokens.serif,
+            fontSize: 22,
             color: accent ?? context.colors.primary,
-            fontSize: 24,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 2),
-        Text(label, style: context.texts.labelSmall),
+        Text(
+          label,
+          style: context.texts.labelSmall?.copyWith(fontSize: 9.5, height: 1.3),
+          maxLines: 2,
+        ),
       ],
+    );
+  }
+}
+
+/// A category entry shaped like the reference: a circular glass tile with the
+/// glyph, and its label underneath. Selection tints the tile and the glyph red
+/// and thickens the label — the circle responds on touch-down through the jelly
+/// spring, which is what makes the row feel like a physical control strip.
+class CategoryCircle extends StatelessWidget {
+  const CategoryCircle({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool dark = context.isDark;
+    final Color accent = context.colors.primary;
+    return Semantics(
+      selected: selected,
+      button: true,
+      label: label,
+      child: JellySurface(
+        onTap: onTap,
+        scale: 0.9,
+        child: SizedBox(
+          width: 64,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              AnimatedContainer(
+                duration: Motion.of(context).standard,
+                curve: Tokens.easeStandard,
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: selected
+                        ? <Color>[
+                            accent.withValues(alpha: dark ? 0.34 : 0.20),
+                            accent.withValues(alpha: dark ? 0.20 : 0.10),
+                          ]
+                        : (dark
+                            ? <Color>[
+                                Colors.white.withValues(alpha: 0.10),
+                                Colors.white.withValues(alpha: 0.045),
+                              ]
+                            : <Color>[
+                                Colors.white.withValues(alpha: 0.92),
+                                Colors.white.withValues(alpha: 0.66),
+                              ]),
+                  ),
+                  border: Border.all(
+                    color: selected
+                        ? accent.withValues(alpha: 0.55)
+                        : (dark ? Colors.white.withValues(alpha: 0.14) : Tokens.hairline),
+                    width: 0.9,
+                  ),
+                  boxShadow: Tokens.shadow(context, lift: 0.3),
+                ),
+                child: Icon(
+                  icon,
+                  size: 21,
+                  color: selected ? accent : (dark ? Tokens.nightInk : Tokens.ink),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: Tokens.sans,
+                  fontSize: 9.5,
+                  height: 1.25,
+                  letterSpacing: 0.1,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected
+                      ? accent
+                      : (dark ? Tokens.nightInkMuted : Tokens.inkMuted),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The horizontal strip of [CategoryCircle]s, with an "all" entry first.
+class CategoryStrip extends StatelessWidget {
+  const CategoryStrip({
+    super.key,
+    required this.selected,
+    required this.onToggle,
+    required this.onClear,
+  });
+
+  final Set<ArticleTopic> selected;
+  final ValueChanged<ArticleTopic> onToggle;
+  final VoidCallback onClear;
+
+  static const List<ArticleTopic> topics = <ArticleTopic>[
+    ArticleTopic.bangladesh,
+    ArticleTopic.international,
+    ArticleTopic.sports,
+    ArticleTopic.politics,
+    ArticleTopic.entertainment,
+    ArticleTopic.technology,
+    ArticleTopic.economy,
+    ArticleTopic.education,
+    ArticleTopic.health,
+    ArticleTopic.lifestyle,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final bool bengali = context.isBengali;
+    return SizedBox(
+      height: 82,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+        physics: const BouncingScrollPhysics(),
+        itemCount: topics.length + 1,
+        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 10),
+        itemBuilder: (BuildContext context, int index) {
+          if (index == 0) {
+            return CategoryCircle(
+              label: context.strings.all,
+              icon: Icons.apps_rounded,
+              selected: selected.isEmpty,
+              onTap: onClear,
+            );
+          }
+          final ArticleTopic topic = topics[index - 1];
+          return CategoryCircle(
+            label: topicLabel(topic, bengali: bengali),
+            icon: topicIcon(topic),
+            selected: selected.contains(topic),
+            onTap: () => onToggle(topic),
+          );
+        },
+      ),
     );
   }
 }

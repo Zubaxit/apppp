@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
@@ -9,14 +6,19 @@ import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/saved_controller.dart';
-import '../../theme/app_theme.dart';
-import '../../theme/motion.dart';
+import '../../theme/materials.dart';
+import '../../theme/tokens.dart';
+import 'actions.dart';
 import 'common.dart';
+import 'editorial.dart';
 
 enum ArticleCardVariant { hero, standard, compact, saved }
 
-/// Editorial article card. Three densities share one visual language so the
-/// home feed, section lists and search results all feel like one publication.
+/// Editorial article card. Four densities share one visual language: a paper
+/// surface, a serif headline, a hairline attribution line and a glass bookmark.
+///
+/// It is deliberately a flat sheet rather than glass: text gets the full
+/// contrast of paper, and glass is reserved for the chrome that floats over it.
 class ArticleCard extends StatelessWidget {
   const ArticleCard({
     super.key,
@@ -37,186 +39,309 @@ class ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool saved = context.watch<SavedController>().isSaved(article.id);
-    final Widget content = _contentFor(context, saved);
-    return Semantics(
-      button: true,
-      label: article.title,
-      // The card is rendered in lists, sheets and dialogs; provide the Material
-      // the ink response needs instead of assuming an ancestor supplies it.
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: content,
-        ),
-      ),
-    );
-  }
-
-  Widget _contentFor(BuildContext context, bool saved) {
     switch (variant) {
       case ArticleCardVariant.hero:
-        return _buildHero(context, saved);
+        return _Hero(article: article, source: source, onTap: onTap);
       case ArticleCardVariant.compact:
-        return _buildCompact(context, saved);
+        return _Compact(article: article, source: source, onTap: onTap);
       case ArticleCardVariant.saved:
-        return _buildStandard(context, saved, savedDate: true);
+        return _Saved(article: article, source: source, onTap: onTap);
       case ArticleCardVariant.standard:
-        return _buildStandard(context, saved);
+        return _Standard(
+          article: article,
+          source: source,
+          onTap: onTap,
+          showExcerpt: showExcerpt,
+        );
     }
   }
+}
 
-  Widget _buildHero(BuildContext context, bool saved) {
-    final double scale = context.settings.textScale;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          if (article.imageUrl != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: RemoteImage(url: article.imageUrl!),
-              ),
-            ),
-          const SizedBox(height: 14),
-          ArticleMetaRow(article: article, source: source, emphasis: true),
-          const SizedBox(height: 8),
-          Text(
-            article.title,
-            style: AppTheme.headlineStyle(context.theme, scale: scale, hero: true),
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (showExcerpt && (article.excerpt ?? '').isNotEmpty) ...<Widget>[
-            const SizedBox(height: 8),
-            Text(
-              article.excerpt!,
-              style: context.texts.bodyMedium?.copyWith(
-                fontSize: 14.5 * scale,
-                color: context.texts.bodySmall?.color,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          const SizedBox(height: 6),
-          _ActionRow(article: article, saved: saved),
-        ],
-      ),
-    );
-  }
+class _Standard extends StatelessWidget {
+  const _Standard({
+    required this.article,
+    required this.source,
+    required this.onTap,
+    required this.showExcerpt,
+  });
 
-  Widget _buildStandard(BuildContext context, bool saved, {bool savedDate = false}) {
-    final double scale = context.settings.textScale;
+  final Article article;
+  final NewsSource? source;
+  final VoidCallback? onTap;
+  final bool showExcerpt;
+
+  @override
+  Widget build(BuildContext context) {
+    final String? image = article.imageUrl;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 12),
+      child: PaperCard(
+        padding: const EdgeInsets.all(13),
+        radius: Tokens.radiusMd,
+        child: Pressable(
+          onTap: onTap,
+          scale: 0.99,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    ArticleMetaRow(article: article, source: source),
-                    const SizedBox(height: 7),
-                    Text(
-                      article.title,
-                      style: AppTheme.headlineStyle(context.theme, scale: scale, hero: false)
-                          .copyWith(fontSize: 18 * scale),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (showExcerpt && (article.excerpt ?? '').isNotEmpty) ...<Widget>[
-                      const SizedBox(height: 6),
-                      Text(
-                        article.excerpt!,
-                        style: context.texts.bodySmall?.copyWith(fontSize: 13 * scale),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
+              if (image != null) ...<Widget>[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(Tokens.radiusSm),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: RemoteImage(url: image),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Attribution(article: article, source: source, compact: true),
+              const SizedBox(height: 6),
+              Text(
+                article.title,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: context.texts.headlineSmall?.copyWith(
+                  fontFamily: Tokens.serif,
+                  fontSize: 16.5,
+                  height: 1.42,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              if (article.imageUrl != null) ...<Widget>[
-                const SizedBox(width: 14),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 88,
-                    height: 88,
-                    child: RemoteImage(url: article.imageUrl!),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: <Widget>[
-              _BookmarkButton(article: article, saved: saved),
-              const Spacer(),
-              if (savedDate)
+              if (showExcerpt && (article.excerpt ?? '').isNotEmpty) ...<Widget>[
+                const SizedBox(height: 6),
                 Text(
-                  BengaliText.absolute(article.fetchedAt, bengali: context.isBengali),
-                  style: context.texts.labelSmall,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompact(BuildContext context, bool saved) {
-    final double scale = context.settings.textScale;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            margin: const EdgeInsets.only(top: 6, right: 12),
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: context.colors.primary.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  article.title,
-                  style: context.texts.titleMedium?.copyWith(
-                    fontSize: 14.5 * scale,
-                    height: 1.45,
-                  ),
-                  maxLines: 3,
+                  article.excerpt!,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                  style: context.texts.bodySmall?.copyWith(height: 1.55),
                 ),
-                const SizedBox(height: 4),
-                ArticleMetaRow(article: article, source: source, dense: true),
               ],
-            ),
+              const SizedBox(height: 8),
+              Row(
+                children: <Widget>[
+                  if (article.topic != ArticleTopic.other)
+                    Text(
+                      topicLabel(article.topic, bengali: context.isBengali),
+                      style: context.texts.labelSmall?.copyWith(
+                        fontSize: 9.5,
+                        letterSpacing: 0.6,
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                  const Spacer(),
+                  BookmarkAction(article: article, dense: true, showSnack: false),
+                  ShareAction(article: article, size: 17, dense: true),
+                ],
+              ),
+            ],
           ),
-          _BookmarkButton(article: article, saved: saved, dense: true),
-        ],
+        ),
       ),
     );
   }
 }
 
+class _Hero extends StatelessWidget {
+  const _Hero({required this.article, required this.source, required this.onTap});
+
+  final Article article;
+  final NewsSource? source;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 14),
+      child: PaperCard(
+        padding: const EdgeInsets.all(14),
+        radius: Tokens.radiusLg,
+        child: Pressable(
+          onTap: onTap,
+          scale: 0.985,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Attribution(article: article, source: source, compact: true),
+              const SizedBox(height: 8),
+              Text(
+                article.title,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: AppThemeText.hero(context),
+              ),
+              if ((article.excerpt ?? '').isNotEmpty) ...<Widget>[
+                const SizedBox(height: 9),
+                Text(
+                  article.excerpt!,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.texts.bodyMedium?.copyWith(height: 1.65),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: <Widget>[
+                  BookmarkAction(article: article, dense: true),
+                  const SizedBox(width: 6),
+                  ShareAction(article: article, size: 18, dense: true),
+                  const Spacer(),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16,
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Compact extends StatelessWidget {
+  const _Compact({required this.article, required this.source, required this.onTap});
+
+  final Article article;
+  final NewsSource? source;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final String? image = article.imageUrl;
+    return Pressable(
+      onTap: onTap,
+      scale: 0.99,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter, 12),
+        child: Column(
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Attribution(article: article, source: source, compact: true),
+                      const SizedBox(height: 5),
+                      Text(
+                        article.title,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.texts.titleMedium?.copyWith(
+                          fontFamily: Tokens.serif,
+                          fontSize: 15.5,
+                          height: 1.42,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (image != null) ...<Widget>[
+                  const SizedBox(width: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(Tokens.radiusSm),
+                    child: SizedBox(
+                      width: 74,
+                      height: 74,
+                      child: RemoteImage(url: image),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            const SoftRule(opacity: 0.6),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Saved rows show how the item was kept, which is different from a plain list.
+class _Saved extends StatelessWidget {
+  const _Saved({required this.article, required this.source, required this.onTap});
+
+  final Article article;
+  final NewsSource? source;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool saved = context.watch<SavedController>().isSaved(article.id);
+    final bool hasExcerpt = (article.excerpt ?? '').trim().isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 12),
+      child: PaperCard(
+        padding: const EdgeInsets.fromLTRB(14, 13, 10, 13),
+        radius: Tokens.radiusMd,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: Pressable(
+                onTap: onTap,
+                scale: 0.99,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Attribution(article: article, source: source, compact: true),
+                    const SizedBox(height: 6),
+                    Text(
+                      article.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.texts.headlineSmall?.copyWith(
+                        fontFamily: Tokens.serif,
+                        fontSize: 15.5,
+                        height: 1.42,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: <Widget>[
+                        Icon(
+                          hasExcerpt ? Icons.notes_rounded : Icons.link_rounded,
+                          size: 11,
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          hasExcerpt
+                              ? context.strings.savedExcerptBadge
+                              : context.strings.savedLinkOnlyBadge,
+                          style: context.texts.labelSmall?.copyWith(
+                            fontSize: 9.5,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Column(
+              children: <Widget>[
+                BookmarkAction(article: article, dense: true, showSnack: false),
+                if (saved) const SizedBox(height: 4),
+                ShareAction(article: article, size: 16, dense: true),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A compact publisher + time line, used where [Attribution] is too wide.
 class ArticleMetaRow extends StatelessWidget {
   const ArticleMetaRow({
     super.key,
@@ -236,162 +361,80 @@ class ArticleMetaRow extends StatelessWidget {
     final bool bengali = context.isBengali;
     final String name = source?.localizedName(bengali: bengali) ?? article.sourceId;
     final String? time = BengaliText.relative(article.publishedAt, bengali: bengali);
-    final Color primary = context.colors.primary;
-    final Color? muted = context.texts.labelSmall?.color;
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        if (article.breaking) ...<Widget>[
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: context.colors.error,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Text(
-              context.strings.breakingShort,
-              style: TextStyle(
-                color: context.colors.onError,
-                fontSize: 9.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ),
+        if (source != null) ...<Widget>[
+          SourceAvatar(source: source!, size: dense ? 18 : 22),
+          const SizedBox(width: 7),
         ],
         Flexible(
           child: Text(
             name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: (emphasis ? context.texts.labelLarge : context.texts.labelMedium)
-                ?.copyWith(
-              color: primary,
-              fontWeight: FontWeight.w700,
-              fontSize: dense ? 11 : null,
-            ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Container(
-          width: 3,
-          height: 3,
-          decoration: BoxDecoration(color: muted, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            time ?? context.strings.noPublicationDate,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: context.texts.labelSmall?.copyWith(
-              color: time == null ? muted?.withValues(alpha: 0.85) : muted,
-              fontSize: dense ? 10.5 : null,
-              fontStyle: time == null ? FontStyle.italic : null,
+              fontSize: dense ? 10 : 10.6,
+              fontWeight: emphasis ? FontWeight.w800 : FontWeight.w700,
+              letterSpacing: 0.4,
+              color: context.colors.primary,
             ),
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({required this.article, required this.saved});
-
-  final Article article;
-  final bool saved;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        _BookmarkButton(article: article, saved: saved),
-        const SizedBox(width: 4),
-        if (article.topic != ArticleTopic.other)
+        if (time != null) ...<Widget>[
+          const SizedBox(width: 6),
           Text(
-            bengaliTopicLabel(context, article.topic),
-            style: context.texts.labelSmall?.copyWith(color: context.colors.primary),
+            '· $time',
+            style: context.texts.labelSmall?.copyWith(fontSize: dense ? 9.5 : 10.5),
           ),
-        const Spacer(),
-        Icon(
-          Icons.arrow_forward_rounded,
-          size: 16,
-          color: context.colors.primary.withValues(alpha: 0.8),
-        ),
+        ],
       ],
     );
   }
 }
 
-String bengaliTopicLabel(BuildContext context, ArticleTopic topic) {
-  // Avoid a circular import with the labels helper for this small case.
-  final bool bengali = context.isBengali;
-  if (bengali) {
-    return const <ArticleTopic, String>{
-      ArticleTopic.bangladesh: 'বাংলাদেশ',
-      ArticleTopic.politics: 'রাজনীতি',
-      ArticleTopic.economy: 'অর্থনীতি',
-      ArticleTopic.international: 'আন্তর্জাতিক',
-      ArticleTopic.education: 'শিক্ষা',
-      ArticleTopic.sports: 'খেলা',
-      ArticleTopic.entertainment: 'বিনোদন',
-      ArticleTopic.technology: 'প্রযুক্তি',
-      ArticleTopic.health: 'স্বাস্থ্য',
-      ArticleTopic.lifestyle: 'জীবনযাপন',
-      ArticleTopic.other: 'অন্যান্য',
-    }[topic]!;
+/// Human labels for topics, in the active language.
+String topicLabel(ArticleTopic topic, {required bool bengali}) {
+  if (!bengali) {
+    return <ArticleTopic, String>{
+          ArticleTopic.bangladesh: 'Bangladesh',
+          ArticleTopic.politics: 'Politics',
+          ArticleTopic.economy: 'Economy',
+          ArticleTopic.international: 'World',
+          ArticleTopic.education: 'Education',
+          ArticleTopic.sports: 'Sport',
+          ArticleTopic.entertainment: 'Culture',
+          ArticleTopic.technology: 'Technology',
+          ArticleTopic.health: 'Health',
+          ArticleTopic.lifestyle: 'Lifestyle',
+          ArticleTopic.other: 'More',
+        }[topic]!;
   }
-  return topic.name;
+  return <ArticleTopic, String>{
+    ArticleTopic.bangladesh: 'বাংলাদেশ',
+    ArticleTopic.politics: 'রাজনীতি',
+    ArticleTopic.economy: 'অর্থনীতি',
+    ArticleTopic.international: 'বিশ্ব',
+    ArticleTopic.education: 'শিক্ষা',
+    ArticleTopic.sports: 'খেলা',
+    ArticleTopic.entertainment: 'সংস্কৃতি',
+    ArticleTopic.technology: 'প্রযুক্তি',
+    ArticleTopic.health: 'স্বাস্থ্য',
+    ArticleTopic.lifestyle: 'জীবনযাপন',
+    ArticleTopic.other: 'অন্যান্য',
+  }[topic]!;
 }
 
-class _BookmarkButton extends StatelessWidget {
-  const _BookmarkButton({
-    required this.article,
-    required this.saved,
-    this.dense = false,
-  });
+/// Headline styles shared by the hero card and the reader.
+class AppThemeText {
+  const AppThemeText._();
 
-  final Article article;
-  final bool saved;
-  final bool dense;
-
-  @override
-  Widget build(BuildContext context) {
-    final Motion motion = Motion.of(context);
-    return IconButton(
-      visualDensity: dense ? VisualDensity.compact : VisualDensity.standard,
-      iconSize: dense ? 18 : 20,
-      padding: EdgeInsets.all(dense ? 4 : 8),
-      constraints: const BoxConstraints(),
-      tooltip: saved ? context.strings.removeSaved : context.strings.save,
-      // The mark fills, settles with a short overshoot and the tap gives a
-      // haptic tick — small, but it is the gesture readers repeat most.
-      icon: AnimatedSwitcher(
-        duration: motion.fast,
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          if (motion.reduce) return child;
-          return ScaleTransition(
-            scale: Tween<double>(begin: 0.72, end: 1).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-            ),
-            child: FadeTransition(opacity: animation, child: child),
-          );
-        },
-        child: Icon(
-          saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-          key: ValueKey<bool>(saved),
-          color: saved ? context.colors.primary : context.texts.labelSmall?.color,
-        ),
-      ),
-      onPressed: () async {
-        unawaited(HapticFeedback.lightImpact());
-        final bool nowSaved = await context.read<SavedController>().toggle(article);
-        if (!context.mounted) return;
-        context.showSnack(nowSaved ? context.strings.savedLabel : context.strings.removeSaved);
-      },
-    );
-  }
+  static TextStyle hero(BuildContext context) => TextStyle(
+        fontFamily: Tokens.serif,
+        fontSize: 25,
+        height: 1.32,
+        letterSpacing: -0.2,
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.onSurface,
+      );
 }

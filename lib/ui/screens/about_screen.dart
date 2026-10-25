@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../core/extensions.dart';
 import '../../data/models/author_profile.dart';
 import '../../services/profile_store.dart';
+import '../../theme/materials.dart';
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../services/link_launcher.dart';
@@ -117,10 +119,22 @@ class _AboutScreenState extends State<AboutScreen> {
     final bool bengali = context.isBengali;
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.strings.aboutTitle)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 48),
-        children: <Widget>[
+      backgroundColor: Colors.transparent,
+      body: AuroraBackdrop(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: <Widget>[
+              _AboutHeader(),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter,
+                    2,
+                    Tokens.gutter,
+                    48,
+                  ),
+                  children: <Widget>[
           // ------------------------------------------------------- the app
           Row(
             children: <Widget>[
@@ -206,16 +220,50 @@ class _AboutScreenState extends State<AboutScreen> {
             body: context.strings.licence,
           ),
           const SizedBox(height: 8),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.monitor_heart_outlined, color: context.colors.primary),
-            title: Text(context.strings.sourceHealth, style: context.texts.labelLarge),
-            subtitle: Text(
-              context.strings.sourceHealthBody,
-              style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded),
+          JellySurface(
             onTap: () => openSourceHealth(context),
+            scale: 0.99,
+            child: GlassPanel(
+              radius: Tokens.radiusSm,
+              blur: 0,
+              elevation: 0.2,
+              sheen: false,
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.monitor_heart_outlined,
+                    size: 18,
+                    color: context.colors.primary,
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          context.strings.sourceHealth,
+                          style: context.texts.labelLarge?.copyWith(fontSize: 12.5),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.strings.sourceHealthBody,
+                          style: context.texts.labelSmall?.copyWith(
+                            fontSize: 10.2,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
           ),
           Text(
             bengali
@@ -239,6 +287,53 @@ class _AboutScreenState extends State<AboutScreen> {
               onEdit: _edit,
               onReset: _resetProfile,
             ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The screen's own masthead: a back disc, the serif title and the build mark.
+class _AboutHeader extends StatelessWidget {
+  const _AboutHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 10),
+      child: Row(
+        children: <Widget>[
+          GlassIconButton(
+            icon: Icons.arrow_back_rounded,
+            tooltip: context.strings.back,
+            onTap: () => Navigator.of(context).maybePop(),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              context.strings.aboutTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.texts.titleLarge?.copyWith(
+                fontFamily: Tokens.serif,
+                fontSize: 21,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
+            ),
+          ),
+          Text(
+            'v${SettingsScreen.appVersion}',
+            style: context.texts.labelSmall?.copyWith(
+              fontSize: 10,
+              color: context.colors.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -268,16 +363,24 @@ class _AuthorSection extends StatelessWidget {
         Row(
           children: <Widget>[
             Container(
-              width: 54,
-              height: 54,
+              width: 56,
+              height: 56,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: dark ? Tokens.nightRaised : Tokens.accentTint,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: (dark ? Tokens.nightHairline : Tokens.hairline),
-                  width: 0.8,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: <Color>[
+                    context.colors.primary.withValues(alpha: dark ? 0.26 : 0.14),
+                    context.colors.primary.withValues(alpha: dark ? 0.08 : 0.03),
+                  ],
                 ),
+                border: Border.all(
+                  color: context.colors.primary.withValues(alpha: 0.28),
+                  width: 0.9,
+                ),
+                boxShadow: Tokens.shadow(context, lift: 0.6),
               ),
               child: Text(
                 profile.initial,
@@ -344,20 +447,7 @@ class _AuthorSection extends StatelessWidget {
             runSpacing: 7,
             children: <Widget>[
               for (final String interest in profile.interests)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Tokens.radiusPill),
-                    border: Border.all(
-                      color: dark ? Tokens.nightHairline : Tokens.hairline,
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Text(
-                    interest,
-                    style: context.texts.labelSmall?.copyWith(fontSize: 11),
-                  ),
-                ),
+                GlassChip(label: interest, dense: true),
             ],
           ),
         ],
@@ -403,24 +493,23 @@ class _AuthorSection extends StatelessWidget {
         const SizedBox(height: 14),
         Row(
           children: <Widget>[
-            OutlinedButton.icon(
+            JellyButton(
+              label: context.strings.editProfile,
+              icon: Icons.edit_outlined,
+              compact: true,
               onPressed: onEdit,
-              icon: const Icon(Icons.edit_outlined, size: 16),
-              label: Text(context.strings.editProfile),
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(Tokens.radiusSm),
-                ),
-              ),
             ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: onReset,
-              child: Text(
-                context.strings.profileReset,
-                style: context.texts.labelSmall?.copyWith(
-                  fontSize: 11.5,
-                  color: context.colors.onSurfaceVariant,
+            const SizedBox(width: 10),
+            JellySurface(
+              onTap: onReset,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                child: Text(
+                  context.strings.profileReset,
+                  style: context.texts.labelSmall?.copyWith(
+                    fontSize: 11.5,
+                    color: context.colors.onSurfaceVariant,
+                  ),
                 ),
               ),
             ),
@@ -509,25 +598,59 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.strings.editProfile),
-        actions: <Widget>[
-          TextButton(
-            onPressed: _save,
-            child: Text(
-              context.strings.done,
-              style: context.texts.labelLarge?.copyWith(
-                color: context.colors.primary,
-                fontWeight: FontWeight.w700,
+      backgroundColor: Colors.transparent,
+      body: AuroraBackdrop(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Tokens.gutter,
+                  8,
+                  Tokens.gutter,
+                  8,
+                ),
+                child: Row(
+                  children: <Widget>[
+                    GlassIconButton(
+                      icon: Icons.close_rounded,
+                      tooltip: context.strings.cancel,
+                      onTap: () => Navigator.of(context).maybePop(),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        context.strings.editProfile,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.texts.titleLarge?.copyWith(
+                          fontFamily: Tokens.serif,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    JellyButton(
+                      label: context.strings.done,
+                      compact: true,
+                      filled: true,
+                      onPressed: _save,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 6),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 48),
-        children: <Widget>[
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter,
+                    8,
+                    Tokens.gutter,
+                    48,
+                  ),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  children: <Widget>[
           _ProfileField(
             label: context.strings.profileName,
             controller: _name,
@@ -577,7 +700,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               color: context.colors.onSurfaceVariant,
             ),
           ),
-        ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -616,8 +744,31 @@ class _ProfileField extends StatelessWidget {
           hintText: hint,
           errorText: error,
           alignLabelWithHint: true,
+          filled: true,
+          fillColor: context.isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white.withValues(alpha: 0.55),
+          labelStyle: context.texts.labelSmall?.copyWith(
+            fontSize: 11.5,
+            color: context.colors.onSurfaceVariant,
+          ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(Tokens.radiusSm),
+            borderRadius: BorderRadius.circular(Tokens.radiusMd),
+            borderSide: BorderSide(
+              color: context.isDark ? Tokens.nightHairline : Tokens.hairline,
+              width: 0.9,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Tokens.radiusMd),
+            borderSide: BorderSide(
+              color: context.isDark ? Tokens.nightHairline : Tokens.hairline,
+              width: 0.9,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(Tokens.radiusMd),
+            borderSide: BorderSide(color: context.colors.primary, width: 1.2),
           ),
         ),
       ),
@@ -634,19 +785,28 @@ class _AboutBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassPanel(
+      radius: Tokens.radiusMd,
+      blur: 0,
+      elevation: 0.3,
+      sheen: false,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(Tokens.radiusSm),
-        border: Border.all(color: context.colors.outlineVariant, width: 0.8),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(title, style: context.texts.titleSmall),
+          Text(
+            title,
+            style: context.texts.titleSmall?.copyWith(
+              fontFamily: Tokens.serif,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(body, style: context.texts.bodySmall?.copyWith(height: 1.6)),
+          Text(
+            body,
+            style: context.texts.bodySmall?.copyWith(height: 1.65, fontSize: 12),
+          ),
           if (stats != null) ...<Widget>[
             const SizedBox(height: 12),
             Row(children: stats!),

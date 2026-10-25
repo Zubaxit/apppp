@@ -2,17 +2,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/extensions.dart';
-import '../../core/l10n/app_strings.dart';
-import '../../core/utils/bengali_text.dart';
 import '../../data/models/news_source.dart';
 import '../../data/models/source_health.dart';
-import '../../theme/app_theme.dart';
+import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
+import 'editorial.dart';
 
-/// Network image with disk caching, a calm fade-in and a graceful failure
-/// state. Uses [CachedNetworkImageProvider] under a standard [Image] widget so
-/// the behaviour stays on stable Flutter APIs.
+/// Network image with disk caching, a soft fade-in and a graceful failure state.
+///
+/// The placeholder is a pair of very low-contrast greys rather than a spinner:
+/// a photograph resolving should feel like ink settling on paper, not like a
+/// component loading.
 class RemoteImage extends StatelessWidget {
   const RemoteImage({super.key, required this.url, this.fit = BoxFit.cover});
 
@@ -21,20 +22,27 @@ class RemoteImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color placeholder = context.colors.surfaceContainerHighest;
-    return Image(
-      image: CachedNetworkImageProvider(url),
+    final bool dark = context.isDark;
+    return CachedNetworkImage(
+      imageUrl: url,
       fit: fit,
-      gaplessPlayback: true,
-      frameBuilder: (BuildContext context, Widget child, int? frame, bool sync) {
-        if (sync || frame != null) return child;
-        return Stack(
-          fit: StackFit.expand,
-          children: <Widget>[ColoredBox(color: placeholder), child],
-        );
-      },
-      errorBuilder: (BuildContext context, Object error, StackTrace? stack) => ColoredBox(
-        color: placeholder,
+      fadeInDuration: const Duration(milliseconds: 260),
+      fadeOutDuration: const Duration(milliseconds: 120),
+      placeholder: (BuildContext context, String value) => DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: dark
+                ? const <Color>[Color(0xFF1B1D21), Color(0xFF111214)]
+                : const <Color>[Color(0xFFEDEAE5), Color(0xFFF6F4F1)],
+          ),
+        ),
+      ),
+      errorWidget: (BuildContext context, String value, Object error) => DecoratedBox(
+        decoration: BoxDecoration(
+          color: dark ? Tokens.nightRaised : Tokens.paperSunken,
+        ),
         child: Center(
           child: Icon(
             Icons.image_not_supported_outlined,
@@ -47,12 +55,7 @@ class RemoteImage extends StatelessWidget {
   }
 }
 
-/// Publication identity without any unlicensed logo art: a deterministic
-/// monogram derived from the publication id.
-///
-/// The feed is grayscale plus one accent, so the avatar is too: a paper sunken
-/// circle with a serif monogram in the accent. No per-publisher palette — eight
-/// colours would fight the rest of the interface for attention.
+/// Publication identity without a logo: a serif monogram on a glass tile.
 class SourceAvatar extends StatelessWidget {
   const SourceAvatar({super.key, required this.source, this.size = 44});
 
@@ -67,19 +70,21 @@ class SourceAvatar extends StatelessWidget {
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: dark ? Tokens.nightRaised : Tokens.paperSunken,
-        shape: BoxShape.circle,
+        color: dark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(size * 0.32),
         border: Border.all(
           color: dark ? Tokens.nightHairline : Tokens.hairline,
-          width: 0.8,
+          width: 0.9,
         ),
       ),
       child: Text(
         source.monogram,
         style: TextStyle(
           fontFamily: Tokens.serif,
-          fontSize: size * 0.36,
-          height: 1.1,
+          fontSize: size * 0.38,
+          height: 1.05,
           fontWeight: FontWeight.w700,
           color: context.colors.primary,
         ),
@@ -88,6 +93,7 @@ class SourceAvatar extends StatelessWidget {
   }
 }
 
+/// Section header used across the secondary screens.
 class SectionHeader extends StatelessWidget {
   const SectionHeader({
     super.key,
@@ -95,7 +101,7 @@ class SectionHeader extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onAction,
-    this.padding = const EdgeInsets.fromLTRB(20, 0, 12, 10),
+    this.padding = const EdgeInsets.fromLTRB(Tokens.gutter, 22, Tokens.gutter, 10),
   });
 
   final String title;
@@ -106,49 +112,58 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AppStrings strings = context.strings;
     return Padding(
       padding: padding,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(
-            width: 3,
-            height: 18,
-            margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              color: context.colors.primary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(title, style: context.texts.titleLarge?.copyWith(fontSize: 17)),
-                if (subtitle != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(subtitle!, style: context.texts.bodySmall),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  title,
+                  style: context.texts.titleLarge?.copyWith(
+                    fontFamily: Tokens.serif,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
                   ),
-              ],
-            ),
-          ),
-          if (onAction != null)
-            TextButton(
-              onPressed: onAction,
-              style: TextButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                foregroundColor: context.colors.primary,
+                ),
               ),
-              child: Text(actionLabel ?? strings.viewAll),
+              if (actionLabel != null)
+                Pressable(
+                  onTap: onAction,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    child: Text(
+                      actionLabel!,
+                      style: context.texts.labelSmall?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: context.colors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (subtitle != null) ...<Widget>[
+            const SizedBox(height: 3),
+            Text(
+              subtitle!,
+              style: context.texts.bodySmall?.copyWith(
+                fontSize: 12,
+                height: 1.5,
+              ),
             ),
+          ],
         ],
       ),
     );
   }
 }
 
+/// A calm empty state: an icon in a glass disc, a serif line, a body and up to
+/// two actions. Never a full-screen illustration.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -170,30 +185,51 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 32, vertical: compact ? 24 : 44),
+      padding: EdgeInsets.fromLTRB(
+        Tokens.gutter,
+        compact ? 24 : 56,
+        Tokens.gutter,
+        24,
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            width: compact ? 52 : 66,
-            height: compact ? 52 : 66,
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: context.colors.surfaceContainerHighest,
-              shape: BoxShape.circle,
+              color: context.colors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(Tokens.radiusMd),
+              border: Border.all(
+                color: context.colors.primary.withValues(alpha: 0.16),
+                width: 0.9,
+              ),
             ),
-            child: Icon(icon, size: compact ? 24 : 30, color: context.colors.primary),
+            child: Icon(icon, size: 21, color: context.colors.primary),
           ),
           const SizedBox(height: 16),
-          Text(title, style: context.texts.titleMedium, textAlign: TextAlign.center),
-          const SizedBox(height: 6),
+          Text(
+            title,
+            style: context.texts.titleLarge?.copyWith(
+              fontFamily: Tokens.serif,
+              fontSize: 19,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 7),
           Text(
             body,
-            style: context.texts.bodySmall,
-            textAlign: TextAlign.center,
+            style: context.texts.bodySmall?.copyWith(fontSize: 12.5, height: 1.65),
           ),
-          if (onAction != null && actionLabel != null) ...<Widget>[
-            const SizedBox(height: 16),
-            FilledButton.tonal(onPressed: onAction, child: Text(actionLabel!)),
+          if (actionLabel != null) ...<Widget>[
+            const SizedBox(height: 18),
+            JellyButton(
+              label: actionLabel!,
+              icon: Icons.refresh_rounded,
+              onPressed: onAction,
+              compact: true,
+            ),
           ],
         ],
       ),
@@ -201,13 +237,13 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// Lightweight skeleton pulse used instead of a blocking spinner.
-class SkeletonBox extends StatefulWidget {
+/// Honest placeholder block. Pulses only when asked to.
+class SkeletonBox extends StatelessWidget {
   const SkeletonBox({
     super.key,
     this.width,
-    this.height = 14,
-    this.radius = 8,
+    required this.height,
+    this.radius = Tokens.radiusSm,
   });
 
   final double? width;
@@ -215,79 +251,55 @@ class SkeletonBox extends StatefulWidget {
   final double radius;
 
   @override
-  State<SkeletonBox> createState() => _SkeletonBoxState();
-}
-
-class _SkeletonBoxState extends State<SkeletonBox> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1100),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final bool reduce = Motion.of(context).reduce;
-    final Color base = context.colors.surfaceContainerHighest;
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (BuildContext context, Widget? child) {
-        final double t = reduce ? 0.4 : 0.25 + _controller.value * 0.35;
-        return Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            color: base.withValues(alpha: t),
-            borderRadius: BorderRadius.circular(widget.radius),
-          ),
-        );
-      },
-    );
+    return ShimmerBox(height: height, width: width, radius: radius);
   }
 }
 
+/// The list skeleton: rows shaped like the real rows, so nothing jumps when the
+/// headlines arrive.
 class ArticleSkeleton extends StatelessWidget {
   const ArticleSkeleton({super.key, this.count = 4});
 
   final int count;
 
-  static const Widget _row = Padding(
-    padding: EdgeInsets.fromLTRB(20, 10, 20, 16),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SkeletonBox(width: 96, height: 10),
-              SizedBox(height: 10),
-              SkeletonBox(height: 16),
-              SizedBox(height: 8),
-              SkeletonBox(width: 240, height: 16),
-              SizedBox(height: 12),
-              SkeletonBox(width: 180, height: 10),
-            ],
-          ),
-        ),
-        SizedBox(width: 14),
-        SkeletonBox(width: 88, height: 88, radius: 12),
-      ],
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
-    return Column(children: List<Widget>.filled(count, _row));
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 24),
+      children: <Widget>[
+        const ShimmerBox(height: 132, radius: Tokens.radiusLg),
+        const SizedBox(height: 22),
+        for (int i = 0; i < count; i++) ...<Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    ShimmerBox(height: 9, width: 70),
+                    SizedBox(height: 9),
+                    ShimmerBox(height: 15),
+                    SizedBox(height: 7),
+                    ShimmerBox(height: 15, width: 190),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const SoftRule(opacity: 0.7),
+          const SizedBox(height: 18),
+        ],
+      ],
+    );
   }
 }
 
-/// Compact health indicator used in directory rows and detail headers.
+/// Feed health badge: working / failing / unchecked, stated plainly.
 class HealthBadge extends StatelessWidget {
   const HealthBadge({super.key, required this.health, this.hasFeed = true});
 
@@ -298,40 +310,50 @@ class HealthBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     late final String label;
     late final Color color;
+
     if (!hasFeed) {
       label = context.strings.feedNotAvailable;
       color = context.colors.onSurfaceVariant;
-    } else if (health == null || health!.status == SourceHealthStatus.unknown) {
+    } else if (health == null) {
       label = context.strings.feedUnchecked;
       color = context.colors.onSurfaceVariant;
-    } else if (health!.status == SourceHealthStatus.ok) {
+    } else if (health!.isWorking) {
       label = context.strings.feedWorking;
-      color = context.isDark ? AppColors.redOnDark : AppColors.brandRed;
-    } else if (health!.status == SourceHealthStatus.disabled) {
-      label = context.strings.feedNotAvailable;
-      color = context.colors.onSurfaceVariant;
+      color = Tokens.success;
     } else {
       label = context.strings.feedFailing;
       color = context.colors.error;
     }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Flexible(
-          child: Text(
-            label,
-            style: context.texts.labelSmall?.copyWith(color: color, fontWeight: FontWeight.w600),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(Tokens.radiusPill),
+        border: Border.all(color: color.withValues(alpha: 0.28), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-        ),
-      ],
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: Tokens.sans,
+              fontSize: 9.5,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -340,7 +362,9 @@ class HealthBadge extends StatelessWidget {
 String publicationMeta(NewsSource source, {required bool bengali}) {
   final List<String> parts = <String>[
     if (bengali) _typeBn(source.type) else _typeEn(source.type),
-    source.language == SourceLanguage.bn ? (bengali ? 'বাংলা' : 'Bengali') : (bengali ? 'ইংরেজি' : 'English'),
+    source.language == SourceLanguage.bn
+        ? (bengali ? 'বাংলা' : 'Bengali')
+        : (bengali ? 'ইংরেজি' : 'English'),
     if (source.district != null) source.district!,
   ];
   return parts.join(' · ');
@@ -382,15 +406,4 @@ String _typeEn(PublicationType type) {
     case PublicationType.unknown:
       return 'Publication';
   }
-}
-
-/// "৩ ঘণ্টা আগে" or the explicit "publication time not provided" note.
-String articleTimeLabel(
-  BuildContext context, {
-  required DateTime? publishedAt,
-  required DateTime fetchedAt,
-}) {
-  final String? relative = BengaliText.relative(publishedAt, bengali: context.isBengali);
-  if (relative != null) return relative;
-  return context.strings.noPublicationDate;
 }

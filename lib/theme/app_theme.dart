@@ -3,15 +3,13 @@ import 'package:flutter/services.dart';
 
 import 'tokens.dart';
 
-/// Amar News colour system: graphite on warm paper, with one printed red.
+/// Amar News colour system: pale grey paper, graphite type, one printed red.
 ///
-/// Every surface, border and accent the interface uses resolves here or in
-/// [Tokens]; no widget picks a colour by hand, which is what keeps a grayscale
-/// interface from drifting into grey mush.
+/// Widgets never pick a colour by hand; every surface resolves through here or
+/// [Tokens], which is what keeps eight screens looking like one product.
 class AppColors {
   const AppColors._();
 
-  /// The brand accent. Deep enough to print, bright enough to read on glass.
   static const Color brandRed = Tokens.accent;
   static const Color brandRedBright = Tokens.accentSoft;
   static const Color brandRedTint = Tokens.accentTint;
@@ -31,10 +29,9 @@ class AppColors {
   static const Color nightInk = Tokens.nightInk;
   static const Color nightInkSoft = Tokens.nightInkMuted;
 
-  /// Readable red for dark surfaces (a deep red would disappear on graphite).
+  /// Readable red for charcoal surfaces.
   static const Color redOnDark = Tokens.accentNight;
 
-  /// Semantic states.
   static const Color success = Tokens.success;
   static const Color warning = Tokens.warning;
   static const Color danger = Tokens.danger;
@@ -55,45 +52,45 @@ class AppTheme {
       onPrimary: Colors.white,
       secondary: AppColors.brandRedBright,
       surface: Tokens.paperRaised,
-      onSurface: AppColors.ink,
-      onSurfaceVariant: AppColors.inkSoft,
+      onSurface: Tokens.ink,
+      onSurfaceVariant: Tokens.inkMuted,
       error: Tokens.danger,
-      surfaceContainerHighest: AppColors.paperDeep,
+      surfaceContainerHighest: Tokens.paperSunken,
       outline: Tokens.hairlineStrong,
-      outlineVariant: AppColors.line,
+      outlineVariant: Tokens.hairline,
     );
     return _build(
       scheme: scheme,
-      background: AppColors.paper,
-      surfaceAlt: AppColors.paperDeep,
-      inkSoft: AppColors.inkSoft,
-      divider: AppColors.line,
+      background: Tokens.paper,
+      surfaceAlt: Tokens.paperSunken,
+      inkSoft: Tokens.inkMuted,
+      divider: Tokens.hairline,
       brightness: Brightness.light,
     );
   }
 
   static ThemeData dark() {
     final ColorScheme scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.brandRed,
+      seedColor: Tokens.accent,
       brightness: Brightness.dark,
     ).copyWith(
       primary: Tokens.accentNight,
-      onPrimary: const Color(0xFF2A0308),
-      secondary: const Color(0xFFFF9AA0),
-      surface: AppColors.nightSurface,
-      onSurface: AppColors.nightInk,
+      onPrimary: const Color(0xFF2A0409),
+      secondary: const Color(0xFFFF9CA2),
+      surface: Tokens.nightRaised,
+      onSurface: Tokens.nightInk,
       onSurfaceVariant: Tokens.nightInkMuted,
       error: Tokens.accentNight,
-      surfaceContainerHighest: AppColors.nightSurfaceAlt,
-      outline: const Color(0xFF3A3A3E),
-      outlineVariant: AppColors.nightLine,
+      surfaceContainerHighest: Tokens.nightRaised,
+      outline: const Color(0xFF3A3D43),
+      outlineVariant: Tokens.nightHairline,
     );
     return _build(
       scheme: scheme,
-      background: AppColors.nightBg,
-      surfaceAlt: AppColors.nightSurfaceAlt,
-      inkSoft: AppColors.nightInkSoft,
-      divider: AppColors.nightLine,
+      background: Tokens.nightBg,
+      surfaceAlt: Tokens.nightRaised,
+      inkSoft: Tokens.nightInkMuted,
+      divider: Tokens.nightHairline,
       brightness: Brightness.dark,
     );
   }
@@ -107,39 +104,46 @@ class AppTheme {
     required Brightness brightness,
   }) {
     final TextTheme text = _textTheme(scheme, inkSoft);
+    final bool dark = brightness == Brightness.dark;
     return ThemeData(
       useMaterial3: true,
+      brightness: brightness,
       colorScheme: scheme,
       scaffoldBackgroundColor: background,
       canvasColor: background,
       dividerColor: divider,
-      dividerTheme: DividerThemeData(color: divider, thickness: 0.8, space: 0.8),
+      dividerTheme: DividerThemeData(color: divider, thickness: 0.9, space: 0.9),
       fontFamily: _sans,
       textTheme: text,
-      splashFactory: InkSparkle.splashFactory,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
       visualDensity: VisualDensity.standard,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: <TargetPlatform, PageTransitionsBuilder>{
+          TargetPlatform.android: _JellyPageTransitionBuilder(),
+          TargetPlatform.iOS: _JellyPageTransitionBuilder(),
+        },
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         elevation: 0,
-        scrolledUnderElevation: 0.5,
+        scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark,
+        systemOverlayStyle: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         titleTextStyle: text.titleLarge?.copyWith(
           fontFamily: _serif,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.1,
+          letterSpacing: 0,
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceAlt,
-        selectedColor: scheme.primary,
+        backgroundColor: dark ? Tokens.nightRaised : Tokens.paperRaised,
+        selectedColor: scheme.primary.withValues(alpha: dark ? 0.22 : 0.12),
         side: BorderSide(color: divider),
         labelStyle: text.labelLarge,
-        secondaryLabelStyle: text.labelLarge?.copyWith(color: scheme.onPrimary),
+        secondaryLabelStyle: text.labelLarge?.copyWith(color: scheme.primary),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         showCheckmark: false,
@@ -157,164 +161,164 @@ class AppTheme {
         iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
           (Set<WidgetState> states) => IconThemeData(
             size: 23,
-            color: states.contains(WidgetState.selected)
-                ? scheme.primary
-                : inkSoft,
+            color: states.contains(WidgetState.selected) ? scheme.primary : inkSoft,
           ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceAlt,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        fillColor: dark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.66),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: text.bodyMedium?.copyWith(color: inkSoft),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          borderSide: BorderSide(color: divider, width: 0.9),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: scheme.primary, width: 1.2),
-        ),
-      ),
-      bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: scheme.surface,
-        surfaceTintColor: Colors.transparent,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          borderSide: BorderSide(color: scheme.primary.withValues(alpha: 0.6)),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: brightness == Brightness.dark
-            ? AppColors.nightSurfaceAlt
-            : AppColors.ink,
-        contentTextStyle: text.bodyMedium?.copyWith(
-          color: brightness == Brightness.dark ? AppColors.nightInk : Colors.white,
+        backgroundColor: dark ? Tokens.nightInk : Tokens.ink,
+        contentTextStyle: TextStyle(
+          fontFamily: _sans,
+          fontSize: 13,
+          color: dark ? Tokens.ink : Tokens.nightInk,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+        ),
+        insetPadding: const EdgeInsets.fromLTRB(20, 0, 20, 96),
       ),
-      listTileTheme: ListTileThemeData(
-        iconColor: inkSoft,
-        textColor: scheme.onSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      dialogTheme: DialogThemeData(
+        backgroundColor: dark ? Tokens.nightRaised : Tokens.paperRaised,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Tokens.radiusLg),
+        ),
       ),
-      progressIndicatorTheme: ProgressIndicatorThemeData(color: scheme.primary),
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: <TargetPlatform, PageTransitionsBuilder>{
-          TargetPlatform.android: _EditorialPageTransitionBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        },
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: dark ? Tokens.nightRaised : Tokens.paperRaised,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: dark ? Tokens.nightRaised : Tokens.paperRaised,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(Tokens.radiusXl)),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          textStyle: const TextStyle(
+            fontFamily: _sans,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Tokens.radiusPill),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: scheme.onSurface,
+          side: BorderSide(color: divider),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          textStyle: const TextStyle(
+            fontFamily: _sans,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Tokens.radiusPill),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: scheme.primary,
+          textStyle: const TextStyle(
+            fontFamily: _sans,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: dark ? Tokens.nightInk : Tokens.ink,
+          borderRadius: BorderRadius.circular(Tokens.radiusXs),
+        ),
+        textStyle: TextStyle(
+          fontFamily: _sans,
+          fontSize: 11,
+          color: dark ? Tokens.ink : Tokens.nightInk,
+        ),
       ),
     );
   }
 
   static TextTheme _textTheme(ColorScheme scheme, Color inkSoft) {
-    final Color strong = scheme.onSurface;
+    final Color ink = scheme.onSurface;
+    TextStyle serif(double size, FontWeight weight, double height) => TextStyle(
+          fontFamily: _serif,
+          fontSize: size,
+          fontWeight: weight,
+          height: height,
+          color: ink,
+          letterSpacing: -0.1,
+        );
+    TextStyle sans(double size, FontWeight weight, double height, {Color? color}) =>
+        TextStyle(
+          fontFamily: _sans,
+          fontSize: size,
+          fontWeight: weight,
+          height: height,
+          color: color ?? ink,
+        );
+
     return TextTheme(
-      // Serif display faces carry the editorial identity.
-      displayLarge: TextStyle(
-        fontFamily: _serif,
-        fontSize: 34,
-        height: 1.28,
-        fontWeight: FontWeight.w700,
-        color: strong,
-        letterSpacing: -0.2,
-      ),
-      displayMedium: TextStyle(
-        fontFamily: _serif,
-        fontSize: 28,
-        height: 1.3,
-        fontWeight: FontWeight.w700,
-        color: strong,
-      ),
-      displaySmall: TextStyle(
-        fontFamily: _serif,
-        fontSize: 24,
-        height: 1.32,
-        fontWeight: FontWeight.w600,
-        color: strong,
-      ),
-      headlineLarge: TextStyle(
-        fontFamily: _serif,
-        fontSize: 22,
-        height: 1.34,
-        fontWeight: FontWeight.w700,
-        color: strong,
-      ),
-      headlineMedium: TextStyle(
-        fontFamily: _serif,
-        fontSize: 19,
-        height: 1.36,
-        fontWeight: FontWeight.w600,
-        color: strong,
-      ),
-      headlineSmall: TextStyle(
-        fontFamily: _serif,
-        fontSize: 17,
-        height: 1.4,
-        fontWeight: FontWeight.w600,
-        color: strong,
-      ),
-      titleLarge: TextStyle(
-        fontFamily: _sans,
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: strong,
-      ),
-      titleMedium: TextStyle(
-        fontFamily: _sans,
-        fontSize: 15.5,
-        fontWeight: FontWeight.w600,
-        color: strong,
-      ),
-      titleSmall: TextStyle(
-        fontFamily: _sans,
-        fontSize: 13.5,
-        fontWeight: FontWeight.w600,
-        color: strong,
-      ),
-      bodyLarge: TextStyle(fontFamily: _sans, fontSize: 16, height: 1.6, color: strong),
-      bodyMedium: TextStyle(fontFamily: _sans, fontSize: 14.5, height: 1.55, color: strong),
-      bodySmall: TextStyle(fontFamily: _sans, fontSize: 12.5, height: 1.45, color: inkSoft),
-      labelLarge: TextStyle(
-        fontFamily: _sans,
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: strong,
-      ),
-      labelMedium: TextStyle(
-        fontFamily: _sans,
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: inkSoft,
-      ),
-      labelSmall: TextStyle(
-        fontFamily: _sans,
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        color: inkSoft,
-        letterSpacing: 0.3,
-      ),
+      displayLarge: serif(36, FontWeight.w700, 1.22),
+      displayMedium: serif(31, FontWeight.w700, 1.26),
+      displaySmall: serif(27, FontWeight.w700, 1.3),
+      headlineLarge: serif(23, FontWeight.w700, 1.34),
+      headlineMedium: serif(20, FontWeight.w700, 1.36),
+      headlineSmall: serif(17.5, FontWeight.w600, 1.4),
+      titleLarge: serif(18, FontWeight.w700, 1.35),
+      titleMedium: sans(15, FontWeight.w700, 1.4),
+      titleSmall: sans(13.5, FontWeight.w700, 1.4),
+      bodyLarge: sans(16, FontWeight.w400, 1.7),
+      bodyMedium: sans(14.5, FontWeight.w400, 1.65),
+      bodySmall: sans(12.5, FontWeight.w400, 1.55, color: inkSoft),
+      labelLarge: sans(12.5, FontWeight.w700, 1.3),
+      labelMedium: sans(11.5, FontWeight.w600, 1.3),
+      labelSmall: sans(10.5, FontWeight.w600, 1.3, color: inkSoft),
     );
   }
 
   /// Serif style used by headline widgets, honouring the user's text scale.
   static TextStyle headlineStyle(ThemeData theme, {double scale = 1, bool hero = false}) {
-    final TextStyle base = hero
-        ? (theme.textTheme.displaySmall ?? const TextStyle())
-        : (theme.textTheme.headlineMedium ?? const TextStyle());
+    final TextStyle base =
+        (hero ? theme.textTheme.displaySmall : theme.textTheme.headlineSmall) ??
+            const TextStyle();
     return base.copyWith(fontSize: (base.fontSize ?? 18) * scale);
   }
 }
 
-/// A calm fade + small rise, used for every pushed route.
-class _EditorialPageTransitionBuilder extends PageTransitionsBuilder {
-  const _EditorialPageTransitionBuilder();
+/// A spring-feeling route transition: the incoming page rises, scales from 0.97
+/// and fades, while the outgoing page recedes very slightly. Not a generic fade:
+/// there is a small scale + parallax so a push reads as depth.
+class _JellyPageTransitionBuilder extends PageTransitionsBuilder {
+  const _JellyPageTransitionBuilder();
 
   @override
   Widget buildTransitions<T>(
@@ -326,19 +330,34 @@ class _EditorialPageTransitionBuilder extends PageTransitionsBuilder {
   ) {
     final bool reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     if (reduceMotion) return child;
-    final CurvedAnimation fade = CurvedAnimation(
+
+    final CurvedAnimation entering = CurvedAnimation(
       parent: animation,
-      curve: Tokens.easeStandard,
-      reverseCurve: Tokens.easeExit,
+      curve: const Cubic(0.17, 0.84, 0.28, 1),
+      reverseCurve: Curves.easeInCubic,
     );
+    final CurvedAnimation leaving = CurvedAnimation(
+      parent: secondaryAnimation,
+      curve: const Cubic(0.3, 0.0, 0.6, 1),
+    );
+
     return FadeTransition(
-      opacity: fade,
+      opacity: entering,
       child: SlideTransition(
         position: Tween<Offset>(
           begin: const Offset(0, 0.035),
           end: Offset.zero,
-        ).animate(fade),
-        child: child,
+        ).animate(entering),
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.972, end: 1).animate(entering),
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset.zero,
+              end: const Offset(0, -0.018),
+            ).animate(leaving),
+            child: child,
+          ),
+        ),
       ),
     );
   }

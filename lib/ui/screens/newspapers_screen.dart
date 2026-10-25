@@ -4,10 +4,14 @@ import 'package:provider/provider.dart';
 import '../../core/extensions.dart';
 import '../../core/l10n/labels.dart';
 import '../../data/models/news_source.dart';
+import '../../data/models/source_health.dart';
 import '../../state/feed_controller.dart';
 import '../../state/settings_controller.dart';
+import '../../theme/materials.dart';
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
+import '../widgets/common.dart';
 import '../widgets/editorial.dart';
 
 /// The reading room: a short, deliberate list of publications.
@@ -97,14 +101,30 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
         else
           SliverAppBar(
             pinned: true,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            toolbarHeight: 62,
+            backgroundColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
-            title: Text(context.strings.directoryTitle),
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            titleSpacing: Tokens.gutter,
+            title: Text(
+              context.strings.directoryTitle,
+              style: context.texts.titleLarge?.copyWith(
+                fontFamily: Tokens.serif,
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(Tokens.gutter, 6, Tokens.gutter, 8),
-            child: TextField(
+            child: GlassPanel(
+              radius: Tokens.radiusMd,
+              blur: Tokens.blurSoft,
+              elevation: 0.4,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: TextField(
               controller: _search,
               onChanged: (String value) => setState(() => _query = value),
               textInputAction: TextInputAction.search,
@@ -123,6 +143,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                       )
                     : null,
               ),
+              ),
             ),
           ),
         ),
@@ -134,20 +155,22 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                 spacing: 7,
                 runSpacing: 7,
                 children: <Widget>[
-                  ChoiceChip(
-                    label: Text(context.strings.allDivisions),
+                  GlassChip(
+                    label: context.strings.allDivisions,
                     selected: _division == null,
-                    onSelected: (bool _) => setState(() {
+                    dense: true,
+                    onTap: () => setState(() {
                       _division = null;
                       _district = null;
                     }),
                   ),
                   for (final String division in divisions)
-                    ChoiceChip(
-                      label: Text(Labels.division(division, bengali: context.isBengali)),
+                    GlassChip(
+                      label: Labels.division(division, bengali: context.isBengali),
                       selected: _division == division,
-                      onSelected: (bool selected) => setState(() {
-                        _division = selected ? division : null;
+                      dense: true,
+                      onTap: () => setState(() {
+                        _division = _division == division ? null : division;
                         _district = null;
                       }),
                     ),
@@ -162,17 +185,20 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
               spacing: 7,
               runSpacing: 7,
               children: <Widget>[
-                ChoiceChip(
-                  label: Text(context.strings.allLanguages),
+                GlassChip(
+                  label: context.strings.allLanguages,
                   selected: _language == null,
-                  onSelected: (bool _) => setState(() => _language = null),
+                  dense: true,
+                  onTap: () => setState(() => _language = null),
                 ),
                 for (final SourceLanguage language in SourceLanguage.values)
-                  ChoiceChip(
-                    label: Text(Labels.language(language, bengali: context.isBengali)),
+                  GlassChip(
+                    label: Labels.language(language, bengali: context.isBengali),
                     selected: _language == language,
-                    onSelected: (bool selected) =>
-                        setState(() => _language = selected ? language : null),
+                    dense: true,
+                    onTap: () => setState(
+                      () => _language = _language == language ? null : language,
+                    ),
                   ),
               ],
             ),
@@ -186,17 +212,20 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                 spacing: 7,
                 runSpacing: 7,
                 children: <Widget>[
-                  ChoiceChip(
-                    label: Text(context.strings.all),
+                  GlassChip(
+                    label: context.strings.all,
                     selected: _district == null,
-                    onSelected: (bool _) => setState(() => _district = null),
+                    dense: true,
+                    onTap: () => setState(() => _district = null),
                   ),
                   for (final String district in districts)
-                    ChoiceChip(
-                      label: Text(district),
+                    GlassChip(
+                      label: district,
                       selected: _district == district,
-                      onSelected: (bool selected) =>
-                          setState(() => _district = selected ? district : null),
+                      dense: true,
+                      onTap: () => setState(
+                        () => _district = _district == district ? null : district,
+                      ),
                     ),
                 ],
               ),
@@ -297,15 +326,11 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
               padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
               child: Pressable(
                 onTap: () => setState(() => _showAll = !_showAll),
-                child: Container(
+                child: GlassPanel(
+                  radius: Tokens.radiusMd,
+                  blur: Tokens.blurSoft,
+                  elevation: 0.4,
                   padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Tokens.radiusMd),
-                    border: Border.all(
-                      color: context.isDark ? Tokens.nightHairline : Tokens.hairline,
-                      width: 0.8,
-                    ),
-                  ),
                   child: Row(
                     children: <Widget>[
                       Icon(Icons.public_rounded, size: 16, color: context.colors.primary),
@@ -349,8 +374,11 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
       ],
     );
 
-    if (!widget.standalone) return body;
-    return Scaffold(body: body);
+    if (!widget.standalone) return AuroraBackdrop(child: body);
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AuroraBackdrop(child: body),
+    );
   }
 
   Widget _searchResults(
@@ -403,7 +431,7 @@ class _SourceRow extends StatelessWidget {
 
   final NewsSource source;
   final bool following;
-  final dynamic health;
+  final SourceHealth? health;
   final VoidCallback onTap;
   final VoidCallback onToggleFollow;
   final bool last;
@@ -420,10 +448,10 @@ class _SourceRow extends StatelessWidget {
         child: Column(
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 11),
+              padding: const EdgeInsets.symmetric(vertical: 9),
               child: Row(
                 children: <Widget>[
-                  SourceMark(source: source, size: 38),
+                  SourceAvatar(source: source, size: 40),
                   const SizedBox(width: 13),
                   Expanded(
                     child: Column(
@@ -439,15 +467,27 @@ class _SourceRow extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          webOnly
-                              ? context.strings.openMainWebsite
-                              : (secondary ??
-                                  Labels.language(source.language, bengali: bengali)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: <Widget>[
+                            Flexible(
+                              child: Text(
+                                webOnly
+                                    ? context.strings.openMainWebsite
+                                    : (secondary ??
+                                        Labels.language(
+                                          source.language,
+                                          bengali: bengali,
+                                        )),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    context.texts.labelSmall?.copyWith(fontSize: 10),
+                              ),
+                            ),
+                            const SizedBox(width: 7),
+                            HealthBadge(health: health, hasFeed: source.hasFeed),
+                          ],
                         ),
                       ],
                     ),
@@ -456,17 +496,36 @@ class _SourceRow extends StatelessWidget {
                     message: following
                         ? context.strings.followingLabel
                         : context.strings.follow,
-                    child: Pressable(
+                    child: JellySurface(
                       onTap: onToggleFollow,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
+                      scale: 0.86,
+                      child: AnimatedContainer(
+                        duration: Motion.of(context).standard,
+                        curve: Tokens.easeStandard,
+                        width: 34,
+                        height: 34,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: following
+                              ? context.colors.primary.withValues(alpha: 0.13)
+                              : Colors.transparent,
+                          border: Border.all(
+                            color: following
+                                ? context.colors.primary.withValues(alpha: 0.4)
+                                : (context.isDark
+                                    ? Tokens.nightHairline
+                                    : Tokens.hairline),
+                            width: 0.9,
+                          ),
+                        ),
                         // Follow uses the same pair of icons as the publication
                         // page; a bookmark would read as "save this article".
                         child: Icon(
                           following
                               ? Icons.check_circle_rounded
                               : Icons.add_circle_outline_rounded,
-                          size: 20,
+                          size: 19,
                           color: following
                               ? context.colors.primary
                               : context.colors.onSurfaceVariant,

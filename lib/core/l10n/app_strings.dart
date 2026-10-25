@@ -30,6 +30,7 @@ abstract class AppStrings {
   String get navSettings;
 
   // Common actions
+  String get back;
   String get retry;
   String get refresh;
   String get cancel;
@@ -256,6 +257,8 @@ class BanglaStrings extends AppStrings {
   String get retry => 'আবার চেষ্টা করুন';
   @override
   String get refresh => 'রিফ্রেশ';
+  @override
+  String get back => 'ফিরে যান';
   @override
   String get cancel => 'বাতিল';
   @override
@@ -667,6 +670,8 @@ class EnglishStrings extends AppStrings {
   String get retry => 'Try again';
   @override
   String get refresh => 'Refresh';
+  @override
+  String get back => 'Back';
   @override
   String get cancel => 'Cancel';
   @override

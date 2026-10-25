@@ -6,7 +6,10 @@ import '../../core/utils/bengali_text.dart';
 import '../../data/models/news_source.dart';
 import '../../data/models/source_health.dart';
 import '../../state/feed_controller.dart';
-import '../../theme/app_theme.dart';
+import '../../theme/materials.dart';
+import '../../theme/motion.dart';
+import '../../theme/tokens.dart';
+import '../widgets/actions.dart';
 import '../widgets/common.dart';
 
 /// Transparency screen: which feeds the app could actually reach, when, and
@@ -34,37 +37,72 @@ class SourceHealthScreen extends StatelessWidget {
         .length;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.strings.sourceHealth),
-        actions: <Widget>[
-          IconButton(
-            tooltip: context.strings.recheckAll,
-            onPressed: feed.isRefreshing ? null : () => feed.refresh(force: true),
-            icon: feed.isRefreshing
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.sync_rounded),
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 40),
-        children: <Widget>[
-          Container(
-            margin: const EdgeInsets.fromLTRB(20, 6, 20, 14),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.colors.primary.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: context.colors.primary.withValues(alpha: 0.18),
-                width: 0.8,
+      backgroundColor: Colors.transparent,
+      body: AuroraBackdrop(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
+                child: Row(
+                  children: <Widget>[
+                    GlassIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      tooltip: context.strings.back,
+                      onTap: () => Navigator.of(context).maybePop(),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        context.strings.sourceHealth,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.texts.titleLarge?.copyWith(
+                          fontFamily: Tokens.serif,
+                          fontSize: 21,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                    JellySurface(
+                      onTap: feed.isRefreshing
+                          ? null
+                          : () => feed.refresh(force: true),
+                      scale: 0.88,
+                      child: SizedBox(
+                        width: 38,
+                        height: 38,
+                        child: Center(
+                          child: feed.isRefreshing
+                              ? const SizedBox(
+                                  width: 17,
+                                  height: 17,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Icon(
+                                  Icons.sync_rounded,
+                                  size: 19,
+                                  color: context.colors.onSurfaceVariant,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 120),
+                  children: <Widget>[
+          GlassPanel(
+            radius: Tokens.radiusMd,
+            blur: 0,
+            elevation: 0.4,
+            sheen: false,
+            padding: const EdgeInsets.all(16),
+            tint: context.colors.primary.withValues(alpha: 0.05),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -177,11 +215,16 @@ class SourceHealthScreen extends StatelessWidget {
               context.strings.appName,
               style: context.texts.labelSmall?.copyWith(
                 fontSize: 10,
-                color: AppColors.inkFaint,
+                color: context.colors.onSurfaceVariant.withValues(alpha: 0.7),
               ),
             ),
           ),
-        ],
+                ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

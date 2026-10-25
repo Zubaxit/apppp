@@ -3,15 +3,24 @@ import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
 import '../../core/l10n/labels.dart';
+import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/feed_controller.dart';
+import '../../theme/materials.dart';
+import '../../theme/motion.dart';
+import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
+import '../widgets/actions.dart';
 import '../widgets/common.dart';
+import '../widgets/editorial.dart';
 import '../widgets/feed_widgets.dart';
 import 'epaper_directory_screen.dart';
 import 'newspapers_screen.dart';
 
+/// Categories: a directed grid of sections rather than a wall of identical
+/// boxes. Each tile is a glass surface with its own icon, an accent hairline and
+/// the live count of stories currently cached for that section.
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
 
@@ -40,105 +49,156 @@ class CategoriesScreen extends StatelessWidget {
     final List<String> divisions = registry.divisionsWithSources;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.strings.navCategories),
-        actions: <Widget>[
-          IconButton(
-            tooltip: context.strings.sourceHealth,
-            onPressed: () => openSourceHealth(context),
-            icon: const Icon(Icons.monitor_heart_outlined),
+      backgroundColor: Colors.transparent,
+      body: AuroraBackdrop(
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 30),
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
-            child: Text(
-              context.strings.categoriesSubtitle,
-              style: context.texts.bodyMedium?.copyWith(color: context.texts.bodySmall?.color),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1.55,
+          slivers: <Widget>[
+            SliverAppBar(
+              pinned: true,
+              toolbarHeight: 62,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              title: Text(
+                context.strings.navCategories,
+                style: context.texts.titleLarge?.copyWith(
+                  fontFamily: Tokens.serif,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              itemCount: _topics.length,
-              itemBuilder: (BuildContext context, int index) {
-                final ArticleTopic topic = _topics[index];
-                final int count = counts[topic] ?? 0;
-                return _TopicCard(
-                  topic: topic,
-                  count: count,
-                  onTap: () => openArticleList(
-                    context,
-                    title: Labels.topic(topic, bengali: bengali),
-                    subtitle: bengali ? 'এই বিভাগের সর্বশেষ খবর' : 'Latest in this section',
-                    topics: <ArticleTopic>{topic},
+              actions: <Widget>[
+                GlassIconButton(
+                  icon: Icons.monitor_heart_outlined,
+                  tooltip: context.strings.sourceHealth,
+                  onTap: () => openSourceHealth(context),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 16),
+                    child: Text(
+                      context.strings.categoriesSubtitle,
+                      style: context.texts.bodySmall?.copyWith(
+                        fontSize: 12.5,
+                        height: 1.6,
+                      ),
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 26),
-          SectionHeader(
-            title: context.strings.regionalSources,
-            subtitle: bengali
-                ? 'বিভাগ অনুযায়ী আঞ্চলিক পত্রিকা'
-                : 'Regional publications by division',
-          ),
-          if (divisions.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(context.strings.regionalEmpty, style: context.texts.bodySmall),
-            )
-          else
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: divisions.map((String division) {
-                  final int count =
-                      registry.sources.where((NewsSource s) => s.division == division).length;
-                  return ActionChip(
-                    avatar: const Icon(Icons.map_outlined, size: 15),
-                    label: Text('$division · $count'),
-                    onPressed: () => _openRegional(context, division),
-                  );
-                }).toList(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 1.42,
+                      ),
+                      itemCount: _topics.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final ArticleTopic topic = _topics[index];
+                        return RiseIn(
+                          index: index,
+                          offset: 12,
+                          child: _TopicTile(
+                            topic: topic,
+                            index: index,
+                            count: counts[topic] ?? 0,
+                            onTap: () => openArticleList(
+                              context,
+                              title: Labels.topic(topic, bengali: bengali),
+                              subtitle: bengali
+                                  ? 'এই বিভাগের সর্বশেষ খবর'
+                                  : 'Latest in this section',
+                              topics: <ArticleTopic>{topic},
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  SectionHeader(
+                    title: context.strings.regionalSources,
+                    subtitle: bengali
+                        ? 'বিভাগ অনুযায়ী আঞ্চলিক পত্রিকা'
+                        : 'Regional publications by division',
+                  ),
+                  if (divisions.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                      child: Text(
+                        context.strings.regionalEmpty,
+                        style: context.texts.bodySmall,
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                        physics: const BouncingScrollPhysics(),
+                        children: <Widget>[
+                          for (final String division in divisions) ...<Widget>[
+                            GlassChip(
+                              label:
+                                  '$division · ${registry.sources.where((NewsSource s) => s.division == division).length}',
+                              icon: Icons.map_outlined,
+                              onTap: () => _openRegional(context, division),
+                              dense: true,
+                            ),
+                            const SizedBox(width: 7),
+                          ],
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 26),
+                  SectionHeader(title: context.strings.browseDirectory),
+                  PrimaryActionCard(
+                    icon: Icons.newspaper_rounded,
+                    title: context.strings.directoryTitle,
+                    body: bengali
+                        ? '${BengaliText.toBengaliDigits(registry.sources.length)}টি উৎস · '
+                            '${BengaliText.toBengaliDigits(registry.epapers.length)}টি ই-পেপার'
+                        : '${registry.sources.length} sources · '
+                            '${registry.epapers.length} e-papers',
+                    onTap: () => Navigator.of(context).push<void>(
+                      editorialRoute<void>(
+                        const NewspapersScreen(standalone: true),
+                        name: 'directory',
+                      ),
+                    ),
+                  ),
+                  PrimaryActionCard(
+                    icon: Icons.menu_book_rounded,
+                    title: context.strings.epaperSectionTitle,
+                    body: bengali
+                        ? 'পত্রিকার ই-পেপার সংস্করণ'
+                        : 'Publisher e-paper editions',
+                    onTap: () => Navigator.of(context).push<void>(
+                      editorialRoute<void>(const EpaperDirectoryScreen(), name: 'epapers'),
+                    ),
+                  ),
+                  const SizedBox(height: 120),
+                ],
               ),
             ),
-          const SizedBox(height: 22),
-          SectionHeader(title: context.strings.browseDirectory),
-          PrimaryActionCard(
-            icon: Icons.newspaper_rounded,
-            title: context.strings.directoryTitle,
-            subtitle: bengali
-                ? '${registry.sources.length}টি উৎস · ${registry.epapers.length}টি ই-পেপার'
-                : '${registry.sources.length} sources · ${registry.epapers.length} e-papers',
-            onTap: () => Navigator.of(context).push<void>(
-              editorialRoute<void>(const NewspapersScreen(standalone: true), name: 'directory'),
-            ),
-          ),
-          PrimaryActionCard(
-            icon: Icons.menu_book_rounded,
-            title: context.strings.epaperSectionTitle,
-            subtitle: bengali ? 'পত্রিকার ই-পেপার সংস্করণ' : 'Publisher e-paper editions',
-            onTap: () => Navigator.of(context).push<void>(
-              editorialRoute<void>(const EpaperDirectoryScreen(), name: 'epapers'),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -153,58 +213,99 @@ class CategoriesScreen extends StatelessWidget {
   }
 }
 
-class _TopicCard extends StatelessWidget {
-  const _TopicCard({required this.topic, required this.count, required this.onTap});
+class _TopicTile extends StatelessWidget {
+  const _TopicTile({
+    required this.topic,
+    required this.index,
+    required this.count,
+    required this.onTap,
+  });
 
   final ArticleTopic topic;
+  final int index;
   final int count;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final bool bengali = context.isBengali;
-    return Material(
-      color: context.colors.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: context.colors.outlineVariant),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: context.colors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Labels.topicIcon(topic),
-                  size: 18,
-                  color: context.colors.primary,
+    final bool dark = context.isDark;
+    return JellySurface(
+      onTap: onTap,
+      scale: 0.955,
+      child: GlassPanel(
+        radius: Tokens.radiusMd,
+        blur: Tokens.blurSoft,
+        elevation: 0.6,
+        padding: const EdgeInsets.all(14),
+        child: Stack(
+          children: <Widget>[
+            // A large, very low-contrast index numeral: a printed folio mark
+            // rather than decoration for its own sake.
+            Positioned(
+              right: -4,
+              top: -10,
+              child: Text(
+                '${index + 1}'.padLeft(2, '0'),
+                style: TextStyle(
+                  fontFamily: Tokens.serif,
+                  fontSize: 46,
+                  height: 1,
+                  fontWeight: FontWeight.w700,
+                  color: (dark ? Colors.white : Tokens.ink).withValues(alpha: 0.045),
                 ),
               ),
-              const Spacer(),
-              Text(
-                Labels.topic(topic, bengali: bengali),
-                style: context.texts.titleSmall?.copyWith(fontSize: 14.5),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                bengali ? '$count টি খবর' : '$count stories',
-                style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
-              ),
-            ],
-          ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: context.colors.primary.withValues(alpha: dark ? 0.18 : 0.09),
+                    borderRadius: BorderRadius.circular(Tokens.radiusXs),
+                  ),
+                  child: Icon(
+                    Labels.topicIcon(topic),
+                    size: 17,
+                    color: context.colors.primary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  Labels.topic(topic, bengali: bengali),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.texts.titleSmall?.copyWith(
+                    fontFamily: Tokens.serif,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 10,
+                      height: 1.6,
+                      color: context.colors.primary.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      count == 0
+                          ? (bengali ? 'শীঘ্রই' : 'Soon')
+                          : (bengali
+                              ? '${BengaliText.toBengaliDigits(count)} টি খবর'
+                              : '$count stories'),
+                      style: context.texts.labelSmall?.copyWith(fontSize: 9.5),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

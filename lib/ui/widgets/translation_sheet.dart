@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/extensions.dart';
 import '../../services/translation_service.dart';
+import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
-import 'editorial.dart';
 
 /// Opens the offline word-meaning sheet for some text.
 ///
@@ -76,12 +76,11 @@ class _TranslationSheetState extends State<TranslationSheet> {
       padding: EdgeInsets.only(bottom: keyboard),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: context.colors.surface,
-            borderRadius: BorderRadius.circular(Tokens.radiusLg),
-            border: Border.all(color: context.colors.outlineVariant, width: 0.8),
-          ),
+        child: GlassPanel(
+          radius: Tokens.radiusXl,
+          borderRadius: BorderRadius.circular(Tokens.radiusXl),
+          blur: Tokens.blurStrong,
+          elevation: 1.2,
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
@@ -92,12 +91,21 @@ class _TranslationSheetState extends State<TranslationSheet> {
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      Container(width: 16, height: 2.5, color: context.colors.primary),
-                      const SizedBox(width: 8),
+                      Container(
+                        width: 3,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: context.colors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 9),
                       Expanded(
                         child: Text(
                           context.strings.translateTitle,
                           style: context.texts.titleSmall?.copyWith(
+                            fontFamily: Tokens.serif,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -150,8 +158,32 @@ class _TranslationSheetState extends State<TranslationSheet> {
                       decoration: InputDecoration(
                         hintText: context.strings.translateSelectionHint,
                         isDense: true,
+                        filled: true,
+                        fillColor: context.isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.white.withValues(alpha: 0.55),
+                        prefixIcon: const Icon(Icons.translate_rounded, size: 16),
+                        prefixIconConstraints: const BoxConstraints(
+                          minWidth: 38,
+                          minHeight: 36,
+                        ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(Tokens.radiusSm),
+                          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+                          borderSide: BorderSide(
+                            color: context.isDark
+                                ? Tokens.nightHairline
+                                : Tokens.hairline,
+                            width: 0.9,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+                          borderSide: BorderSide(
+                            color: context.isDark
+                                ? Tokens.nightHairline
+                                : Tokens.hairline,
+                            width: 0.9,
+                          ),
                         ),
                       ),
                     ),
@@ -175,7 +207,9 @@ class _TranslationSheetState extends State<TranslationSheet> {
                         runSpacing: 6,
                         children: <Widget>[
                           for (final WordMeaning entry in _gloss.take(24))
-                            Pressable(
+                            GlassChip(
+                              label: '${entry.word} · ${entry.meaning}',
+                              dense: true,
                               onTap: () => setState(() {
                                 _query.text = entry.word;
                                 _query.selection = TextSelection(
@@ -183,24 +217,6 @@ class _TranslationSheetState extends State<TranslationSheet> {
                                   extentOffset: entry.word.length,
                                 );
                               }),
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(Tokens.radiusPill),
-                                  border: Border.all(
-                                    color: context.colors.outlineVariant,
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Text(
-                                  '${entry.word} · ${entry.meaning}',
-                                  style: context.texts.labelSmall?.copyWith(
-                                    fontSize: 11,
-                                    color: context.colors.onSurface,
-                                  ),
-                                ),
-                              ),
                             ),
                         ],
                       ),
@@ -237,13 +253,13 @@ class _MeaningCard extends StatelessWidget {
       alignment: Alignment.topLeft,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: context.colors.primary.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(Tokens.radiusSm),
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          color: context.colors.primary.withValues(alpha: 0.055),
           border: Border.all(
-            color: context.colors.primary.withValues(alpha: 0.18),
-            width: 0.8,
+            color: context.colors.primary.withValues(alpha: 0.2),
+            width: 0.9,
           ),
         ),
         child: Column(

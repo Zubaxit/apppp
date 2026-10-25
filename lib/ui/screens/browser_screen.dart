@@ -8,10 +8,10 @@ import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/saved_controller.dart';
 import '../../theme/motion.dart';
+import '../../theme/materials.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../services/browser_engine.dart';
-import '../widgets/editorial.dart';
 
 /// In-app reader for a publisher's own page.
 ///
@@ -214,7 +214,7 @@ class _BrowserChrome extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: GlassBar(
-        padding: const EdgeInsets.fromLTRB(6, 6, 6, 8),
+        padding: const EdgeInsets.fromLTRB(8, 7, 8, 9),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -222,39 +222,89 @@ class _BrowserChrome extends StatelessWidget {
               children: <Widget>[
                 IconButton(
                   onPressed: onClose,
-                  iconSize: 20,
+                  iconSize: 19,
                   tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   icon: const Icon(Icons.close_rounded),
                 ),
+                const SizedBox(width: 2),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(Tokens.radiusPill),
+                      color: context.isDark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.black.withValues(alpha: 0.035),
+                      border: Border.all(
+                        color: context.isDark
+                            ? Tokens.nightHairline
+                            : Tokens.hairline,
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(
+                          Icons.public_rounded,
+                          size: 13,
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                domain,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.texts.labelSmall?.copyWith(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.1,
+                                ),
+                              ),
+                              if (title != null)
+                                Text(
+                                  title!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.texts.labelSmall?.copyWith(
+                                    fontSize: 9.5,
+                                    height: 1.3,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        if (loading)
+                          SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.6,
+                              color: context.colors.primary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
                 IconButton(
                   onPressed: canGoBack ? onBack : null,
-                  iconSize: 20,
+                  iconSize: 19,
                   tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                   icon: const Icon(Icons.arrow_back_rounded),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        domain,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.texts.labelSmall?.copyWith(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      if (title != null)
-                        Text(
-                          title!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.texts.labelSmall?.copyWith(fontSize: 9.5),
-                        ),
-                    ],
-                  ),
                 ),
                 IconButton(
                   onPressed: loading ? null : onReload,
