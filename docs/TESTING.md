@@ -26,7 +26,7 @@ $ ./tool/verify.sh
 ==> every asset declared in pubspec.yaml exists
     all 11 declared asset files present
 ==> Dart structural checks (no SDK required)
-checked 79 Dart files: structure, imports and class visibility OK
+checked 81 Dart files: structure, imports and class visibility OK
 ```
 
 Checks: JSON parses; ids unique; every website/feed/e-paper URL is `https`; enums
@@ -120,15 +120,16 @@ This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates r
 | --- | --- | --- |
 | Formatting | not gated (kept out of CI on purpose; `dart format lib test` locally) | — |
 | Static analysis | `flutter analyze --fatal-warnings` | **success**, 0 issues |
-| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 165 tests (counted from the declarations in `test/`) |
+| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 168 tests (165 existing + 3 new interaction/policy cases) |
 | Debug APK | `flutter build apk --debug` | **success** |
 | Release APK | `flutter build apk --release` | **success** (artifact `apk`, 118 774 948 B; `coverage` 13 830 B) |
 | `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |
 | On-device / emulator smoke test | not run | manual, see checklist below |
 
-Green runs for the Amar News build: CI **`40162182346`** on head `89c7e4d` — Analyze & test
-(0 analyzer issues, 165 tests) and Build Android APK both succeeded; Verify sources
-**`40123781895`** verified all 13 shipped feeds live with 0 failing. Earlier green runs while
+Green runs for the Amar News build: CI run **`40171457794`** is the first run of the reference-aligned
+redesign — Analyze & test passed (0 analyzer issues, 168 tests) and Build Android APK produced the
+`apk` artifact; Verify sources **`40123781895`** verified all 13 shipped feeds live with 0 failing.
+Earlier green run: `40162182346` (the pre-redesign reader). Earlier green runs while
 building the reader and transport fixes: `40125397570`, `40123785564`, `40117972337`,
 `40107367502`, `40108517164`. Failures found and fixed in this phase (recorded because they were
 real): `40159786431`/`40159899609` (analyzer errors from the token rewrite and import hygiene) and
@@ -244,6 +245,20 @@ separately from the app description, runtime editing persisted to the profile st
 a malformed profile link.
 E-paper directory. AppShell: tab switching, Android back behaviour, detail push/pop. Dark theme.
 Layouts at 360×640 dp and 800×1280 dp without overflow.
+
+## What the redesign pass could and could not verify
+
+- **Verified in CI**: analyzer clean, 168 tests green, release APK builds. The new cases cover the
+  jelly surface's tap and disabled states, the reduced-motion duration policy, the category strip's
+  selection callbacks and the news card's bookmark round-trip.
+- **Not verified anywhere**: frame-level spring timing, the visual result of the glass layers, and how
+  the layouts look on a real screen. This sandbox has no emulator and no Flutter SDK, so no screenshot,
+  recording or animation measurement was produced, and none is claimed. The composition was built
+  against the supplied three-device reference; the manual checklist below is how to confirm it.
+- One honest limitation of the headless harness: pressing a `JellySurface` and reading the compressed
+  transform back during the hold did not reproduce reliably under `flutter test`, so the suites assert
+  the tap contract, the disabled state and the motion policy rather than the spring's intermediate
+  frames.
 
 ## Manual QA checklist for a real device
 

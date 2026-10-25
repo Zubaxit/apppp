@@ -13,10 +13,11 @@ import 'editorial.dart';
 /// and publisher line set into a scrim over the photograph, and page dots
 /// centred underneath.
 ///
-/// Dragging moves the photograph slightly faster than its frame, so the card
-/// feels like a window rather than a tile; releasing settles on a page. The
-/// neighbouring cards peek in, scaled down, which is what makes the rail read as
-/// a stack you can flick through instead of a scrolling list.
+/// The card is full-bleed inside the page gutter, exactly as the reference sets
+/// it: one landscape photograph per page, the headline and publisher line in a
+/// scrim over the bottom of the image, dots centred underneath. Dragging moves
+/// the photograph slightly faster than its frame, so the card reads as a window
+/// rather than a tile, and releasing settles on a page.
 class FeaturedCarousel extends StatefulWidget {
   const FeaturedCarousel({
     super.key,
@@ -41,7 +42,7 @@ class FeaturedCarousel extends StatefulWidget {
 }
 
 class _FeaturedCarouselState extends State<FeaturedCarousel> {
-  final PageController _controller = PageController(viewportFraction: 0.9);
+  final PageController _controller = PageController();
   int _page = 0;
 
   @override
@@ -59,8 +60,8 @@ class _FeaturedCarouselState extends State<FeaturedCarousel> {
     if (items.length < widget.minimumStories) return const SizedBox.shrink();
 
     final double width = MediaQuery.sizeOf(context).width;
-    final double cardWidth = width * 0.9 - Tokens.gutter;
-    final double height = (cardWidth * 0.72).clamp(210.0, 330.0);
+    final double cardWidth = width - Tokens.gutter * 1.2;
+    final double height = (cardWidth * 0.62).clamp(190.0, 340.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,27 +77,10 @@ class _FeaturedCarouselState extends State<FeaturedCarousel> {
               if (page != _page) setState(() => _page = page);
             },
             itemBuilder: (BuildContext context, int index) {
-              return AnimatedBuilder(
-                animation: _controller,
-                builder: (BuildContext context, Widget? child) {
-                  double delta = 0;
-                  if (_controller.hasClients && _controller.position.haveDimensions) {
-                    delta = (_controller.page ?? _page.toDouble()) - index;
-                  } else {
-                    delta = _page - index.toDouble();
-                  }
-                  final double distance = delta.abs().clamp(0.0, 1.0);
-                  return Transform.scale(
-                    scale: 1 - distance * 0.06,
-                    child: Opacity(
-                      opacity: (1 - distance * 0.42).clamp(0.5, 1),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Tokens.gutter * 0.6,
+                ),
                 child: _FeaturedCard(
                   article: items[index],
                   source: widget.sourceFor(items[index]),
