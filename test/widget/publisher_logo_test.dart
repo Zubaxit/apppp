@@ -64,16 +64,11 @@ void main() {
   });
 
   group('publisher mark rendering', () {
-    testWidgets('without the image stack the tile shows the monogram, never a broken glyph',
+    testWidgets('without an image the tile shows the monogram, never a broken glyph',
         (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       await tester.pumpWidget(h.wrap(
-        const Center(
-          child: PublisherLogo(
-            source: _ProthomAlo(),
-            size: 44,
-          ),
-        ),
+        const Center(child: PublisherLogo(source: _ProthomAlo(), size: 44)),
       ));
       await tester.pumpAndSettle();
 
@@ -115,36 +110,8 @@ void main() {
       expect(monogram.style?.color, isNot(Tokens.accent));
       expect(monogram.style?.fontFamily, Tokens.serif);
     });
-
   });
-}
 
-/// The publisher's own initials, as the model derives them.
-String get _monogram => const _ProthomAlo().monogram;
-String get _dailyStarMonogram => const _DailyStar().monogram;
-
-class _ProthomAlo extends NewsSource {
-  const _ProthomAlo()
-      : super(
-          id: 'prothomalo',
-          name: 'Prothom Alo',
-          website: 'https://www.prothomalo.com/',
-          language: SourceLanguage.bn,
-          type: PublicationType.dailyNewspaper,
-          feedClaim: FeedClaim.verifiedWorking,
-        );
-}
-
-class _DailyStar extends NewsSource {
-  const _DailyStar()
-      : super(
-          id: 'daily_star',
-          name: 'The Daily Star',
-          website: 'https://www.thedailystar.net/',
-          language: SourceLanguage.en,
-          type: PublicationType.dailyNewspaper,
-          feedClaim: FeedClaim.verifiedWorking,
-        );
   group('bundled marks', () {
     testWidgets('a bundled asset is painted instead of a monogram or a request',
         (WidgetTester tester) async {
@@ -189,5 +156,32 @@ class _DailyStar extends NewsSource {
       expect(tester.takeException(), isNull);
     });
   });
+}
 
+/// The publisher's own initials, as the model derives them.
+String get _monogram => const _ProthomAlo().monogram;
+String get _dailyStarMonogram => const _DailyStar().monogram;
+
+class _ProthomAlo extends NewsSource {
+  const _ProthomAlo()
+      : super(
+          id: 'prothomalo',
+          name: 'Prothom Alo',
+          website: 'https://www.prothomalo.com/',
+          language: SourceLanguage.bn,
+          type: PublicationType.dailyNewspaper,
+          feedClaim: FeedClaim.verifiedWorking,
+        );
+}
+
+class _DailyStar extends NewsSource {
+  const _DailyStar()
+      : super(
+          id: 'daily_star',
+          name: 'The Daily Star',
+          website: 'https://www.thedailystar.net/',
+          language: SourceLanguage.en,
+          type: PublicationType.dailyNewspaper,
+          feedClaim: FeedClaim.verifiedWorking,
+        );
 }

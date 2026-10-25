@@ -155,7 +155,8 @@ class _BookmarkActionState extends State<BookmarkAction>
         onTap: () async {
           unawaited(Haptics.confirm());
           _bounce();
-          final bool nowSaved = await savedController.toggle(widget.article);
+          final bool nowSaved =
+              await context.read<SavedController>().toggle(widget.article);
           if (!widget.showSnack || !context.mounted) return;
           context.showSnack(
             nowSaved ? context.strings.savedLabel : context.strings.removeSaved,

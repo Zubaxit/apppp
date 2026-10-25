@@ -144,7 +144,7 @@ void main() {
           return ok('অংশ');
         }),
       );
-      final String long = '${'A sentence of some length. ' * 30}';
+      final String long = 'A sentence of some length. ' * 30;
       final String result = await translator.translate(long);
       expect(sent.length, greaterThan(1));
       expect(result, contains('অংশ'));

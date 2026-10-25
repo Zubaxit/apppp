@@ -210,11 +210,12 @@ class _BrowserScreenState extends State<BrowserScreen> {
   Future<void> _translateSelection() async {
     final String selection = _selection;
     if (selection.isEmpty) return;
-    final Future<String?> Function(String) glossary = (String word) async {
+    Future<String?> glossary(String word) async {
       await _glossary.load();
       final WordMeaning meaning = _glossary.lookup(word);
       return meaning.meaning;
-    };
+    }
+
     await showSelectionTranslation(
       context,
       selection: selection,

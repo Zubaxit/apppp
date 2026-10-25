@@ -45,6 +45,10 @@ class ReaderTranslationController extends ChangeNotifier {
   List<ParagraphTranslation> _units;
 
   final Map<String, Future<String>> _inFlight = <String, Future<String>>{};
+
+  /// The request this controller currently awaits; kept so an in-flight call is
+  /// never left detached from the controller's lifecycle.
+  Future<String>? _pending;
   bool _disposed = false;
   bool _visible = true;
   bool _started = false;
@@ -126,7 +130,9 @@ class ReaderTranslationController extends ChangeNotifier {
     try {
       final Future<String> request =
           _inFlight[source] ??= _translator.translate(source);
+      _pending = request;
       final String translated = await request;
+      _pending = null;
       if (_disposed) return;
       _setUnit(index, ParagraphTranslation(text: translated));
     } on TranslationException catch (error) {
@@ -140,6 +146,7 @@ class ReaderTranslationController extends ChangeNotifier {
     } finally {
       // The dedupe entry is cleared on failure so a retry can request it again.
       if (_units[index].done) _inFlight.remove(source);
+      _pending = null;
     }
   }
 

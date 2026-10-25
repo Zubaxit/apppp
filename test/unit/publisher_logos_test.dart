@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bangladesh_newspaper_hub/services/publisher_logos.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +15,7 @@ class DiskAssetBundle extends CachingAssetBundle {
   @override
   Future<ByteData> load(String key) async {
     final File file = File('$root/$key');
-    if (!file.existsSync()) throw FlutterError('missing asset: $key');
+    if (!file.existsSync()) throw StateError('missing asset: $key');
     final Uint8List bytes = file.readAsBytesSync();
     return ByteData.view(bytes.buffer);
   }

@@ -11,7 +11,6 @@ import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../widgets/actions.dart';
-import '../widgets/editorial.dart';
 
 /// The bilingual reading surface.
 ///
@@ -174,7 +173,6 @@ class _Article extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> paragraphs = document.paragraphs;
     int proseIndex = -1;
 
     return ListView.builder(
@@ -505,10 +503,12 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
   }
 
   Future<void> _run() async {
-    if (mounted) setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final String value = await widget.translator.translate(widget.selection);
       if (!mounted) return;
