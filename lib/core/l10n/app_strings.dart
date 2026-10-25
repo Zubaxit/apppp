@@ -603,7 +603,7 @@ class BanglaStrings extends AppStrings {
   String get saveLinkOnlyNotice =>
       'শুধু শিরোনাম, সারাংশ ও মূল লিংক সংরক্ষিত হবে — পুরো প্রতিবেদনের লেখা নয়। অফলাইনে থাকলে মূল পৃষ্ঠাটি খুলবে না।';
   @override
-  String get readInApp => 'অ্যাপে পড়ুন';
+  String get readInApp => 'সম্পূর্ণ খবর পড়ুন';
   @override
   String get readerMode => 'পাঠ মোড';
   @override
@@ -1061,7 +1061,7 @@ class EnglishStrings extends AppStrings {
   String get saveLinkOnlyNotice =>
       'Only the headline, excerpt and original link are saved — not the full article text. The page will not open while you are offline.';
   @override
-  String get readInApp => 'Read in app';
+  String get readInApp => 'Read full story';
   @override
   String get readerMode => 'Reader mode';
   @override

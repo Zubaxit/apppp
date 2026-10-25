@@ -89,6 +89,8 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
                       const _PanelDivider(),
+                      _FontRow(settings: settings, bengali: bengali),
+                      const _PanelDivider(),
                       _TextScaleRow(settings: settings, bengali: bengali),
                       const _PanelDivider(),
                       _ToggleRow(
@@ -555,6 +557,59 @@ class _ActionRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FontRow extends StatelessWidget {
+  const _FontRow({required this.settings, required this.bengali});
+
+  final SettingsController settings;
+  final bool bengali;
+
+  String _label(AppFontChoice value) => switch (value) {
+        AppFontChoice.system =>
+          bengali ? 'সিস্টেমের ডিফল্ট' : 'System default',
+        AppFontChoice.notoSans => 'Noto Sans Bengali',
+        AppFontChoice.notoSerif => 'Noto Serif Bengali',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          bengali ? 'অ্যাপের ফন্ট' : 'App font',
+          style: context.texts.labelMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 9),
+        Wrap(
+          spacing: 7,
+          runSpacing: 7,
+          children: <Widget>[
+            for (final AppFontChoice value in AppFontChoice.values)
+              GlassChip(
+                label: _label(value),
+                icon: value == AppFontChoice.system
+                    ? Icons.phone_android_rounded
+                    : Icons.text_fields_rounded,
+                selected: settings.font == value,
+                dense: true,
+                onTap: () => settings.setFont(value),
+              ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        Text(
+          bengali
+              ? 'সিস্টেম ফন্ট না থাকলে Android বাংলা-সমর্থিত নেটিভ ফলব্যাক ব্যবহার করে।'
+              : 'Android supplies its native Bengali fallback when the system font needs it.',
+          style: context.texts.labelSmall?.copyWith(fontSize: 9.5, height: 1.45),
+        ),
+      ],
     );
   }
 }

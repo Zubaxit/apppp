@@ -342,7 +342,7 @@ class _NavItem extends StatelessWidget {
                         ),
                         child: Text(
                           '$badge',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: Tokens.sans,
                             fontSize: 8,
                             height: 1.3,

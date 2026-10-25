@@ -7,6 +7,16 @@ enum AppLanguage { bn, en }
 
 enum AppThemeChoice { system, light, dark }
 
+enum AppFontChoice { system, notoSans, notoSerif }
+
+extension AppFontChoiceX on AppFontChoice {
+  String? get family => switch (this) {
+        AppFontChoice.system => null,
+        AppFontChoice.notoSans => 'NotoSansBengali',
+        AppFontChoice.notoSerif => 'NotoSerifBengali',
+      };
+}
+
 enum MotionChoice { system, reduced }
 
 enum DefaultFeed { latest, following }
@@ -17,6 +27,7 @@ class AppPreferences {
   const AppPreferences({
     this.language = AppLanguage.bn,
     this.theme = AppThemeChoice.system,
+    this.font = AppFontChoice.system,
     this.motion = MotionChoice.system,
     this.textScale = 1.0,
     this.defaultFeed = DefaultFeed.latest,
@@ -33,6 +44,7 @@ class AppPreferences {
 
   final AppLanguage language;
   final AppThemeChoice theme;
+  final AppFontChoice font;
   final MotionChoice motion;
 
   /// Reading text multiplier applied to article bodies and headlines.
@@ -57,6 +69,7 @@ class AppPreferences {
   AppPreferences copyWith({
     AppLanguage? language,
     AppThemeChoice? theme,
+    AppFontChoice? font,
     MotionChoice? motion,
     double? textScale,
     DefaultFeed? defaultFeed,
@@ -73,6 +86,7 @@ class AppPreferences {
     return AppPreferences(
       language: language ?? this.language,
       theme: theme ?? this.theme,
+      font: font ?? this.font,
       motion: motion ?? this.motion,
       textScale: textScale ?? this.textScale,
       defaultFeed: defaultFeed ?? this.defaultFeed,
@@ -113,6 +127,7 @@ class AppPreferences {
   Map<String, dynamic> toJson() => <String, dynamic>{
         'language': language.name,
         'theme': theme.name,
+        'font': font.name,
         'motion': motion.name,
         'textScale': textScale,
         'defaultFeed': defaultFeed.name,
@@ -140,6 +155,7 @@ class AppPreferences {
     return AppPreferences(
       language: enumOr(AppLanguage.values, map['language'], AppLanguage.bn),
       theme: enumOr(AppThemeChoice.values, map['theme'], AppThemeChoice.system),
+      font: enumOr(AppFontChoice.values, map['font'], AppFontChoice.system),
       motion: enumOr(MotionChoice.values, map['motion'], MotionChoice.system),
       textScale: (map['textScale'] as num?)?.toDouble() ?? 1.0,
       defaultFeed: enumOr(DefaultFeed.values, map['defaultFeed'], DefaultFeed.latest),

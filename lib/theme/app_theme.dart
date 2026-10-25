@@ -40,9 +40,6 @@ class AppColors {
 class AppTheme {
   const AppTheme._();
 
-  static const String _sans = 'NotoSansBengali';
-  static const String _serif = 'NotoSerifBengali';
-
   static ThemeData light() {
     final ColorScheme scheme = ColorScheme.fromSeed(
       seedColor: AppColors.brandRed,
@@ -113,7 +110,7 @@ class AppTheme {
       canvasColor: background,
       dividerColor: divider,
       dividerTheme: DividerThemeData(color: divider, thickness: 0.9, space: 0.9),
-      fontFamily: _sans,
+      fontFamily: Tokens.sans,
       textTheme: text,
       splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
@@ -133,7 +130,7 @@ class AppTheme {
         centerTitle: false,
         systemOverlayStyle: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         titleTextStyle: text.titleLarge?.copyWith(
-          fontFamily: _serif,
+          fontFamily: Tokens.serif,
           fontWeight: FontWeight.w700,
           letterSpacing: 0,
         ),
@@ -189,7 +186,7 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         backgroundColor: dark ? Tokens.nightInk : Tokens.ink,
         contentTextStyle: TextStyle(
-          fontFamily: _sans,
+          fontFamily: Tokens.sans,
           fontSize: 13,
           color: dark ? Tokens.ink : Tokens.nightInk,
         ),
@@ -218,8 +215,8 @@ class AppTheme {
           backgroundColor: scheme.primary,
           foregroundColor: scheme.onPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          textStyle: const TextStyle(
-            fontFamily: _sans,
+          textStyle: TextStyle(
+            fontFamily: Tokens.sans,
             fontSize: 14,
             fontWeight: FontWeight.w700,
           ),
@@ -233,8 +230,8 @@ class AppTheme {
           foregroundColor: scheme.onSurface,
           side: BorderSide(color: divider),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          textStyle: const TextStyle(
-            fontFamily: _sans,
+          textStyle: TextStyle(
+            fontFamily: Tokens.sans,
             fontSize: 13.5,
             fontWeight: FontWeight.w600,
           ),
@@ -246,8 +243,8 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: scheme.primary,
-          textStyle: const TextStyle(
-            fontFamily: _sans,
+          textStyle: TextStyle(
+            fontFamily: Tokens.sans,
             fontSize: 13.5,
             fontWeight: FontWeight.w700,
           ),
@@ -259,7 +256,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(Tokens.radiusXs),
         ),
         textStyle: TextStyle(
-          fontFamily: _sans,
+          fontFamily: Tokens.sans,
           fontSize: 11,
           color: dark ? Tokens.ink : Tokens.nightInk,
         ),
@@ -270,7 +267,7 @@ class AppTheme {
   static TextTheme _textTheme(ColorScheme scheme, Color inkSoft) {
     final Color ink = scheme.onSurface;
     TextStyle serif(double size, FontWeight weight, double height) => TextStyle(
-          fontFamily: _serif,
+          fontFamily: Tokens.serif,
           fontSize: size,
           fontWeight: weight,
           height: height,
@@ -279,7 +276,7 @@ class AppTheme {
         );
     TextStyle sans(double size, FontWeight weight, double height, {Color? color}) =>
         TextStyle(
-          fontFamily: _sans,
+          fontFamily: Tokens.sans,
           fontSize: size,
           fontWeight: weight,
           height: height,
@@ -309,7 +306,7 @@ class AppTheme {
   static TextStyle headlineStyle(ThemeData theme, {double scale = 1, bool hero = false}) {
     final TextStyle base =
         (hero ? theme.textTheme.displaySmall : theme.textTheme.headlineSmall) ??
-            const TextStyle();
+            TextStyle();
     return base.copyWith(fontSize: (base.fontSize ?? 18) * scale);
   }
 }

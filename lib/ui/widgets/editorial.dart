@@ -275,7 +275,7 @@ class Attribution extends StatelessWidget {
             ),
             child: Text(
               context.strings.breakingShort,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: Tokens.sans,
                 fontSize: 8,
                 height: 1.3,

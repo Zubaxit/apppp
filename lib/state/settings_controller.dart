@@ -23,6 +23,7 @@ class SettingsController extends ChangeNotifier {
   AppStrings get strings => AppStrings.forLanguage(_prefs.language);
   bool get useBengali => _prefs.isBengali;
   double get textScale => _prefs.textScale;
+  AppFontChoice get font => _prefs.font;
 
   ThemeMode get themeMode {
     switch (_prefs.theme) {
@@ -67,6 +68,8 @@ class SettingsController extends ChangeNotifier {
   Future<void> setTheme(AppThemeChoice theme) => _update(_prefs.copyWith(theme: theme));
 
   Future<void> setTextScale(double scale) => _update(_prefs.copyWith(textScale: scale));
+
+  Future<void> setFont(AppFontChoice font) => _update(_prefs.copyWith(font: font));
 
   Future<void> setDefaultFeed(DefaultFeed feed) =>
       _update(_prefs.copyWith(defaultFeed: feed));

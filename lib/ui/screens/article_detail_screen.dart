@@ -6,14 +6,13 @@ import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../data/services/article_repository.dart';
-import '../../services/link_service.dart';
+import '../../state/feed_controller.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
-import '../services/link_launcher.dart';
 import '../widgets/actions.dart';
 import '../widgets/common.dart';
 import '../widgets/editorial.dart';
@@ -88,11 +87,15 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     // Both look-ups happen before the first await so no BuildContext is used
     // across an asynchronous gap.
     final SavedController saved = context.read<SavedController>();
+    final FeedController feed = context.read<FeedController>();
     final ArticleRepository repository = context.read<ArticleRepository>();
     await saved.recordHistory(widget.article);
     if (widget.related != null) return;
     try {
-      final List<Article> related = await repository.relatedCoverage(widget.article);
+      final List<Article> indexed = feed.relatedFor(widget.article);
+      final List<Article> related = indexed.isNotEmpty
+          ? indexed
+          : await repository.relatedCoverage(widget.article);
       if (mounted) {
         setState(() {
           _related = related;
@@ -117,11 +120,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
       body: AuroraBackdrop(
         child: Stack(
           children: <Widget>[
-            Scrollbar(
-              controller: _scroll,
-              thickness: 3,
-              radius: const Radius.circular(3),
-              scrollbarOrientation: ScrollbarOrientation.right,
+            ScrollConfiguration(
+              behavior: const _ArticleScrollBehavior(),
               child: CustomScrollView(
                 controller: _scroll,
                 slivers: <Widget>[
@@ -145,8 +145,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                     ),
                     actions: <Widget>[
                       BookmarkAction(article: article, dense: true),
-                      const SizedBox(width: 4),
-                      ShareAction(article: article, dense: true),
                       const SizedBox(width: 4),
                       GlassIconButton(
                         icon: Icons.translate_rounded,
@@ -191,6 +189,17 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   }
 }
 
+class _ArticleScrollBehavior extends MaterialScrollBehavior {
+  const _ArticleScrollBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
+}
+
 class _ArticleBody extends StatelessWidget {
   const _ArticleBody({
     required this.article,
@@ -231,12 +240,7 @@ class _ArticleBody extends StatelessWidget {
             ),
           ),
         Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(
-            Tokens.gutter,
-            0,
-            Tokens.gutter + 12,
-            0,
-          ),
+padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -305,56 +309,22 @@ class _ArticleBody extends StatelessWidget {
                   article: article,
                 ),
               ),
-              const SizedBox(height: 4),
-              Center(
-                child: JellySurface(
-                  onTap: () => openUrlFeedback(context, article.link),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                    child: Text(
-                      context.strings.readOriginal,
-                      style: context.texts.labelMedium?.copyWith(
-                        fontSize: 11.5,
-                        color: context.colors.onSurfaceVariant,
-                        decoration: TextDecoration.underline,
-                        decorationColor:
-                            context.colors.onSurfaceVariant.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: _QuietAction(
-                      icon: Icons.link_rounded,
-                      label: context.strings.copyLink,
-                      onTap: () async {
-                        await LinkLauncherShare.copyLink(context, article.link);
-                        if (!context.mounted) return;
-                        context.showSnack(context.strings.linkCopied);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _QuietAction(
-                      icon: Icons.ios_share_rounded,
-                      label: context.strings.share,
-                      onTap: () =>
-                          LinkLauncherShare.shareArticle(context, article),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               if (loadingRelated)
                 const SkeletonBox(height: 64, radius: Tokens.radiusMd)
               else if (related.isNotEmpty) ...<Widget>[
                 Kicker(context.strings.relatedCoverage),
-                const SizedBox(height: 5),
+                const SizedBox(height: 4),
+                Text(
+                  context.isBengali
+                      ? 'আরও ${related.length}টি সংবাদমাধ্যমে'
+                      : 'Also from ${related.length} other ${related.length == 1 ? 'source' : 'sources'}',
+                  style: context.texts.labelMedium?.copyWith(
+                    color: context.colors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Text(
                   context.isBengali
                       ? 'শিরোনামের মিল; স্বাধীন সত্যতা যাচাই নয়। উপলভ্য উৎসেই সীমিত।'
@@ -503,46 +473,6 @@ class _ExcerptNote extends StatelessWidget {
   }
 }
 
-class _QuietAction extends StatelessWidget {
-  const _QuietAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return JellySurface(
-      onTap: onTap,
-      scale: 0.96,
-      child: GlassPanel(
-        radius: Tokens.radiusSm,
-        blur: Tokens.blurSoft,
-        elevation: 0.3,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Icon(icon, size: 16, color: context.colors.onSurfaceVariant),
-            const SizedBox(width: 7),
-            Text(
-              label,
-              style: context.texts.labelMedium?.copyWith(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RelatedRow extends StatelessWidget {
   const _RelatedRow({required this.article, required this.source});
 
@@ -671,46 +601,9 @@ class _SourceFooter extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: _QuietAction(
-                  icon: Icons.public_rounded,
-                  label: context.strings.openWebsite,
-                  onTap: () => openUrlFeedback(context, source.website),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _QuietAction(
-                  icon: Icons.info_outline_rounded,
-                  label: context.strings.aboutPublication,
-                  onTap: () => openSource(context, source),
-                ),
-              ),
-            ],
-          ),
+
         ],
       ),
     );
-  }
-}
-
-/// Share helpers kept next to the reading screen.
-class LinkLauncherShare {
-  const LinkLauncherShare._();
-
-  static Future<void> shareArticle(BuildContext context, Article article) async {
-    final String sourceName =
-        context.registry.nameOf(article.sourceId, bengali: context.isBengali);
-    await LinkLauncher.share(
-      '${article.title}\n\n$sourceName\n${article.link}',
-      subject: article.title,
-    );
-  }
-
-  static Future<void> copyLink(BuildContext context, String link) async {
-    await LinkService.copyToClipboard(link);
   }
 }

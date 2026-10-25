@@ -5,6 +5,7 @@ import '../../services/profile_store.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
+import '../services/link_launcher.dart';
 import '../widgets/actions.dart';
 import '../widgets/brand.dart';
 import 'settings_screen.dart' show SettingsScreen;
@@ -13,6 +14,9 @@ import 'settings_screen.dart' show SettingsScreen;
 /// developer identity. No biography, contact details or invented credentials.
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key, this.store});
+
+  static const String developerProfileUrl =
+      'https://www.facebook.com/muhammad.emon.738798';
 
   /// Kept for source compatibility with older callers. Profile editing no
   /// longer appears here because the product brief permits only name + photo.
@@ -246,13 +250,30 @@ class _DeveloperReveal extends StatelessWidget {
           ],
         );
       },
-      child: GlassPanel(
-        radius: Tokens.radiusLg,
-        blur: 8,
-        elevation: 0.5,
-        sheen: false,
-        padding: const EdgeInsets.all(16),
-        child: Row(
+      child: Semantics(
+        link: true,
+        button: true,
+        label: 'Md. Emon — Facebook',
+        child: JellySurface(
+          scale: 0.985,
+          onTap: () async {
+            final bool opened =
+                await LinkLauncher.open(AboutScreen.developerProfileUrl);
+            if (!opened && context.mounted) {
+              context.showSnack(
+                context.isBengali
+                    ? 'ব্রাউজারে প্রোফাইলটি খোলা যায়নি'
+                    : 'Could not open the profile in a browser',
+              );
+            }
+          },
+          child: GlassPanel(
+            radius: Tokens.radiusLg,
+            blur: 8,
+            elevation: 0.5,
+            sheen: false,
+            padding: const EdgeInsets.all(16),
+            child: Row(
           children: <Widget>[
             Semantics(
               image: true,
@@ -280,9 +301,17 @@ class _DeveloperReveal extends StatelessWidget {
                 ),
               ),
             ),
-          ],
+              const SizedBox(width: 8),
+              Icon(
+                Icons.open_in_new_rounded,
+                size: 17,
+                color: context.colors.primary,
+              ),
+            ],
+          ),
         ),
       ),
+    ),
     );
   }
 }

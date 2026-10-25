@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import 'core/l10n/app_strings.dart';
+import 'data/models/app_preferences.dart';
 import 'data/models/news_source.dart';
 import 'data/services/article_repository.dart';
 import 'state/feed_controller.dart';
@@ -10,6 +11,7 @@ import 'state/saved_controller.dart';
 import 'state/settings_controller.dart';
 import 'theme/app_theme.dart';
 import 'theme/motion.dart';
+import 'theme/tokens.dart';
 import 'ui/shell/app_shell.dart';
 
 class NewspaperHubApp extends StatelessWidget {
@@ -18,6 +20,7 @@ class NewspaperHubApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SettingsController settings = context.watch<SettingsController>();
+    Tokens.configureFont(settings.font.family);
     return AppStringsScope(
       strings: settings.strings,
       child: AppMotionScope(

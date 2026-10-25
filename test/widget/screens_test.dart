@@ -4,6 +4,7 @@ import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
 import 'package:bangladesh_newspaper_hub/state/feed_controller.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/about_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/article_detail_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/epaper_directory_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/home_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/newspapers_screen.dart';
@@ -93,6 +94,71 @@ void main() {
       expect(find.text(bnArticle.title), findsNothing);
     });
 
+    testWidgets('zero follows can return directly to the existing All feed',
+        (WidgetTester tester) async {
+      final TestHarness h = harness(artwork: <Article>[bnArticle]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await h.feed.setFollowedOnly(true);
+      await tester.pumpAndSettle();
+
+      expect(find.text('আপনি এখনো কোনো পত্রিকা অনুসরণ করছেন না'), findsOneWidget);
+      expect(find.text('সব খবর দেখুন'), findsOneWidget);
+      expect(find.text('আবার চেষ্টা করুন'), findsNothing,
+          reason: 'no follows is not presented as a network failure');
+
+      await tester.tap(find.text('সব খবর দেখুন'));
+      await tester.pumpAndSettle();
+      expect(h.feed.query.followedOnly, isFalse);
+      expect(find.text(bnArticle.title), findsOneWidget);
+      expect(find.byType(HomeScreen), findsOneWidget);
+    });
+
+    testWidgets('unfollowing the last publication shows the same All-news escape',
+        (WidgetTester tester) async {
+      final TestHarness h = harness(
+        artwork: <Article>[bnArticle],
+        prefs: const AppPreferences(
+          followedSourceIds: <String>{'prothomalo'},
+        ),
+      );
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await h.feed.setFollowedOnly(true);
+      await h.settings.toggleFollow('prothomalo');
+      await h.feed.onSettingsChanged();
+      await tester.pumpAndSettle();
+
+      expect(find.text('সব খবর দেখুন'), findsOneWidget);
+      expect(find.text('সব পত্রিকা'), findsOneWidget);
+    });
+
+    testWidgets('real feed metadata exposes Source Comparison without injection',
+        (WidgetTester tester) async {
+      final Article first = sampleArticle(
+        title: 'Supreme Court suspends election order after emergency hearing',
+        link: 'https://www.prothomalo.com/court-report',
+        language: SourceLanguage.en,
+      );
+      final Article second = sampleArticle(
+        sourceId: 'daily_star',
+        title: 'Election order suspended by Supreme Court after emergency hearing',
+        link: 'https://www.thedailystar.net/court-report',
+        language: SourceLanguage.en,
+      );
+      final TestHarness h = harness(artwork: <Article>[first, second]);
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsWidgets);
+      final Finder comparison = find.byKey(ValueKey<String>('same-story-${first.id}'));
+      await tester.ensureVisible(comparison);
+      await tester.tap(comparison);
+      await tester.pumpAndSettle();
+      expect(find.text(second.link), findsOneWidget);
+    });
+
     testWidgets('shows breaking stories only when the publisher flagged one', (WidgetTester tester) async {
       final Article breaking = sampleArticle(
         title: 'জরুরি সিদ্ধান্ত ঘোষণা',
@@ -176,6 +242,9 @@ void main() {
       expect(find.text('অনুসরণ'), findsOneWidget);
       expect(find.text('ই-পেপার খুলুন'), findsOneWidget);
       expect(find.text('পত্রিকা সম্পর্কে'), findsOneWidget);
+      expect(find.textContaining('Feed fetched and parsed'), findsNothing);
+      expect(find.textContaining('valid XML'), findsNothing);
+      expect(find.text(source.feedUrl!), findsNothing);
     });
 
     testWidgets('publication without a feed offers website only', (WidgetTester tester) async {
@@ -339,6 +408,38 @@ void main() {
       expect(find.text('APPEARANCE'), findsWidgets);
     });
 
+    testWidgets('font selection applies globally and system default restores it',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const SettingsScreen()));
+      await tester.pumpAndSettle();
+
+      expect(h.settings.font, AppFontChoice.system);
+      expect(Theme.of(tester.element(find.byType(SettingsScreen)))
+          .textTheme
+          .bodyMedium
+          ?.fontFamily, isNull);
+
+      await tester.tap(find.text('Noto Sans Bengali'));
+      await tester.pumpAndSettle();
+      expect(h.settings.font, AppFontChoice.notoSans);
+      expect(Theme.of(tester.element(find.byType(SettingsScreen)))
+          .textTheme
+          .bodyMedium
+          ?.fontFamily, 'NotoSansBengali');
+
+      await tester.tap(find.text('Noto Serif Bengali'));
+      await tester.pumpAndSettle();
+      expect(Theme.of(tester.element(find.byType(SettingsScreen)))
+          .textTheme
+          .bodyMedium
+          ?.fontFamily, 'NotoSerifBengali');
+
+      await tester.tap(find.text('সিস্টেমের ডিফল্ট'));
+      await tester.pumpAndSettle();
+      expect(h.settings.font, AppFontChoice.system);
+    });
+
     testWidgets('About is concise and shows only the confirmed developer identity',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1080, 2000);
@@ -353,6 +454,10 @@ void main() {
       expect(find.textContaining('ব্রজলাল কলেজ'), findsNothing);
       expect(find.byIcon(Icons.edit_outlined), findsNothing);
       expect(find.byType(TextField), findsNothing);
+      expect(AboutScreen.developerProfileUrl,
+          'https://www.facebook.com/muhammad.emon.738798');
+      expect(find.bySemanticsLabel('Md. Emon — Facebook'), findsOneWidget);
+      expect(find.byIcon(Icons.open_in_new_rounded), findsOneWidget);
     });
 
     testWidgets('About respects reduced motion and settles without a loop',
@@ -401,6 +506,40 @@ void main() {
     });
   });
 
+  group('ArticleDetailScreen redesign', () {
+    testWidgets('has no native scrollbar and exposes real comparison in freed space',
+        (WidgetTester tester) async {
+      final Article primary = sampleArticle(title: 'মূল খবরের শিরোনাম');
+      final Article other = sampleArticle(
+        sourceId: 'daily_star',
+        title: 'অন্য প্রকাশকের আসল শিরোনাম',
+        link: 'https://www.thedailystar.net/original-comparison',
+      );
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(
+        ArticleDetailScreen(article: primary, related: <Article>[other]),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Scrollbar), findsNothing);
+      expect(find.byType(RawScrollbar), findsNothing);
+      expect(find.text('সম্পূর্ণ খবর পড়ুন'), findsOneWidget);
+      expect(find.text('সম্পূর্ণ খবর পড়ুন'), findsNothing);
+      expect(find.text('লিংক কপি করুন'), findsNothing);
+      expect(find.text('শেয়ার'), findsNothing);
+      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsOneWidget);
+      expect(find.text('আরও 1টি সংবাদমাধ্যমে'), findsOneWidget);
+      expect(find.text(other.title), findsOneWidget);
+      expect(find.text('ওয়েবসাইট খুলুন'), findsNothing);
+      expect(find.text('পত্রিকা সম্পর্কে'), findsNothing);
+      expect(find.text('অনুসরণ'), findsOneWidget);
+
+      await h.settings.setLanguage(AppLanguage.en);
+      await tester.pumpAndSettle();
+      expect(find.text('Read full story'), findsOneWidget);
+    });
+  });
+
   group('AppShell navigation', () {
     testWidgets('switches tabs and stays on Home after switching', (WidgetTester tester) async {
       final TestHarness h = harness(artwork: <Article>[bnArticle]);
@@ -432,7 +571,7 @@ void main() {
 
       await tester.tap(find.text(bnArticle.title));
       await tester.pumpAndSettle();
-      expect(find.text('মূল প্রতিবেদন পড়ুন'), findsOneWidget);
+      expect(find.text('সম্পূর্ণ খবর পড়ুন'), findsOneWidget);
 
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();

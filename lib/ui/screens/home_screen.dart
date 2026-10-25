@@ -9,6 +9,7 @@ import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/feed_controller.dart';
+import '../../state/settings_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
@@ -91,6 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final FeedController feed = context.watch<FeedController>();
     final SourceRegistry registry = context.registry;
+    final SettingsController settings = context.watch<SettingsController>();
+    final bool noFollows = feed.query.followedOnly &&
+        settings.followedSourceIds.isEmpty;
     final List<Article> articles = feed.articles;
     final bool hasArticles = articles.isNotEmpty;
 
@@ -165,7 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  if (feed.lastError != null) _ErrorNote(message: feed.lastError!),
+                  if (feed.lastError != null && !noFollows)
+                    _ErrorNote(message: feed.lastError!),
                   BreakingBanner(
                     articles: feed.breakingArticles,
                     onOpen: (Article article) => openArticle(context, article),
@@ -173,7 +178,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (!hasArticles && feed.isLoading)
                     const _LoadingState()
                   else if (!hasArticles)
-                    _EmptyState(feed: feed, onRetry: _refresh)
+                    _EmptyState(
+                      feed: feed,
+                      noFollows: noFollows,
+                      onRetry: _refresh,
+                      onShowAll: () => _setFollowing(false),
+                    )
                   else ...<Widget>[
                     const SizedBox(height: 6),
                     if (showCarousel)
@@ -678,10 +688,17 @@ class _LoadingState extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.feed, required this.onRetry});
+  const _EmptyState({
+    required this.feed,
+    required this.noFollows,
+    required this.onRetry,
+    required this.onShowAll,
+  });
 
   final FeedController feed;
+  final bool noFollows;
   final Future<void> Function() onRetry;
+  final VoidCallback onShowAll;
 
   @override
   Widget build(BuildContext context) {
@@ -690,22 +707,42 @@ class _EmptyState extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         EmptyState(
-          icon: offline ? Icons.cloud_off_rounded : Icons.article_outlined,
-          title: context.strings.emptyFeedTitle,
-          body: offline ? context.strings.offlineNotice : context.strings.emptyFeedBody,
+          icon: noFollows
+              ? Icons.library_add_outlined
+              : offline
+                  ? Icons.cloud_off_rounded
+                  : Icons.article_outlined,
+          title: noFollows
+              ? context.strings.noFollowedPapers
+              : context.strings.emptyFeedTitle,
+          body: noFollows
+              ? context.strings.noFollowedBody
+              : offline
+                  ? context.strings.offlineNotice
+                  : context.strings.emptyFeedBody,
           compact: true,
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 0),
-          child: Row(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: <Widget>[
-              JellyButton(
-                label: context.strings.retry,
-                icon: Icons.refresh_rounded,
-                onPressed: onRetry,
-                compact: true,
-              ),
-              const SizedBox(width: 8),
+              if (noFollows)
+                JellyButton(
+                  label: context.isBengali ? 'সব খবর দেখুন' : 'Show all news',
+                  icon: Icons.dynamic_feed_rounded,
+                  filled: true,
+                  onPressed: onShowAll,
+                  compact: true,
+                )
+              else
+                JellyButton(
+                  label: context.strings.retry,
+                  icon: Icons.refresh_rounded,
+                  onPressed: onRetry,
+                  compact: true,
+                ),
               JellyButton(
                 label: context.strings.browseDirectory,
                 filled: false,

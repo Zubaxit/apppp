@@ -136,7 +136,7 @@ class BreakingBanner extends StatelessWidget {
                 ),
                 child: Text(
                   context.strings.breakingNews,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: Tokens.sans,
                     fontSize: 9,
                     height: 1.2,

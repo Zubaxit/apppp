@@ -448,15 +448,6 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                                       bengali: bengali,
                                     ),
                             ),
-                            if (source.notes.isNotEmpty) ...<Widget>[
-                              const SizedBox(height: 6),
-                              Text(
-                                source.notes,
-                                style: context.texts.bodySmall?.copyWith(
-                                  height: 1.6,
-                                ),
-                              ),
-                            ],
                             if (source.categories
                                 .contains(SourceCategory.broadcast)) ...<Widget>[
                               const SizedBox(height: 10),

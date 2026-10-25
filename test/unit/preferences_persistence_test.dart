@@ -30,6 +30,21 @@ void main() {
       restarted.dispose();
     });
 
+    test('font choice persists independently from the theme', () async {
+      final InMemoryPreferencesStore store = InMemoryPreferencesStore();
+      final SettingsController controller =
+          SettingsController(initial: const AppPreferences(), store: store);
+
+      expect(controller.font, AppFontChoice.system);
+      await controller.setTheme(AppThemeChoice.dark);
+      await controller.setFont(AppFontChoice.notoSerif);
+
+      final AppPreferences restarted = AppPreferences.decode(await store.read());
+      expect(restarted.theme, AppThemeChoice.dark);
+      expect(restarted.font, AppFontChoice.notoSerif);
+      controller.dispose();
+    });
+
     test('language, motion, text scale and followed sources all persist', () async {
       final InMemoryPreferencesStore store = InMemoryPreferencesStore();
       final SettingsController controller =

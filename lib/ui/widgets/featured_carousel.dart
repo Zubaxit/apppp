@@ -216,7 +216,7 @@ class _FeaturedCard extends StatelessWidget {
                           ),
                           child: Text(
                             context.strings.breakingShort,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: Tokens.sans,
                               fontSize: 8.5,
                               height: 1.2,
@@ -240,7 +240,7 @@ class _FeaturedCard extends StatelessWidget {
                     article.title,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: Tokens.serif,
                       fontSize: 21,
                       height: 1.34,
@@ -266,7 +266,7 @@ class _FeaturedCard extends StatelessWidget {
                           ),
                           child: Text(
                             source!.monogram.characters.take(1).toString(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: Tokens.serif,
                               fontSize: 8.5,
                               height: 1,

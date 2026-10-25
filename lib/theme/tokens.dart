@@ -71,8 +71,17 @@ class Tokens {
   ];
 
   // ------------------------------------------------------------- typography
-  static const String serif = 'NotoSerifBengali';
-  static const String sans = 'NotoSansBengali';
+  static String? _fontFamily;
+
+  /// Configured once per app rebuild from the persisted preference. A null
+  /// family lets Flutter/Android resolve the platform's native system font and
+  /// its Bengali fallback chain.
+  static String? get serif => _fontFamily;
+  static String? get sans => _fontFamily;
+
+  static void configureFont(String? family) {
+    _fontFamily = family;
+  }
 
   static const double displaySize = 34;
   static const double headlineSize = 25;

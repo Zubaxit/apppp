@@ -118,7 +118,7 @@ class LeadStory extends StatelessWidget {
                                   (source?.localizedName(bengali: context.isBengali) ??
                                           article.sourceId)
                                       .toUpperCase(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: Tokens.sans,
                                     fontSize: 9.5,
                                     letterSpacing: 1.1,

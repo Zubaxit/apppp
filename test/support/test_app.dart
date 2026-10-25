@@ -11,6 +11,7 @@ import 'package:bangladesh_newspaper_hub/state/saved_controller.dart';
 import 'package:bangladesh_newspaper_hub/state/settings_controller.dart';
 import 'package:bangladesh_newspaper_hub/theme/app_theme.dart';
 import 'package:bangladesh_newspaper_hub/theme/motion.dart';
+import 'package:bangladesh_newspaper_hub/theme/tokens.dart';
 import 'package:bangladesh_newspaper_hub/ui/widgets/publisher_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -97,6 +98,7 @@ class TestHarness {
           return AnimatedBuilder(
             animation: settings,
             builder: (BuildContext context, Widget? _) {
+              Tokens.configureFont(settings.font.family);
               return AppStringsScope(
                 strings: settings.strings,
                 child: AppMotionScope(
