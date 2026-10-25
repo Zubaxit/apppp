@@ -10,8 +10,8 @@ import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/saved_controller.dart';
 import '../../theme/app_theme.dart';
-import 'common.dart';
 import '../../theme/motion.dart';
+import 'common.dart';
 
 enum ArticleCardVariant { hero, standard, compact, saved }
 

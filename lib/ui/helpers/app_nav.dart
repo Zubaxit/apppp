@@ -4,13 +4,13 @@ import '../../core/extensions.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/motion.dart';
 import '../screens/article_detail_screen.dart';
 import '../screens/article_list_screen.dart';
 import '../screens/newspapers_screen.dart';
 import '../screens/source_detail_screen.dart';
 import '../screens/source_health_screen.dart';
 import '../services/link_launcher.dart';
-import '../../theme/motion.dart';
 
 /// Shared route builder: a calm fade + rise, disabled when motion is reduced.
 Route<T> editorialRoute<T>(Widget page, {String? name}) {

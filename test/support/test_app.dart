@@ -10,13 +10,13 @@ import 'package:bangladesh_newspaper_hub/state/feed_controller.dart';
 import 'package:bangladesh_newspaper_hub/state/saved_controller.dart';
 import 'package:bangladesh_newspaper_hub/state/settings_controller.dart';
 import 'package:bangladesh_newspaper_hub/theme/app_theme.dart';
+import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import 'fakes.dart';
-import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 
 /// Connectivity stub: tests default to "online" but can force offline mode.
 class FakeConnectivity implements ConnectivityService {

@@ -414,7 +414,7 @@ class _FeedControls extends StatelessWidget {
             ),
           const SizedBox(width: 10),
           Pressable(
-            onTap: refreshing ? null : () => onRefresh(),
+            onTap: refreshing ? null : onRefresh,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 5, left: 2),
               child: Icon(
@@ -545,7 +545,7 @@ class _LoadingState extends StatelessWidget {
         children: <Widget>[
           const SkeletonBlock(height: 11, width: 88),
           const SizedBox(height: 12),
-          AspectRatio(
+          const AspectRatio(
             aspectRatio: 16 / 9,
             child: SkeletonBlock(height: double.infinity, radius: Tokens.radiusSm),
           ),
@@ -577,7 +577,7 @@ class _LoadingState extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                SkeletonBlock(height: 66, width: 66, radius: 3),
+                const SkeletonBlock(height: 66, width: 66, radius: 3),
               ],
             ),
             const SizedBox(height: 18),

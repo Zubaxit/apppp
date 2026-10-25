@@ -81,7 +81,7 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Future<void> _resetProfile() async {
-    final bool confirmed = await showDialog<bool>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: Text(context.strings.profileReset),

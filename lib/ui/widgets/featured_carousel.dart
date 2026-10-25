@@ -58,7 +58,7 @@ class _FeaturedCarouselState extends State<FeaturedCarousel> {
     if (items.length < widget.minimumStories) return const SizedBox.shrink();
 
     final Motion motion = Motion.of(context);
-    final double gutter = Tokens.gutter;
+    const double gutter = Tokens.gutter;
     final double panelWidth = MediaQuery.sizeOf(context).width - gutter * 2;
     final double scale =
         (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(0.9, 1.5);

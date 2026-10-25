@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'motion.dart';
 import 'tokens.dart';
-
-export 'motion.dart' show Motion, AppMotionScope;
 
 /// Amar News colour system: graphite on warm paper, with one printed red.
 ///

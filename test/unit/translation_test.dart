@@ -14,7 +14,7 @@ class _StringBundle extends CachingAssetBundle {
   @override
   Future<ByteData> load(String key) async {
     if (key != TranslationService.assetPath) {
-      throw FlutterError('unexpected asset $key');
+      throw StateError('unexpected asset $key');
     }
     return ByteData.sublistView(utf8.encoder.convert(payload));
   }
@@ -22,7 +22,7 @@ class _StringBundle extends CachingAssetBundle {
 
 class _FailingBundle extends CachingAssetBundle {
   @override
-  Future<ByteData> load(String key) async => throw FlutterError('asset missing');
+  Future<ByteData> load(String key) async => throw StateError('asset missing');
 }
 
 const String _payload = '{"version":1,"words":{'

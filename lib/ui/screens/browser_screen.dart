@@ -8,11 +8,11 @@ import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../state/saved_controller.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../services/browser_engine.dart';
 import '../widgets/editorial.dart';
-import '../../theme/motion.dart';
 
 /// In-app reader for a publisher's own page.
 ///
