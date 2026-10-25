@@ -567,7 +567,7 @@ class _LoadingState extends StatelessWidget {
           const ShimmerBox(height: 84, radius: Tokens.radiusLg),
           const SizedBox(height: 18),
           for (int i = 0; i < 4; i++) ...<Widget>[
-            Row(
+            const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 const Expanded(

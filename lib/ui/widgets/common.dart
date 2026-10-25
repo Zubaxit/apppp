@@ -271,7 +271,7 @@ class ArticleSkeleton extends StatelessWidget {
         const ShimmerBox(height: 132, radius: Tokens.radiusLg),
         const SizedBox(height: 22),
         for (int i = 0; i < count; i++) ...<Widget>[
-          Row(
+          const Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               const Expanded(

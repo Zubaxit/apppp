@@ -93,7 +93,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     final Article article = widget.article;
     final SourceRegistry registry = context.registry;
     final NewsSource? source = registry.byId(article.sourceId);
-    final bool bengali = context.isBengali;
     final SettingsController settings = context.watch<SettingsController>();
     final double scale = settings.textScale;
 
