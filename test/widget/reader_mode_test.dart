@@ -85,7 +85,15 @@ void main() {
 
     expect(translator.requests, isEmpty, reason: 'no request until the reader asks');
     expect(find.textContaining('বাংলা:'), findsNothing);
+    expect(find.text(h.settings.strings.translating), findsNothing,
+        reason: 'nothing may claim to be translating when nothing started');
     expect(find.text('English paragraph 0 about the economy. ' * 6), findsOneWidget);
+
+    // The bar offers the start action, and it really starts the work.
+    await tester.tap(find.text(h.settings.strings.translationLabel));
+    await tester.pumpAndSettle();
+    expect(translator.requests, isNotEmpty);
+    expect(find.textContaining('বাংলা:'), findsWidgets);
   });
 
   testWidgets('a machine result is always labelled as machine output',

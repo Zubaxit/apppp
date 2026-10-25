@@ -100,6 +100,7 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
               _TranslationBar(
                 controller: _controller,
                 onToggle: _controller.toggleVisibility,
+                onStart: () => unawaited(_controller.translateAll()),
                 onRetry: () => unawaited(_controller.translateAll()),
               ),
             ],
@@ -203,7 +204,9 @@ class _Article extends StatelessWidget {
         proseIndex += 1;
         final int paragraph = proseIndex;
         final ParagraphTranslation unit = controller.unitAt(paragraph);
-        final bool show = controller.showTranslations;
+        // A page that has not started translating shows nothing under the
+        // paragraph: a pending spinner there would spin forever.
+        final bool show = controller.showTranslations && controller.started;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 18),
@@ -377,11 +380,13 @@ class _TranslationBar extends StatelessWidget {
   const _TranslationBar({
     required this.controller,
     required this.onToggle,
+    required this.onStart,
     required this.onRetry,
   });
 
   final ReaderTranslationController controller;
   final VoidCallback onToggle;
+  final VoidCallback onStart;
   final VoidCallback onRetry;
 
   @override
@@ -419,6 +424,12 @@ class _TranslationBar extends StatelessWidget {
                       label: context.strings.retry,
                       compact: true,
                       onPressed: onRetry,
+                    )
+                  else if (!controller.started)
+                    JellyButton(
+                      label: context.strings.translationLabel,
+                      compact: true,
+                      onPressed: onStart,
                     )
                   else
                     JellySwitch(

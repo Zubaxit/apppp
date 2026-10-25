@@ -144,7 +144,12 @@ void main() {
           return ok('অংশ');
         }),
       );
-      final String long = 'A sentence of some length. ' * 30;
+      // Numbered sentences, so the two chunks differ: the translator caches by
+      // text, and two identical chunks would correctly cost one request.
+      final String long = List<String>.generate(
+        30,
+        (int i) => 'Sentence number $i carries a little more of the story.',
+      ).join(' ');
       final String result = await translator.translate(long);
       expect(sent.length, greaterThan(1));
       expect(result, contains('অংশ'));
