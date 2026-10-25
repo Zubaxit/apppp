@@ -407,10 +407,10 @@ still produce an installable artifact. **APKs are build artifacts, not committed
     one entry rather than accepting undated feeds generally.
 11. The translation feature is a 269-word offline glossary, not a translator. It cannot translate a
     page, and it will mark most literary vocabulary as unknown.
-12. Analysis, the test suite and the debug/release APK builds run in GitHub Actions; this sandbox
-    has no Flutter SDK, so `./tool/verify.sh` is the only local gate. **No physical device or
+12. Analysis, the test suite (165 tests) and the debug/release APK builds run in GitHub Actions; this
+    sandbox has no Flutter SDK, so `./tool/verify.sh` is the only local gate. **No physical device or
     emulator test has been performed** — install the APK artifact from the CI run for a hands-on
-    check.
+    check. For this build: CI run `40160346735` on head `7cbae8b`, `apk` artifact 118 773 287 B.
 
 ## Roadmap
 

@@ -120,15 +120,20 @@ This development sandbox has no Dart/Flutter/JDK/Android SDK, so the SDK gates r
 | --- | --- | --- |
 | Formatting | not gated (kept out of CI on purpose; `dart format lib test` locally) | — |
 | Static analysis | `flutter analyze --fatal-warnings` | **success**, 0 issues |
-| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 142 tests |
+| Unit + widget tests | `flutter test --reporter expanded --concurrency=1 --coverage` | **success**, 165 tests (counted from the declarations in `test/`) |
 | Debug APK | `flutter build apk --debug` | **success** |
-| Release APK | `flutter build apk --release` | **success** (artifact `apk`, ~118 MB combined) |
+| Release APK | `flutter build apk --release` | **success** (artifact `apk`, 118 773 287 B; `coverage` 13 897 B) |
 | `flutter build appbundle` | not run | documented in `docs/RELEASE.md` |
 | On-device / emulator smoke test | not run | manual, see checklist below |
 
-Green runs referenced while building this: CI `40123785564` (analyze & test + APK) and Verify
-sources `40123781895` (13 of 13 shipped feeds verified live, 0 failing); earlier: `40117972337`,
-`40107367502`, `40108517164`.
+Green runs for the Amar News build: CI **`40160346735`** on head `7cbae8b` — Analyze & test
+(0 analyzer issues, 165 tests) and Build Android APK both succeeded; Verify sources
+**`40123781895`** verified all 13 shipped feeds live with 0 failing. Earlier green runs while
+building the reader and transport fixes: `40125397570`, `40123785564`, `40117972337`,
+`40107367502`, `40108517164`. Failures found and fixed in this phase (recorded because they were
+real): `40159786431`/`40159899609` (analyzer errors from the token rewrite and import hygiene) and
+`40160092910`/`40160343379` lineage (a 320 dp overflow in the All/Following row, a wrong glossary
+fixture count, and About tests reaching lazily built content).
 
 The APK is rebuilt by CI on **every** commit, so the run that matches the branch head is always the
 newest one under *Actions → CI*: its `Build Android APK` job attaches the artifact named `apk`
@@ -248,15 +253,21 @@ Layouts at 360×640 dp and 800×1280 dp without overflow.
 3. `Settings → Source health` → failing sources listed first with their error; retry one.
 4. Open a publication with no feed → only website/e-paper actions are offered.
 5. Bookmark three stories → force-stop → relaunch → Saved intact.
-6. Home → the counter should read eleven-ish publishers; a publisher that fails must show in
-   `Source health` with its HTTP status while the other publishers' headlines stay on screen.
+6. Home → the counter reads the number of cached articles and the freshness line names the last
+   refresh; the featured rail should appear only when at least three real articles carry images.
+   A publisher that fails must show in `Source health` with its HTTP status while the other
+   publishers' headlines stay on screen.
 7. Open a story → "Read in app" → the publisher page loads with its real domain in the bar; follow a
    link inside it → back returns through page history before leaving the reader; "open in browser"
    hands the same URL to the system browser; bookmarking from the reader warns that only the
    headline and link are kept.
 8. Search in Bengali and in English → both find publications and headlines.
-9. Toggle dark theme, 140 % text size, reduce motion → no clipped Bengali headlines.
-10. Android back: detail → list → Home tab → app exits (no navigation loop).
-11. Rotate and use split-screen → no overflow stripes.
-12. Let the app idle for the configured interval → "last updated" advances; no request storm in
+9. Toggle dark theme, 140 % text size, reduce motion → no clipped Bengali headlines, and the
+   bookmark fill animation is skipped while the saved state still changes.
+10. About → the author profile edits and persists across a force-stop; a non-URL link is rejected.
+11. Reader → the progress rule advances with scrolling; the translation sheet reports unknown words
+    as unknown and states that it is word-by-word.
+12. Android back: detail → list → Home tab → app exits (no navigation loop).
+13. Rotate and use split-screen → no overflow stripes.
+14. Let the app idle for the configured interval → "last updated" advances; no request storm in
     a proxy trace.
