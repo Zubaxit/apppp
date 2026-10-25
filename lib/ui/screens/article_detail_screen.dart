@@ -16,7 +16,6 @@ import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../widgets/actions.dart';
 import '../widgets/common.dart';
-import '../widgets/editorial.dart';
 import '../widgets/translation_sheet.dart';
 import 'browser_screen.dart';
 
