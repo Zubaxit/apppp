@@ -305,24 +305,19 @@ class BrowserToolbar extends StatelessWidget {
             // It is determinate when the engine reports a fraction and a thin
             // sweep when it does not; it disappears entirely once the page is
             // in, so a failed page is never left spinning.
-            AnimatedSize(
-              duration: Motion.of(context).standard,
-              curve: Tokens.easeStandard,
-              child: loading
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 3),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(2),
-                        child: LinearProgressIndicator(
-                          value: progress <= 0 ? null : progress,
-                          minHeight: 2,
-                          backgroundColor:
-                              context.colors.onSurface.withValues(alpha: 0.05),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(width: double.infinity, height: 0),
-            ),
+            if (loading)
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: progress <= 0 ? null : progress,
+                    minHeight: 2,
+                    backgroundColor:
+                        context.colors.onSurface.withValues(alpha: 0.05),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

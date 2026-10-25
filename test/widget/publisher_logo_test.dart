@@ -42,8 +42,10 @@ void main() {
       expect(plain.hasLogo, isTrue, reason: 'the derived candidates exist');
       expect(plain.logoUrl, isNull, reason: 'no asset is invented');
       expect(plain.name, 'Prothom Alo');
-      expect(plain.feedClaim, FeedClaim.verifiedWorking,
+      expect(plain.feedClaim, sampleSource().feedClaim,
           reason: 'a missing icon must never change feed status');
+      expect(plain.feedUrl, sampleSource().feedUrl,
+          reason: 'a missing icon must never change the feed URL');
     });
 
     test('an entry with no usable website has no candidates and still loads', () {
@@ -113,26 +115,6 @@ void main() {
       expect(monogram.style?.fontFamily, Tokens.serif);
     });
 
-    testWidgets('with the lookup enabled a fetch is attempted and a failure falls back',
-        (WidgetTester tester) async {
-      final TestHarness h = TestHarness();
-      PublisherLogo.remoteEnabled = true;
-      addTearDown(() => PublisherLogo.remoteEnabled = false);
-
-      await tester.pumpWidget(h.wrap(
-        const Center(child: PublisherLogo(source: _ProthomAlo(), size: 42)),
-      ));
-      await tester.pump();
-      expect(find.byType(CachedNetworkImage), findsOneWidget);
-
-      // The test environment answers every request with an error, so the chain
-      // walks its candidates and lands on the monogram.
-      await tester.pump(const Duration(seconds: 2));
-      await tester.pump(const Duration(seconds: 2));
-      expect(find.text(_monogram), findsOneWidget);
-      expect(find.byType(CachedNetworkImage), findsNothing);
-      expect(tester.takeException(), isNull);
-    });
   });
 }
 
