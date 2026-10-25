@@ -14,6 +14,7 @@ import 'package:bangladesh_newspaper_hub/ui/screens/search_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/settings_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/source_detail_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/shell/app_shell.dart';
+import 'package:bangladesh_newspaper_hub/ui/widgets/actions.dart';
 import 'package:bangladesh_newspaper_hub/ui/widgets/article_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -515,6 +516,8 @@ void main() {
 
       expect(find.byType(Scrollbar), findsNothing);
       expect(find.byType(RawScrollbar), findsNothing);
+      expect(find.byType(ReadingProgressBar), findsNothing,
+          reason: 'the red horizontal rule was the reading-progress painter');
       expect(find.text('সম্পূর্ণ খবর পড়ুন'), findsOneWidget);
       expect(find.text('মূল প্রতিবেদন পড়ুন'), findsNothing);
       expect(find.text('লিংক কপি করুন'), findsNothing);
@@ -525,6 +528,21 @@ void main() {
       expect(find.text('ওয়েবসাইট খুলুন'), findsNothing);
       expect(find.text('পত্রিকা সম্পর্কে'), findsNothing);
       expect(find.text('অনুসরণ'), findsOneWidget);
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey<String>('publisher-identity')),
+      );
+      final double buttonY = tester
+          .getTopLeft(find.byKey(const ValueKey<String>('read-full-story')))
+          .dy;
+      final double comparisonY = tester
+          .getTopLeft(find.byKey(const ValueKey<String>('source-comparison-section')))
+          .dy;
+      final double publisherY = tester
+          .getTopLeft(find.byKey(const ValueKey<String>('publisher-identity')))
+          .dy;
+      expect(buttonY, lessThan(comparisonY));
+      expect(comparisonY, lessThan(publisherY));
 
       await h.settings.setLanguage(AppLanguage.en);
       await tester.pumpAndSettle();
@@ -537,6 +555,76 @@ void main() {
       await tester.pumpAndSettle();
       expect(navigator.canPop(), isTrue,
           reason: 'a comparison row opens that real report in article detail');
+    });
+
+    testWidgets('keeps native detail scrolling without painting a progress line',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(720, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(
+        ArticleDetailScreen(article: bnArticle, related: const <Article>[]),
+      ));
+      await tester.pumpAndSettle();
+
+      final Finder title = find.text(bnArticle.title);
+      final double before = tester.getTopLeft(title).dy;
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopLeft(title).dy, lessThan(before));
+      expect(find.byType(ReadingProgressBar), findsNothing);
+      expect(find.byType(Scrollbar), findsNothing);
+      expect(find.byType(RawScrollbar), findsNothing);
+    });
+
+    testWidgets('reacts when the live comparison index becomes available',
+        (WidgetTester tester) async {
+      final DateTime now = DateTime.now().toUtc();
+      final Article primary = sampleArticle(
+        title: 'Supreme Court suspends election order after emergency hearing',
+        link: 'https://www.prothomalo.com/dynamic-court-report',
+        language: SourceLanguage.en,
+        publishedAt: now,
+      );
+      final Article other = sampleArticle(
+        sourceId: 'daily_star',
+        title: 'Election order suspended by Supreme Court after emergency hearing',
+        link: 'https://www.thedailystar.net/dynamic-court-report',
+        language: SourceLanguage.en,
+        publishedAt: now,
+      );
+      final TestHarness h = harness(artwork: <Article>[primary, other]);
+      await tester.pumpWidget(h.wrap(
+        ArticleDetailScreen(article: primary, related: const <Article>[]),
+      ));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('source-comparison-section')),
+        findsNothing,
+      );
+
+      await h.feed.start();
+      await tester.pumpAndSettle();
+
+      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsOneWidget);
+      expect(find.text(other.title), findsOneWidget);
+    });
+
+    testWidgets('renders no comparison placeholders when there are no matches',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(
+        ArticleDetailScreen(article: bnArticle, related: const <Article>[]),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('source-comparison-section')),
+        findsNothing,
+      );
     });
   });
 

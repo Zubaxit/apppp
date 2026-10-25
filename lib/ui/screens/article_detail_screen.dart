@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
 import '../../core/utils/bengali_text.dart';
+import '../../core/utils/story_matcher.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../data/services/article_repository.dart';
@@ -42,43 +43,19 @@ class ArticleDetailScreen extends StatefulWidget {
 }
 
 class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
-  late List<Article> _related;
-  late bool _loadingRelated;
+  List<Article> _repositoryRelated = const <Article>[];
 
   final ScrollController _scroll = ScrollController();
-
-  /// Reading progress is a value, not widget state.
-  ///
-  /// It used to be a field updated through setState on every scroll tick, which
-  /// rebuilt the article column — headline, excerpt, photograph, actions — once
-  /// per frame while the reader moved. A notifier repaints the 2 px rule and
-  /// leaves the page alone.
-  final ValueNotifier<double> _progress = ValueNotifier<double>(0);
 
   @override
   void initState() {
     super.initState();
-    _related = widget.related ?? const <Article>[];
-    _loadingRelated = widget.related == null;
-    _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _afterFrame());
-  }
-
-  /// Reading progress is derived from the scroll position only, so it never
-  /// rebuilds the article text itself.
-  void _onScroll() {
-    if (!_scroll.hasClients) return;
-    final double max = _scroll.position.maxScrollExtent;
-    final double value = max <= 0 ? 1 : (_scroll.offset / max).clamp(0.0, 1.0);
-    if ((value - _progress.value).abs() < 0.004 && value != 1) return;
-    _progress.value = value;
   }
 
   @override
   void dispose() {
-    _scroll.removeListener(_onScroll);
     _scroll.dispose();
-    _progress.dispose();
     super.dispose();
   }
 
@@ -87,24 +64,35 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     // Both look-ups happen before the first await so no BuildContext is used
     // across an asynchronous gap.
     final SavedController saved = context.read<SavedController>();
-    final FeedController feed = context.read<FeedController>();
     final ArticleRepository repository = context.read<ArticleRepository>();
     await saved.recordHistory(widget.article);
     if (widget.related != null) return;
     try {
-      final List<Article> indexed = feed.relatedFor(widget.article);
-      final List<Article> related = indexed.isNotEmpty
-          ? indexed
-          : await repository.relatedCoverage(widget.article);
-      if (mounted) {
-        setState(() {
-          _related = related;
-          _loadingRelated = false;
-        });
-      }
+      final List<Article> related =
+          await repository.relatedCoverage(widget.article);
+      if (mounted) setState(() => _repositoryRelated = related);
     } catch (_) {
-      if (mounted) setState(() => _loadingRelated = false);
+      // The live controller index remains authoritative and can still update
+      // this screen after a cache lookup failure.
     }
+  }
+
+  static List<Article> _mergeRelated(
+    Article current,
+    List<Article> candidates,
+  ) {
+    final Map<String, Article> byPublisher = <String, Article>{};
+    final Set<String> urls = <String>{StoryMatcher.canonicalUrl(current.link)};
+    for (final Article candidate in candidates) {
+      final String url = StoryMatcher.canonicalUrl(candidate.link);
+      if (candidate.id == current.id ||
+          candidate.sourceId == current.sourceId ||
+          !urls.add(url)) {
+        continue;
+      }
+      byPublisher.putIfAbsent(candidate.sourceId, () => candidate);
+    }
+    return byPublisher.values.toList(growable: false);
   }
 
   @override
@@ -113,76 +101,71 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     final SourceRegistry registry = context.registry;
     final NewsSource? source = registry.byId(article.sourceId);
     final SettingsController settings = context.watch<SettingsController>();
+    final List<Article> liveRelated =
+        context.watch<FeedController>().relatedFor(article);
+    final List<Article> related = _mergeRelated(
+      article,
+      <Article>[
+        ...?widget.related,
+        ...liveRelated,
+        ..._repositoryRelated,
+      ],
+    );
     final double scale = settings.textScale;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AuroraBackdrop(
-        child: Stack(
-          children: <Widget>[
-            ScrollConfiguration(
-              behavior: const _ArticleScrollBehavior(),
-              child: CustomScrollView(
-                controller: _scroll,
-                slivers: <Widget>[
-                  SliverAppBar(
-                    pinned: true,
-                    toolbarHeight: 58,
-                    elevation: 0,
-                    scrolledUnderElevation: 0,
-                    backgroundColor: Colors.transparent,
-                    surfaceTintColor: Colors.transparent,
-                    leadingWidth: Tokens.gutter + 42,
-                    leading: Padding(
-                      padding: const EdgeInsetsDirectional.only(start: Tokens.gutter),
-                      child: Center(
-                        child: GlassIconButton(
-                          icon: Icons.arrow_back_rounded,
-                          tooltip: context.strings.back,
-                          onTap: () => Navigator.of(context).maybePop(),
-                        ),
-                      ),
-                    ),
-                    actions: <Widget>[
-                      BookmarkAction(article: article, dense: true),
-                      const SizedBox(width: 4),
-                      GlassIconButton(
-                        icon: Icons.translate_rounded,
-                        tooltip: context.strings.translateAction,
-                        onTap: () => showTranslationSheet(
-                          context,
-                          text: <String>[
-                            article.title,
-                            if ((article.excerpt ?? '').isNotEmpty) article.excerpt!,
-                          ].join(' '),
-                        ),
-                      ),
-                      const SizedBox(width: Tokens.gutter),
-                    ],
-                  ),
-                  SliverToBoxAdapter(
-                    child: _ArticleBody(
-                      article: article,
-                      source: source,
-                      scale: scale,
-                      related: _related,
-                      loadingRelated: _loadingRelated,
+        child: ScrollConfiguration(
+          behavior: const _ArticleScrollBehavior(),
+          child: CustomScrollView(
+            controller: _scroll,
+            slivers: <Widget>[
+              SliverAppBar(
+                pinned: true,
+                toolbarHeight: 58,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                leadingWidth: Tokens.gutter + 42,
+                leading: Padding(
+                  padding: const EdgeInsetsDirectional.only(start: Tokens.gutter),
+                  child: Center(
+                    child: GlassIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      tooltip: context.strings.back,
+                      onTap: () => Navigator.of(context).maybePop(),
                     ),
                   ),
+                ),
+                actions: <Widget>[
+                  BookmarkAction(article: article, dense: true),
+                  const SizedBox(width: 4),
+                  GlassIconButton(
+                    icon: Icons.translate_rounded,
+                    tooltip: context.strings.translateAction,
+                    onTap: () => showTranslationSheet(
+                      context,
+                      text: <String>[
+                        article.title,
+                        if ((article.excerpt ?? '').isNotEmpty) article.excerpt!,
+                      ].join(' '),
+                    ),
+                  ),
+                  const SizedBox(width: Tokens.gutter),
                 ],
               ),
-            ),
-            // Progress is drawn over the page rather than inside the app bar so
-            // it stays a hairline instead of a coloured band.
-            Positioned(
-              top: MediaQuery.paddingOf(context).top + 57,
-              left: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: ReadingProgressBar(progress: _progress, height: 2),
+              SliverToBoxAdapter(
+                child: _ArticleBody(
+                  article: article,
+                  source: source,
+                  scale: scale,
+                  related: related,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -206,14 +189,12 @@ class _ArticleBody extends StatelessWidget {
     required this.source,
     required this.scale,
     required this.related,
-    required this.loadingRelated,
   });
 
   final Article article;
   final NewsSource? source;
   final double scale;
   final List<Article> related;
-  final bool loadingRelated;
 
   @override
   Widget build(BuildContext context) {
@@ -297,6 +278,7 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
               _ExcerptNote(text: context.strings.excerptNotice),
               const SizedBox(height: 20),
               JellyButton(
+                key: const ValueKey<String>('read-full-story'),
                 label: context.strings.readInApp,
                 icon: Icons.menu_book_rounded,
                 filled: true,
@@ -310,9 +292,8 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                 ),
               ),
               const SizedBox(height: 24),
-              if (loadingRelated)
-                const SkeletonBox(height: 64, radius: Tokens.radiusMd)
-              else if (related.isNotEmpty) ...<Widget>[
+              if (related.isNotEmpty) ...<Widget>[
+                const SizedBox(key: ValueKey<String>('source-comparison-section')),
                 Kicker(context.strings.relatedCoverage),
                 const SizedBox(height: 4),
                 Text(
@@ -345,7 +326,11 @@ padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                   ),
                 const SizedBox(height: 16),
               ],
-              if (source != null) _SourceFooter(source: source!),
+              if (source != null)
+                _SourceFooter(
+                  key: const ValueKey<String>('publisher-identity'),
+                  source: source!,
+                ),
               const SizedBox(height: 56),
             ],
           ),
@@ -545,7 +530,7 @@ class _RelatedRow extends StatelessWidget {
 }
 
 class _SourceFooter extends StatelessWidget {
-  const _SourceFooter({required this.source});
+  const _SourceFooter({super.key, required this.source});
 
   final NewsSource source;
 

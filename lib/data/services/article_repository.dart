@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/utils/article_freshness.dart';
+import '../../core/utils/story_matcher.dart';
 
 import '../feeds/feed_service.dart';
 import '../models/article.dart';
@@ -105,21 +106,24 @@ class ArticleRepository {
     };
   }
 
-  /// Publications that covered the same story, excluding [article] itself.
+  /// Publications that conservatively match [article], excluding the current
+  /// report and duplicate publishers. This is a fallback for details opened
+  /// before FeedController has built its in-memory comparison index.
   Future<List<Article>> relatedCoverage(Article article, {int limit = 6}) async {
-    final String? key = article.clusterKey;
-    if (key == null) return const <Article>[];
-    final List<Article> cached =
-        await stores.articles.byClusterKey(key, limit: limit + 12);
-    final List<Article> same =
+    final List<Article> cached = await stores.articles.latest(limit: 5000);
+    final List<Article> eligible =
         ArticleFreshness.eligible(cached, now: _clock());
     final Map<String, Article> byPublisher = <String, Article>{};
-    for (final Article candidate in same) {
-      if (candidate.id == article.id) continue;
-      if (candidate.sourceId == article.sourceId) continue;
+    for (final Article candidate in eligible) {
+      if (candidate.id == article.id ||
+          candidate.sourceId == article.sourceId ||
+          !StoryMatcher.matches(article, candidate)) {
+        continue;
+      }
       byPublisher.putIfAbsent(candidate.sourceId, () => candidate);
+      if (byPublisher.length >= limit) break;
     }
-    return byPublisher.values.take(limit).toList();
+    return byPublisher.values.toList(growable: false);
   }
 
   /// Fetches every enabled source (or a subset) and stores the results.
