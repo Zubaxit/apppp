@@ -247,7 +247,7 @@ class _ArticleBody extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 16),
-              SoftRule(inset: 0, thickness: 0.8),
+              const SoftRule(inset: 0, thickness: 0.8),
               const SizedBox(height: 18),
               if ((article.excerpt ?? '').isNotEmpty) ...<Widget>[
                 Text(
@@ -336,7 +336,7 @@ class _ArticleBody extends StatelessWidget {
                   ),
                 const SizedBox(height: 16),
               ],
-              if (source != null) _SourceFooter(source: source),
+              if (source != null) _SourceFooter(source: source!),
               const SizedBox(height: 56),
             ],
           ),

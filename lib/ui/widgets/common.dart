@@ -287,7 +287,7 @@ class ArticleSkeleton extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 14),
-              ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
+              const ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
             ],
           ),
           const SizedBox(height: 18),
@@ -317,7 +317,7 @@ class HealthBadge extends StatelessWidget {
     } else if (health == null) {
       label = context.strings.feedUnchecked;
       color = context.colors.onSurfaceVariant;
-    } else if (health!.isWorking) {
+    } else if (health!.isOk) {
       label = context.strings.feedWorking;
       color = Tokens.success;
     } else {

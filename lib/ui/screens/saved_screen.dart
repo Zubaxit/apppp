@@ -469,7 +469,7 @@ class _RemoveBackground extends StatelessWidget {
           alignment: AlignmentDirectional.centerEnd,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           color: Tokens.danger.withValues(alpha: 0.16),
-          child: Icon(
+          child: const Icon(
             Icons.bookmark_remove_rounded,
             size: 20,
             color: Tokens.danger,

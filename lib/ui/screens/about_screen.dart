@@ -125,7 +125,7 @@ class _AboutScreenState extends State<AboutScreen> {
           bottom: false,
           child: Column(
             children: <Widget>[
-              _AboutHeader(),
+              const _AboutHeader(),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(

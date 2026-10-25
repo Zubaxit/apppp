@@ -142,7 +142,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                   ],
                 ),
               ),
-              SoftRule(inset: Tokens.gutter, thickness: 0.8),
+              const SoftRule(inset: Tokens.gutter, thickness: 0.8),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: _refresh,

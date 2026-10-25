@@ -7,7 +7,6 @@ import '../../data/models/source_health.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
-import 'actions.dart';
 import 'article_card.dart' show topicLabel;
 import 'common.dart';
 import 'editorial.dart';
@@ -199,7 +198,7 @@ class PublicationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool bengali = context.isBengali;
     final String name = source.localizedName(bengali: bengali);
-    final String? other = source.otherName(bengali: bengali);
+    final String? other = source.secondaryName(bengali: bengali);
     return Pressable(
       onTap: onTap,
       scale: 0.99,

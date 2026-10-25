@@ -1,7 +1,6 @@
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
 import 'package:bangladesh_newspaper_hub/theme/materials.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/newspapers_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fakes.dart';

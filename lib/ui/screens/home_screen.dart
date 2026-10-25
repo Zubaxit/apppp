@@ -423,7 +423,7 @@ class _RefreshButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return JellySurface(
-      onTap: refreshing ? null : () => onRefresh(),
+      onTap: refreshing ? null : onRefresh,
       scale: 0.88,
       enabled: !refreshing,
       child: SizedBox(
@@ -621,7 +621,7 @@ class _EmptyState extends StatelessWidget {
               JellyButton(
                 label: context.strings.retry,
                 icon: Icons.refresh_rounded,
-                onPressed: () => onRetry(),
+                onPressed: onRetry,
                 compact: true,
               ),
               const SizedBox(width: 8),
