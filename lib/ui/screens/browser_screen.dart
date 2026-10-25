@@ -1,17 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
+import '../../core/utils/reader_extract.dart';
 import '../../core/utils/url_safety.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
+import '../../services/machine_translation.dart';
+import '../../services/translation_service.dart';
 import '../../state/saved_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../services/browser_engine.dart';
+import 'reader_mode_screen.dart';
 
 /// In-app reader for a publisher's own page.
 ///
@@ -26,6 +32,7 @@ class BrowserScreen extends StatefulWidget {
     this.source,
     this.engine,
     this.article,
+    this.translator,
   });
 
   final String url;
@@ -36,6 +43,9 @@ class BrowserScreen extends StatefulWidget {
   /// Injected by tests; the app builds a WebView engine.
   final BrowserEngine? engine;
 
+  /// Injected by tests; the app talks to the free machine-translation service.
+  final MachineTranslator? translator;
+
   @override
   State<BrowserScreen> createState() => _BrowserScreenState();
 }
@@ -45,12 +55,23 @@ class _BrowserScreenState extends State<BrowserScreen> {
   late final bool _ownsEngine;
   bool _savedLink = false;
 
-  /// Mirrors the only two engine facts that the surrounding route needs: the
-  /// system back gesture depends on page history, and the bookmark state
-  /// changes when the user saves. Everything else — progress, loading, domain —
-  /// is drawn by a [ListenableBuilder] inside the chrome, so the platform view
-  /// is not rebuilt a hundred times while a page loads.
+  /// Mirrors the page history, because the system back gesture depends on it.
+  /// Everything else — progress, loading, domain — is drawn by a
+  /// [ListenableBuilder] inside the chrome, so the platform view is not rebuilt
+  /// a hundred times while a page loads.
   bool _canGoBack = false;
+
+  /// One back press at a time. Two rapid presses must never navigate two pages
+  /// back, and a press that ends in a route pop must never also run a history
+  /// navigation.
+  bool _backPending = false;
+
+  late final MachineTranslator _translator = widget.translator ?? MyMemoryTranslator();
+  final TranslationService _glossary = TranslationService();
+
+  /// The page's current text selection, trimmed, or empty.
+  String _selection = '';
+  bool _extracting = false;
 
   @override
   void initState() {
@@ -59,6 +80,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
     _engine = widget.engine ?? WebViewBrowserEngine(url: widget.url);
     _canGoBack = _engine.canGoBack;
     _engine.addListener(_onEngine);
+    _engine.watchSelection(_onSelectionChanged);
   }
 
   void _onEngine() {
@@ -67,11 +89,138 @@ class _BrowserScreenState extends State<BrowserScreen> {
     setState(() => _canGoBack = _engine.canGoBack);
   }
 
+  void _onSelectionChanged(String text) {
+    if (!mounted) return;
+    final String value = text.trim();
+    if (value == _selection) return;
+    setState(() => _selection = value);
+  }
+
+  /// Back, in priority order: the page's own history first, then the route.
+  ///
+  /// The history answer is asked for at the moment of the press (see
+  /// [BrowserEngine.tryGoBack]) instead of trusting the last notification, so a
+  /// page that has just pushed a document is never mistaken for the first one —
+  /// which is exactly the case where the old code closed the browser with
+  /// pages still behind it.
+  Future<void> _handleBack() async {
+    if (_backPending) return;
+    _backPending = true;
+    try {
+      final bool wentBack = await _engine.tryGoBack();
+      if (wentBack || !mounted) return;
+      Navigator.of(context).pop();
+    } finally {
+      _backPending = false;
+    }
+  }
+
+  void _close() {
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   @override
   void dispose() {
     _engine.removeListener(_onEngine);
     if (_ownsEngine) _engine.dispose();
     super.dispose();
+  }
+
+  /// Reader mode: read the page's own DOM, then show the article with the
+  /// English kept and the Bengali underneath.
+  Future<void> _openReaderMode() async {
+    if (_extracting) return;
+    final NavigatorState navigator = Navigator.of(context);
+    setState(() => _extracting = true);
+    ReaderDocument? document;
+    try {
+      document = await _engine.extractArticle();
+    } catch (_) {
+      document = null;
+    }
+    if (!mounted) return;
+    setState(() => _extracting = false);
+    if (document == null) {
+      _explainExtractionFailure(navigator);
+      return;
+    }
+    final ReaderDocument ready = document;
+    await navigator.push<void>(
+      editorialRoute<void>(
+        ReaderModeScreen(
+          document: ready,
+          translator: _translator,
+          // "Return to the original page" means the page the user came from:
+          // the browser is still mounted underneath with its live WebView, so
+          // this pops back to it rather than reloading anything.
+          onOpenOriginal: () {
+            if (navigator.canPop()) navigator.pop();
+          },
+        ),
+        name: 'reader-mode',
+      ),
+    );
+  }
+
+  void _explainExtractionFailure(NavigatorState navigator) {
+    if (!mounted) return;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext sheet) => Padding(
+        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              context.strings.readerExtractionFailed,
+              style: context.texts.titleMedium?.copyWith(fontSize: 17),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.strings.readerExtractionFailedBody,
+              style: context.texts.bodySmall?.copyWith(height: 1.6, fontSize: 12.5),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: <Widget>[
+                JellyButton(
+                  label: context.strings.openWebsite,
+                  compact: true,
+                  onPressed: () {
+                    Navigator.of(sheet).pop();
+                    openUrlFeedback(context, _engine.url);
+                  },
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () => Navigator.of(sheet).pop(),
+                  child: Text(context.strings.cancel),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _translateSelection() async {
+    final String selection = _selection;
+    if (selection.isEmpty) return;
+    final Future<String?> Function(String) glossary = (String word) async {
+      await _glossary.load();
+      final WordMeaning meaning = _glossary.lookup(word);
+      return meaning.meaning;
+    };
+    await showSelectionTranslation(
+      context,
+      selection: selection,
+      translator: _translator,
+      glossary: glossary,
+    );
   }
 
   Future<void> _saveCurrentUrl() async {
@@ -143,11 +292,15 @@ class _BrowserScreenState extends State<BrowserScreen> {
   Widget build(BuildContext context) {
     final String domain = _engine.domain.isNotEmpty ? _engine.domain : widget.url;
     return PopScope(
-      // Back walks the page history before it leaves the reader.
-      canPop: !_engine.canGoBack,
+      // The route never pops itself: every back press comes through
+      // _handleBack, which asks the live page history first and pops only when
+      // there is nowhere left to go inside the page. `canPop: false` also makes
+      // the decision single-shot — the route cannot be removed by the system
+      // while the history answer is still in flight.
+      canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) {
         if (didPop) return;
-        if (_engine.canGoBack) _engine.goBack();
+        unawaited(_handleBack());
       },
       child: Scaffold(
         backgroundColor: context.theme.scaffoldBackgroundColor,
@@ -161,30 +314,53 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 loading: _engine.loading,
                 progress: _engine.progress,
                 canGoBack: _engine.canGoBack,
-                onClose: () => Navigator.of(context).maybePop(),
-                onBack: () => _engine.goBack(),
+                onClose: _close,
+                onBack: _handleBack,
                 onReload: () => _engine.reload(),
                 onExternal: () => openUrlFeedback(context, _engine.url),
                 onSave: _savedLink ? null : _explainOfflineSave,
                 saved: _savedLink,
+                reading: _extracting,
+                onRead: _engine.supportsReaderMode ? _openReaderMode : null,
               ),
             ),
             // The page surface listens to the engine itself, so a navigation
             // error or a finished load repaints this subtree without the screen
             // rebuilding the platform view's widget on every progress event.
             Expanded(
-              child: ListenableBuilder(
-                listenable: _engine,
-                child: _engine.buildView(context),
-                builder: (BuildContext context, Widget? view) {
-                  final String? error = _engine.error;
-                  if (error == null) return view!;
-                  return _BrowserError(
-                    message: error,
-                    onRetry: () => _engine.reload(),
-                    onExternal: () => openUrlFeedback(context, _engine.url),
-                  );
-                },
+              child: Stack(
+                children: <Widget>[
+                  Positioned.fill(
+                    child: ListenableBuilder(
+                      listenable: _engine,
+                      child: _engine.buildView(context),
+                      builder: (BuildContext context, Widget? view) {
+                        final String? error = _engine.error;
+                        if (error == null) return view!;
+                        return _BrowserError(
+                          message: error,
+                          onRetry: () => _engine.reload(),
+                          onExternal: () => openUrlFeedback(context, _engine.url),
+                        );
+                      },
+                    ),
+                  ),
+                  // The selection action floats over the page instead of
+                  // pushing it: a strip that changes the page height while the
+                  // user is holding a selection would move the selection under
+                  // their finger.
+                  if (_selection.isNotEmpty)
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      bottom: 12,
+                      child: _SelectionAction(
+                        selection: _selection,
+                        onTranslate: _translateSelection,
+                        onDismiss: () => _onSelectionChanged(''),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -215,6 +391,8 @@ class BrowserToolbar extends StatelessWidget {
     required this.onExternal,
     required this.onSave,
     required this.saved,
+    this.onRead,
+    this.reading = false,
   });
 
   /// Below this width the toolbar switches to its compact metric.
@@ -231,6 +409,12 @@ class BrowserToolbar extends StatelessWidget {
   final VoidCallback onExternal;
   final VoidCallback? onSave;
   final bool saved;
+
+  /// Opens reader mode, or `null` when the page cannot be read.
+  final VoidCallback? onRead;
+
+  /// True while the page is being read, so the control can say so.
+  final bool reading;
 
   @override
   Widget build(BuildContext context) {
@@ -267,6 +451,9 @@ class BrowserToolbar extends StatelessWidget {
                           domain: domain,
                           title: title,
                           compact: compact,
+                          onRead: onRead,
+                          reading: reading,
+                          tooltip: context.strings.readerMode,
                         ),
                       ),
                       BrowserToolButton(
@@ -407,11 +594,17 @@ class _AddressPill extends StatelessWidget {
     required this.domain,
     required this.title,
     required this.compact,
+    this.onRead,
+    this.reading = false,
+    this.tooltip,
   });
 
   final String domain;
   final String? title;
   final bool compact;
+  final VoidCallback? onRead;
+  final bool reading;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -471,6 +664,90 @@ class _AddressPill extends StatelessWidget {
                     ),
                   ),
               ],
+            ),
+          ),
+          if (onRead != null) ...<Widget>[
+            const SizedBox(width: 4),
+            // Reader mode lives inside the address pill: the toolbar stays one
+            // row tall and no control is pushed off a narrow screen.
+            Tooltip(
+              message: tooltip ?? '',
+              child: JellySurface(
+                key: const ValueKey<String>('browser-reader'),
+                onTap: onRead,
+                scale: 0.9,
+                boundary: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: reading
+                      ? SizedBox(
+                          width: compact ? 12 : 13,
+                          height: compact ? 12 : 13,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.4,
+                            color: context.colors.primary,
+                          ),
+                        )
+                      : Icon(
+                          Icons.auto_stories_outlined,
+                          size: compact ? 14 : 15,
+                          color: context.colors.primary,
+                        ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The floating action for a text selection: the first words of what was
+/// selected, the Bengali-meaning action, and a way to put it away.
+class _SelectionAction extends StatelessWidget {
+  const _SelectionAction({
+    required this.selection,
+    required this.onTranslate,
+    required this.onDismiss,
+  });
+
+  final String selection;
+  final VoidCallback onTranslate;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassBar(
+      padding: const EdgeInsets.fromLTRB(12, 7, 6, 7),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              selection,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.texts.labelSmall?.copyWith(fontSize: 11),
+            ),
+          ),
+          const SizedBox(width: 8),
+          JellyButton(
+            label: context.strings.bengaliMeaning,
+            icon: Icons.translate_rounded,
+            compact: true,
+            onPressed: onTranslate,
+          ),
+          JellySurface(
+            onTap: onDismiss,
+            scale: 0.9,
+            boundary: false,
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.close_rounded,
+                size: 15,
+                color: context.colors.onSurfaceVariant,
+              ),
             ),
           ),
         ],

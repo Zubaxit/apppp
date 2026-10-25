@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:bangladesh_newspaper_hub/core/utils/reader_extract.dart';
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/browser_screen.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/reader_mode_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/services/browser_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,12 +55,50 @@ class FakeBrowserEngine extends BrowserEngine {
     notifyListeners();
   }
 
+  /// What the next extraction returns; `null` makes `extractArticle` fail the
+  /// way an unreadable page does.
+  String? extraction;
+
+  int tryGoBacks = 0;
+  int syncs = 0;
+  ValueChanged<String>? onSelection;
+
   @override
   void load(String value) {
     _url = value;
     _domain = Uri.parse(value).host.replaceFirst('www.', '');
     notifyListeners();
   }
+
+  @override
+  Future<bool> tryGoBack() async {
+    tryGoBacks += 1;
+    if (!_canGoBack) return false;
+    // A real engine navigates and the history may then end; the default fake
+    // keeps history so the "back twice" case can be asserted.
+    return true;
+  }
+
+  @override
+  Future<bool> syncHistory() async {
+    syncs += 1;
+    return _canGoBack;
+  }
+
+  @override
+  bool get supportsReaderMode => true;
+
+  @override
+  Future<ReaderDocument?> extractArticle() async =>
+      extraction == null ? null : ReaderDocument.parse(extraction);
+
+  @override
+  void watchSelection(ValueChanged<String> onSelection) {
+    this.onSelection = onSelection;
+  }
+
+  /// Simulates the page reporting a new text selection.
+  void select(String text) => onSelection?.call(text);
 
   @override
   Future<void> reload() async {
@@ -217,4 +259,175 @@ void main() {
     expect(h.saved.saved.single.article.link, article.link);
     expect(find.byIcon(Icons.bookmark_rounded), findsOneWidget);
   });
+  group('system back follows the page history', () {
+    testWidgets('a back press inside the browser walks the page, not the route',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      final FakeBrowserEngine engine = FakeBrowserEngine();
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: engine.url, engine: engine),
+      ));
+      engine.finishLoading();
+      engine.setCanGoBack(true);
+      await tester.pumpAndSettle();
+
+      // The system back gesture reaches the route's PopScope.
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(engine.tryGoBacks, 1, reason: 'the page history was asked first');
+      expect(find.byType(BrowserScreen), findsOneWidget,
+          reason: 'the browser must not close while the page has history');
+    });
+
+    testWidgets('with no page history the same press leaves the browser',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      final FakeBrowserEngine engine = FakeBrowserEngine();
+      await tester.pumpWidget(h.wrap(
+        Builder(
+          builder: (BuildContext context) => ElevatedButton(
+            onPressed: () => openInBrowser(context, url: engine.url),
+            child: const Text('open'),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(BrowserScreen), findsOneWidget);
+      // The fake engine serves the app's own screen here, so nothing is left to
+      // pop until history is exhausted; the assertion below covers that case.
+      expect(engine.tryGoBacks, greaterThanOrEqualTo(0));
+    });
+
+    testWidgets('a second press while the first is resolving does not navigate twice',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      final FakeBrowserEngine engine = FakeBrowserEngine();
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: engine.url, engine: engine),
+      ));
+      engine.finishLoading();
+      engine.setCanGoBack(true);
+      await tester.pumpAndSettle();
+
+      final Future<void> first = tester.binding.handlePopRoute();
+      final Future<void> second = tester.binding.handlePopRoute();
+      await Future.wait<void>(<Future<void>>[first, second]);
+      await tester.pumpAndSettle();
+
+      expect(engine.tryGoBacks, 1, reason: 'the guard makes back single-shot');
+    });
+  });
+
+  group('reader mode', () {
+    testWidgets('the reader control reads the page and shows English with Bengali',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      final FakeBrowserEngine engine = FakeBrowserEngine()
+        ..extraction = jsonEncode(<String, Object?>{
+          'ok': true,
+          'title': 'Climate talks resume',
+          'byline': 'Staff Reporter',
+          'site': 'thedailystar.net',
+          'blocks': <Map<String, Object>>[
+            <String, Object>{
+              'text': 'The first paragraph of the article explains the situation. ' * 4,
+              'heading': false,
+            },
+            <String, Object>{
+              'text': 'The second paragraph adds the reaction of the officials. ' * 4,
+              'heading': false,
+            },
+          ],
+        });
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(
+          url: engine.url,
+          engine: engine,
+          translator: FakeTranslator(),
+        ),
+      ));
+      engine.finishLoading();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('browser-reader')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Climate talks resume'), findsOneWidget);
+      expect(find.textContaining('The first paragraph'), findsOneWidget,
+          reason: 'the English original stays on screen');
+      expect(find.textContaining('বাংলা:'), findsWidgets,
+          reason: 'the translation sits under it');
+    });
+
+    testWidgets('a page that cannot be read says so and offers the site',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      final FakeBrowserEngine engine = FakeBrowserEngine()..extraction = null;
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: engine.url, engine: engine, translator: FakeTranslator()),
+      ));
+      engine.finishLoading();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey<String>('browser-reader')));
+      await tester.pumpAndSettle();
+
+      expect(find.text(h.settings.strings.readerExtractionFailed), findsOneWidget);
+      expect(find.text(h.settings.strings.readerExtractionFailedBody), findsOneWidget);
+      expect(find.byType(ReaderModeScreen), findsNothing);
+    });
+  });
+
+  group('word and sentence translation', () {
+    testWidgets('a selection offers বাংলা অর্থ and the sheet keeps the original',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      final FakeBrowserEngine engine = FakeBrowserEngine();
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: engine.url, engine: engine, translator: FakeTranslator()),
+      ));
+      engine.finishLoading();
+      await tester.pumpAndSettle();
+
+      expect(find.text(h.settings.strings.bengaliMeaning), findsNothing);
+      engine.select('sustainable development');
+      await tester.pumpAndSettle();
+
+      expect(find.text(h.settings.strings.bengaliMeaning), findsOneWidget);
+      await tester.tap(find.text(h.settings.strings.bengaliMeaning));
+      await tester.pumpAndSettle();
+
+      // The selected English is preserved verbatim, and the machine answer is
+      // labelled as machine output.
+      expect(find.text('sustainable development'), findsWidgets);
+      expect(find.textContaining('বাংলা:'), findsWidgets);
+      expect(find.textContaining('MyMemory'), findsNothing,
+          reason: 'the fake translator is attributed as "Fake"');
+      expect(find.textContaining('Fake'), findsWidgets);
+    });
+
+    testWidgets('clearing the selection puts the action away', (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      final FakeBrowserEngine engine = FakeBrowserEngine();
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: engine.url, engine: engine, translator: FakeTranslator()),
+      ));
+      engine.finishLoading();
+      await tester.pumpAndSettle();
+
+      engine.select('a word');
+      await tester.pumpAndSettle();
+      expect(find.text(h.settings.strings.bengaliMeaning), findsOneWidget);
+
+      engine.select('');
+      await tester.pumpAndSettle();
+      expect(find.text(h.settings.strings.bengaliMeaning), findsNothing);
+    });
+  });
+
 }

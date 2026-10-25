@@ -6,6 +6,7 @@ import 'package:bangladesh_newspaper_hub/data/models/feed_query.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
 import 'package:bangladesh_newspaper_hub/data/models/source_health.dart';
 import 'package:bangladesh_newspaper_hub/data/services/stores.dart';
+import 'package:bangladesh_newspaper_hub/services/machine_translation.dart';
 
 /// In-memory implementations of every store, used by unit and widget tests so
 /// no sqflite platform channel is required.
@@ -321,4 +322,43 @@ FeedQuery queryOf({
     text: text,
     limit: limit,
   );
+}
+
+/// A translator with no network. Records what it was asked for, and can fail
+/// paragraphs containing a given substring so per-paragraph errors are testable.
+class FakeTranslator implements MachineTranslator {
+  FakeTranslator({this.failOn = const <String>[], this.delay = Duration.zero});
+
+  final List<String> failOn;
+  final Duration delay;
+  final List<String> requests = <String>[];
+
+  @override
+  bool get requiresNetwork => true;
+
+  @override
+  String get attribution => 'Fake';
+
+  @override
+  Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
+    requests.add(text);
+    if (delay != Duration.zero) await Future<void>.delayed(delay);
+    for (final String needle in failOn) {
+      if (text.contains(needle)) {
+        throw const TranslationException('quota reached');
+      }
+    }
+    return 'বাংলা: ${text.length}';
+  }
+
+  @override
+  Future<List<String>> translateAll(
+    List<String> texts, {
+    String from = 'en',
+    String to = 'bn',
+  }) async {
+    return <String>[
+      for (final String text in texts) await translate(text, from: from, to: to),
+    ];
+  }
 }

@@ -79,8 +79,12 @@ class _BookmarkActionState extends State<BookmarkAction>
 
   @override
   Widget build(BuildContext context) {
-    final SavedController savedController = context.watch<SavedController>();
-    final bool saved = savedController.isSaved(widget.article.id);
+    // Only this article's saved flag matters here. Watching the whole
+    // controller rebuilt every visible row on any bookmark change, and a row
+    // rebuild re-lays out a long Bengali headline — visible jank in the river.
+    final bool saved = context.select<SavedController, bool>(
+      (SavedController controller) => controller.isSaved(widget.article.id),
+    );
     final Motion motion = Motion.of(context);
     final Color idle = widget.onDark
         ? Colors.white

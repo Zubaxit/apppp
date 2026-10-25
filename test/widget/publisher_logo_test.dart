@@ -1,4 +1,5 @@
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
+import 'package:bangladesh_newspaper_hub/services/publisher_logos.dart';
 import 'package:bangladesh_newspaper_hub/theme/tokens.dart';
 import 'package:bangladesh_newspaper_hub/ui/widgets/publisher_logo.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -120,6 +121,7 @@ void main() {
 
 /// The publisher's own initials, as the model derives them.
 String get _monogram => const _ProthomAlo().monogram;
+String get _dailyStarMonogram => const _DailyStar().monogram;
 
 class _ProthomAlo extends NewsSource {
   const _ProthomAlo()
@@ -143,4 +145,49 @@ class _DailyStar extends NewsSource {
           type: PublicationType.dailyNewspaper,
           feedClaim: FeedClaim.verifiedWorking,
         );
+  group('bundled marks', () {
+    testWidgets('a bundled asset is painted instead of a monogram or a request',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      PublisherLogos.debugSet(const <String, String>{
+        'prothomalo': 'assets/publishers/prothomalo.png',
+      });
+      addTearDown(() => PublisherLogos.debugSet(const <String, String>{}));
+
+      await tester.pumpWidget(h.wrap(
+        const Center(child: PublisherLogo(source: _ProthomAlo(), size: 44)),
+      ));
+      await tester.pump();
+
+      final Finder image = find.descendant(
+        of: find.byType(PublisherLogo),
+        matching: find.byType(Image),
+      );
+      expect(image, findsOneWidget, reason: 'the bundled file is used');
+      final Image widget = tester.widget<Image>(image);
+      expect(widget.image, isA<AssetImage>());
+      expect((widget.image as AssetImage).assetName, 'assets/publishers/prothomalo.png');
+      expect(find.byType(CachedNetworkImage), findsNothing,
+          reason: 'no network request for a mark that ships with the app');
+    });
+
+    testWidgets('a publisher with no bundled mark still falls back cleanly',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness();
+      PublisherLogos.debugSet(const <String, String>{
+        'prothomalo': 'assets/publishers/prothomalo.png',
+      });
+      addTearDown(() => PublisherLogos.debugSet(const <String, String>{}));
+
+      await tester.pumpWidget(h.wrap(
+        const Center(child: PublisherLogo(source: _DailyStar(), size: 44)),
+      ));
+      await tester.pump();
+
+      expect(find.byType(Image), findsNothing);
+      expect(find.text(_dailyStarMonogram), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
 }

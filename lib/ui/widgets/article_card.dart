@@ -276,7 +276,9 @@ class _Saved extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool saved = context.watch<SavedController>().isSaved(article.id);
+    final bool saved = context.select<SavedController, bool>(
+      (SavedController controller) => controller.isSaved(article.id),
+    );
     final bool hasExcerpt = (article.excerpt ?? '').trim().isNotEmpty;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 12),

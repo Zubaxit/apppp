@@ -1,5 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+import '../../core/utils/reader_extract.dart';
+import 'reader_scripts.dart';
 
 /// Minimal in-app browser surface.
 ///
@@ -18,6 +24,36 @@ abstract class BrowserEngine extends ChangeNotifier {
   Future<void> reload();
   Future<void> goBack();
 
+  /// Asks the page history whether a previous document exists, and navigates to
+  /// it when it does.
+  ///
+  /// Returns `true` only when this call actually started a history navigation —
+  /// which is what the screen needs in order to decide whether Back belongs to
+  /// the page or to the route. The answer comes from the platform view at call
+  /// time rather than from the last notification, because history changes while
+  /// a page is still loading and a cached answer is exactly what makes Back
+  /// close the browser with pages still behind it.
+  Future<bool> tryGoBack() async {
+    if (!canGoBack) return false;
+    await goBack();
+    return true;
+  }
+
+  /// Re-reads the platform history. Cheap, idempotent, and called after every
+  /// navigation event.
+  Future<bool> syncHistory() async => canGoBack;
+
+  /// Extracts the readable part of the loaded page, or `null` when this engine
+  /// or this page cannot provide it.
+  Future<ReaderDocument?> extractArticle() async => null;
+
+  /// Installs the text-selection watcher. Empty selections are reported as an
+  /// empty string so the screen can dismiss its action.
+  void watchSelection(ValueChanged<String> onSelection) {}
+
+  /// Runs a one-off translation/selection probe. Exposed for tests.
+  bool get supportsReaderMode => false;
+
   /// The platform view. Tests provide a lightweight stand-in.
   Widget buildView(BuildContext context);
 }
@@ -34,6 +70,10 @@ class WebViewBrowserEngine extends BrowserEngine {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
+      ..addJavaScriptChannel(
+        ReaderScripts.channel,
+        onMessageReceived: _onPageMessage,
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int value) {
@@ -46,12 +86,23 @@ class WebViewBrowserEngine extends BrowserEngine {
             _url = value;
             _domain = _domainOf(value);
             notifyListeners();
+            // A new document means the history changed shape; read it now rather
+            // than waiting for `onPageFinished`, which a slow page may delay
+            // until after the user has already pressed Back.
+            unawaited(_refreshHistory());
           },
           onPageFinished: (String value) async {
             _loading = false;
             _url = value;
             _domain = _domainOf(value);
-            _canGoBack = await _controller.canGoBack();
+            await _refreshHistory();
+            notifyListeners();
+          },
+          onUrlChange: (UrlChange change) {
+            final String? value = change.url;
+            if (value == null || value.isEmpty) return;
+            _url = value;
+            _domain = _domainOf(value);
             notifyListeners();
           },
           onWebResourceError: (WebResourceError value) {
@@ -73,6 +124,40 @@ class WebViewBrowserEngine extends BrowserEngine {
   bool _canGoBack = false;
   String? _error;
   double _progress = 0;
+
+  ValueChanged<String>? _onSelection;
+  Future<bool>? _historyInFlight;
+
+  void _onPageMessage(JavaScriptMessage message) {
+    if (message.message.isEmpty) {
+      _onSelection?.call('');
+      return;
+    }
+    final Object? decoded = jsonDecode(message.message);
+    if (decoded is! Map<String, dynamic>) return;
+    final Object? text = decoded['text'];
+    _onSelection?.call(text is String ? text : '');
+  }
+
+  /// Coalesces concurrent history reads: a page that fires start, finish and a
+  /// history-state change in the same frame asks the platform view once.
+  Future<bool> _refreshHistory() {
+    final Future<bool>? pending = _historyInFlight;
+    if (pending != null) return pending;
+    final Future<bool> running = _controller.canGoBack().then((bool value) {
+      _historyInFlight = null;
+      if (value != _canGoBack) {
+        _canGoBack = value;
+        notifyListeners();
+      }
+      return value;
+    }, onError: (Object error) {
+      _historyInFlight = null;
+      return _canGoBack;
+    });
+    _historyInFlight = running;
+    return running;
+  }
 
   static String _domainOf(String value) {
     final Uri? uri = Uri.tryParse(value);
@@ -115,9 +200,51 @@ class WebViewBrowserEngine extends BrowserEngine {
   Future<void> goBack() async {
     if (await _controller.canGoBack()) {
       await _controller.goBack();
-      _canGoBack = await _controller.canGoBack();
+      await _refreshHistory();
       notifyListeners();
     }
+  }
+
+  @override
+  Future<bool> tryGoBack() async {
+    // Asked live: the cached flag can be one navigation behind while a page is
+    // still committing, and that is when users press Back.
+    final bool available = await _refreshHistory();
+    if (!available) {
+      _canGoBack = false;
+      notifyListeners();
+      return false;
+    }
+    await _controller.goBack();
+    await _refreshHistory();
+    notifyListeners();
+    return true;
+  }
+
+  @override
+  Future<bool> syncHistory() => _refreshHistory();
+
+  @override
+  bool get supportsReaderMode => true;
+
+  @override
+  Future<ReaderDocument?> extractArticle() async {
+    // Extraction runs in the page, where the DOM already is, so no HTML has to
+    // cross the platform channel and no second network request is made.
+    await _controller.runJavaScript(ReaderScripts.installGlobals);
+    final Object result =
+        await _controller.runJavaScriptReturningResult(ReaderScripts.extract);
+    final String raw = result is String ? result : '$result';
+    return ReaderDocument.parse(raw, pageUrl: _url);
+  }
+
+  @override
+  void watchSelection(ValueChanged<String> onSelection) {
+    _onSelection = onSelection;
+    _controller.runJavaScript(ReaderScripts.installGlobals).then(
+      (_) => _controller.runJavaScript(ReaderScripts.watchSelection),
+      onError: (Object error) {},
+    );
   }
 
   @override

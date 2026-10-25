@@ -3,16 +3,22 @@ import 'package:flutter/material.dart';
 
 import '../../core/extensions.dart';
 import '../../data/models/news_source.dart';
+import '../../services/publisher_logos.dart';
 import '../../theme/tokens.dart';
 
 /// A publisher's own mark, at the size the interface needs it.
 ///
 /// The app identifies a publisher by the publisher's identity, not by a letter
-/// drawn in the app's typeface. The mark is fetched from the publisher's own
-/// site — the maintainer's explicit asset if the registry carries one,
-/// otherwise the touch icon the site advertises, otherwise its favicon — and
-/// served from the image disk cache, so a second build of the same row is a
-/// cache hit rather than a request.
+/// drawn in the app's typeface. Resolution order:
+///
+/// 1. **the bundled mark** (`assets/publishers/`, manifest in
+///    `PublisherLogos`) — reviewed against the publisher, offline, instant;
+/// 2. the maintainer's explicit registry asset, if one is ever added;
+/// 3. the touch icon the publisher's own site advertises;
+/// 4. its favicon.
+///
+/// Steps 3 and 4 go through the image disk cache, so a second build of the same
+/// row is a cache hit rather than a request.
 ///
 /// Everything about this widget is designed to fail quietly:
 ///
@@ -74,6 +80,10 @@ class _PublisherLogoState extends State<PublisherLogo> {
     });
   }
 
+  /// Target pixel width for a tile of [size] logical pixels.
+  static int pixels(double size) =>
+      (size * 2).round().clamp(32, 256);
+
   @override
   Widget build(BuildContext context) {
     final bool dark = context.isDark;
@@ -82,20 +92,32 @@ class _PublisherLogoState extends State<PublisherLogo> {
     final bool showMonogram = _candidate >= urls.length;
     final BorderRadius shape = BorderRadius.circular(size * 0.3);
 
+    final String? bundled = PublisherLogos.assetFor(widget.source.id);
     Widget content;
-    // Under 24 dp a wordmark is a smudge; the monogram reads better and saves
-    // the river a request per row.
-    if (!PublisherLogo.remoteEnabled || showMonogram || size < 24) {
+    if (bundled != null && size >= 16) {
+      // A bundled mark: decoded once per size by Flutter's asset image cache and
+      // painted straight away, in both themes and with no connection.
+      content = Image.asset(
+        bundled,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+        // Fixed by construction in the generator; declared so layout never
+        // depends on the file.
+        cacheWidth: pixels(size),
+        errorBuilder: (BuildContext context, Object error, StackTrace? stack) =>
+            _Monogram(source: widget.source, size: size, solid: widget.solid),
+      );
+    } else if (!PublisherLogo.remoteEnabled || showMonogram || size < 24) {
       content = _Monogram(source: widget.source, size: size, solid: widget.solid);
     } else {
-      final int pixels = (size * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2))
+      final int targetPx = (size * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2))
           .round()
           .clamp(48, 192);
       content = CachedNetworkImage(
         imageUrl: urls[_candidate],
         // A mark is a small asset; ask the codec for the tile, not the source.
-        memCacheWidth: pixels,
-        maxWidthDiskCache: pixels,
+        memCacheWidth: targetPx,
+        maxWidthDiskCache: targetPx,
         fadeInDuration: const Duration(milliseconds: 140),
         fadeOutDuration: Duration.zero,
         fit: BoxFit.contain,

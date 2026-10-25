@@ -199,6 +199,25 @@ abstract class AppStrings {
   String get offlineSavedNotice;
   String get saveLinkOnlyNotice;
   String get featuredStories;
+
+  // Reader mode and translation
+  String get readerMode;
+  String get readerModeHint;
+  String get translationLabel;
+  String get showTranslation;
+  String get hideTranslation;
+  String get bengaliMeaning;
+  String get translating;
+  String get translationUnavailable;
+  String get translationNotice;
+  String get readerExtractionFailed;
+  String get readerExtractionFailedBody;
+  String get openOriginalPage;
+  String get selectedText;
+  String get copyText;
+  String get textCopied;
+  String get selectionUnsupported;
+  String get machineTranslationNotice;
   String get topStory;
   String get readingProgress;
   String get aboutAuthorTitle;
@@ -579,6 +598,43 @@ class BanglaStrings extends AppStrings {
       'শুধু শিরোনাম, সারাংশ ও মূল লিংক সংরক্ষিত হবে — পুরো প্রতিবেদনের লেখা নয়। অফলাইনে থাকলে মূল পৃষ্ঠাটি খুলবে না।';
   @override
   String get readInApp => 'অ্যাপে পড়ুন';
+  @override
+  String get readerMode => 'পাঠ মোড';
+  @override
+  String get readerModeHint => 'বিজ্ঞাপন ও মেনু ছাড়া শুধু প্রতিবেদনটি';
+  @override
+  String get translationLabel => 'বাংলা অনুবাদ';
+  @override
+  String get showTranslation => 'অনুবাদ দেখাও';
+  @override
+  String get hideTranslation => 'অনুবাদ লুকাও';
+  @override
+  String get bengaliMeaning => 'বাংলা অর্থ';
+  @override
+  String get translating => 'অনুবাদ হচ্ছে…';
+  @override
+  String get translationUnavailable => 'এই মুহূর্তে অনুবাদ পাওয়া যাচ্ছে না';
+  @override
+  String get translationNotice =>
+      'নিচের বাংলা যান্ত্রিক অনুবাদ, মূল ইংরেজি লেখকের লেখা নয়। অর্থ ও বাক্যগঠন ভুল হতে পারে।';
+  @override
+  String get readerExtractionFailed => 'পাঠ মোড চালু করা গেল না';
+  @override
+  String get readerExtractionFailedBody =>
+      'এই পত্রিকার পাতাটি স্বয়ংক্রিয়ভাবে পড়া যায় না — সম্ভবত প্রতিবেদনটি স্ক্রিপ্টে তৈরি বা লগইন-সাপেক্ষ। মূল পাতাটি ব্রাউজারে পড়ুন।';
+  @override
+  String get openOriginalPage => 'মূল পাতায় ফিরে যান';
+  @override
+  String get selectedText => 'নির্বাচিত লেখা';
+  @override
+  String get copyText => 'কপি';
+  @override
+  String get textCopied => 'কপি হয়েছে';
+  @override
+  String get selectionUnsupported => 'এই পাতায় লেখা নির্বাচন করা যায় না';
+  @override
+  String get machineTranslationNotice =>
+      'অনুবাদ যান্ত্রিক পরিষেবা থেকে আসে, তাই ইন্টারনেট প্রয়োজন। অফলাইনে শুধু শব্দের অর্থ পাওয়া যায়।';
   @override
   String get featuredStories => 'আজকের প্রধান খবর';
   @override
@@ -996,6 +1052,43 @@ class EnglishStrings extends AppStrings {
       'Only the headline, excerpt and original link are saved — not the full article text. The page will not open while you are offline.';
   @override
   String get readInApp => 'Read in app';
+  @override
+  String get readerMode => 'Reader mode';
+  @override
+  String get readerModeHint => 'The article alone, without menus or adverts';
+  @override
+  String get translationLabel => 'Bengali translation';
+  @override
+  String get showTranslation => 'Show translation';
+  @override
+  String get hideTranslation => 'Hide translation';
+  @override
+  String get bengaliMeaning => 'বাংলা অর্থ';
+  @override
+  String get translating => 'Translating…';
+  @override
+  String get translationUnavailable => 'Translation is not available right now';
+  @override
+  String get translationNotice =>
+      'The Bengali below is machine output, not the author\'s writing. Meaning and grammar can be wrong.';
+  @override
+  String get readerExtractionFailed => 'Reader mode could not start';
+  @override
+  String get readerExtractionFailedBody =>
+      'This publisher\'s page cannot be read automatically — it is probably built by scripts or behind a login. Read the original page in the browser instead.';
+  @override
+  String get openOriginalPage => 'Return to the original page';
+  @override
+  String get selectedText => 'Selected text';
+  @override
+  String get copyText => 'Copy';
+  @override
+  String get textCopied => 'Copied';
+  @override
+  String get selectionUnsupported => 'Text cannot be selected on this page';
+  @override
+  String get machineTranslationNotice =>
+      'Translation comes from a machine service, so it needs an internet connection. Offline, only the word glossary is available.';
   @override
   String get featuredStories => 'Top stories';
   @override

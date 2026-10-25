@@ -223,17 +223,25 @@ class _HomeScreenState extends State<HomeScreen> {
               // The river is a real sliver list, so a long feed only builds the
               // rows that are on screen — no eager Column of a hundred cards.
               if (river.length > _eagerRiver)
-                SliverList.builder(
-                  itemCount: river.length - _eagerRiver,
-                  itemBuilder: (BuildContext context, int offset) {
-                    final int index = offset + _eagerRiver;
-                    return NewsCard(
-                      article: river[index],
-                      source: registry.byId(river[index].sourceId),
-                      index: index,
-                      onTap: () => openArticle(context, river[index]),
-                    );
-                  },
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int offset) {
+                      final int index = offset + _eagerRiver;
+                      return NewsCard(
+                        article: river[index],
+                        source: registry.byId(river[index].sourceId),
+                        index: index,
+                        onTap: () => openArticle(context, river[index]),
+                      );
+                    },
+                    childCount: river.length - _eagerRiver,
+                    // Each row is wrapped in its own repaint boundary by the
+                    // delegate already. A keep-alive per row would only add a
+                    // listener and retain off-screen state in a list that is
+                    // pure presentation.
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: true,
+                  ),
                 ),
               if (river.isNotEmpty)
                 SliverToBoxAdapter(

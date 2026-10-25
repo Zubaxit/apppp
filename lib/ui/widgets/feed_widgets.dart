@@ -625,7 +625,8 @@ class CategoryCircle extends StatelessWidget {
                         : (dark ? Colors.white.withValues(alpha: 0.14) : Tokens.hairline),
                     width: 0.9,
                   ),
-                  boxShadow: Tokens.shadow(context, lift: 0.3),
+                  // No blurred shadow: thirteen of these sit in one strip and
+                  // each shadow is a blurred raster of its own.
                 ),
                 child: Icon(
                   icon,

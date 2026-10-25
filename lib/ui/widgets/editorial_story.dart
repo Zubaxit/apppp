@@ -435,7 +435,11 @@ class NewsCard extends StatelessWidget {
                 : Colors.white.withValues(alpha: 0.9),
             width: 0.9,
           ),
-          boxShadow: Tokens.shadow(context, lift: 0.45),
+          // No boxShadow. A blurred shadow behind every row means a saveLayer
+          // and a blur per card in the feed — the single most expensive paint
+          // operation here, repeated once per row as rows scroll into view.
+          // The hairline plus the raised gradient carry the same hierarchy, and
+          // the accent is spent on the bookmark instead.
         ),
         child: JellySurface(
           onTap: onTap,

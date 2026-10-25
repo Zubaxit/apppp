@@ -100,7 +100,9 @@ class _AppShellState extends State<AppShell>
   @override
   Widget build(BuildContext context) {
     final SettingsController settings = context.watch<SettingsController>();
-    final int savedCount = context.watch<SavedController>().count;
+    final int savedCount = context.select<SavedController, int>(
+      (SavedController controller) => controller.count,
+    );
 
     return PopScope(
       // Back on a non-home tab returns to Home; on Home it leaves the app.

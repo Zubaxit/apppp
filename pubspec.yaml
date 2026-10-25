@@ -51,6 +51,8 @@ flutter:
     - assets/data/source_candidates.json
     - assets/data/bn_glossary.json
     - assets/fonts/OFL.txt
+    - assets/publishers/logos.json
+    - assets/publishers/
 
   fonts:
     - family: NotoSansBengali

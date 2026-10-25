@@ -129,6 +129,46 @@ for path in sorted(set(declared)):
 print(f'    all {len(set(declared))} declared asset files present')
 PY
 
+echo "==> bundled publisher marks match the registry"
+python3 - <<'LOGOS'
+import json, struct
+from pathlib import Path
+
+manifest = json.loads(Path('assets/publishers/logos.json').read_text(encoding='utf-8'))
+logos = manifest['logos']
+registry = json.loads(Path('assets/data/sources.json').read_text(encoding='utf-8'))
+known = {s['id'] for s in registry['sources']}
+size = manifest['size']
+
+files = {}
+for publisher_id, entry in logos.items():
+    assert publisher_id in known, f'logo for unknown publisher: {publisher_id}'
+    relative = entry['file']
+    assert relative.startswith('assets/publishers/'), relative
+    path = Path(relative)
+    assert path.exists(), f'missing logo file: {relative}'
+    assert path not in files.values(), f'{publisher_id} reuses {relative}'
+    files[publisher_id] = path
+
+    raw = path.read_bytes()
+    assert raw[:8] == b'\x89PNG\r\n\x1a\n', f'{relative} is not a PNG'
+    width, height = struct.unpack('>II', raw[16:24])
+    assert (width, height) == (size, size), f'{relative} is {width}x{height}, expected {size} square'
+    assert len(raw) > 500, f'{relative} is suspiciously small'
+
+# No orphan art: every PNG in the directory is declared, and every declared file
+# is a distinct file. A missing mark is fine; a dangling reference is not.
+on_disk = {p.name for p in Path('assets/publishers').glob('*.png')}
+declared = {p.name for p in files.values()}
+assert on_disk == declared, f'orphan or undeclared logo files: {sorted(on_disk ^ declared)}'
+
+curated = {s['id'] for s in registry['sources'] if s.get('curated')}
+covered = curated & set(logos)
+print(f'    {len(logos)} bundled marks, each a distinct square {size}px PNG on disk')
+print(f'    curated coverage: {len(covered)}/{len(curated)}; '
+      f'falling back: {", ".join(sorted(curated - set(logos)))}')
+LOGOS
+
 echo "==> Dart structural checks (no SDK required)"
 python3 tool/dart_lint.py
 
