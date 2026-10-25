@@ -169,14 +169,23 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 saved: _savedLink,
               ),
             ),
+            // The page surface listens to the engine itself, so a navigation
+            // error or a finished load repaints this subtree without the screen
+            // rebuilding the platform view's widget on every progress event.
             Expanded(
-              child: _engine.error != null
-                  ? _BrowserError(
-                      message: _engine.error!,
-                      onRetry: () => _engine.reload(),
-                      onExternal: () => openUrlFeedback(context, _engine.url),
-                    )
-                  : _engine.buildView(context),
+              child: ListenableBuilder(
+                listenable: _engine,
+                child: _engine.buildView(context),
+                builder: (BuildContext context, Widget? view) {
+                  final String? error = _engine.error;
+                  if (error == null) return view!;
+                  return _BrowserError(
+                    message: error,
+                    onRetry: () => _engine.reload(),
+                    onExternal: () => openUrlFeedback(context, _engine.url),
+                  );
+                },
+              ),
             ),
           ],
         ),
