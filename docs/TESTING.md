@@ -20,9 +20,13 @@ claimed unless it actually ran.
 ```
 $ ./tool/verify.sh
 ==> source registry JSON is valid
-    60 sources, 6 e-papers, 6 candidates
+    64 sources, 6 e-papers, 6 candidates
+==> offline glossary is valid and honestly labelled
+    269 english words with Bengali glosses
 ==> every asset declared in pubspec.yaml exists
-    all 10 declared asset files present
+    all 11 declared asset files present
+==> Dart structural checks (no SDK required)
+checked 79 Dart files: structure, imports and class visibility OK
 ```
 
 Checks: JSON parses; ids unique; every website/feed/e-paper URL is `https`; enums
@@ -30,7 +34,10 @@ Checks: JSON parses; ids unique; every website/feed/e-paper URL is `https`; enum
 member after key normalization — this catches the failure mode where `needs_review` silently becomes
 `active`; a `verified_working` claim must carry a `lastVerifiedAt` date; regional entries must name a
 division; e-papers must point at a known source; and every asset declared in `pubspec.yaml`
-(JSON data, three Noto Bengali families, the OFL text) must exist on disk and be non-trivial.
+(JSON data, the glossary, the Noto Bengali families, the OFL text) must exist on disk and be
+non-trivial. `tool/check_glossary.py` additionally requires the offline glossary to carry Bengali
+meanings for at least 200 lowercase English keys, no placeholder meanings, and a note stating that
+it is not a full translation.
 
 ### 2. Dart static checks (tree-sitter, no SDK) — passed
 
@@ -60,7 +67,7 @@ It found and fixed three real defects during development (`SectionHeader` and
 
 ### 3. App-string completeness — passed
 
-All 153 `AppStrings` getters are implemented by both `BanglaStrings` and `EnglishStrings`
+All 188 `AppStrings` members are implemented by both `BanglaStrings` and `EnglishStrings`
 (verified by a script; a missing override would be a compile error).
 
 ### 4. Store-interface completeness — passed
@@ -84,11 +91,11 @@ Check live feeds   success   (run 40107364030)
 summary: 22 websites reachable, 6 feeds usable, 50 feeds failing, 4 without a configured feed
 ```
 
-Six feeds passed the evidence gate and are recorded as `verified_working` (five) or
-`official_documented` (BBC). The other 50 configured candidates failed on HTTP 403/404, DNS or TLS and
-stay clearly labelled as unverified — see [SOURCES.md](SOURCES.md). The script cannot reach
-publishers from the development sandbox (only GitHub/npm/PyPI are allow-listed), which is why it runs
-in the `Verify sources` workflow.
+Thirteen feeds pass the evidence gate and are recorded as `verified_working`; every other publisher
+stays website-only or an unconfirmed candidate — see [SOURCES.md](SOURCES.md). The script cannot
+reach publishers from the development sandbox (only GitHub/npm/PyPI are allow-listed), which is why
+it runs in the `Verify sources` workflow. Latest run: **`40123781895`**, 13 usable feeds, 0 failing,
+25 websites reachable, 51 without a feed.
 
 ```bash
 # on any machine with normal internet access
@@ -98,8 +105,11 @@ gh workflow run verify-sources.yml                   # or run the workflow
 
 ### 6. Launcher icons — generated and visually inspected
 
-`scripts/generate_icons.py` produced the adaptive-icon layers and all five PNG densities plus a
-512 px store icon; the output was opened and reviewed.
+`scripts/generate_icons.py` produced the Amar News mark (graphite tile, white front page with a
+folded corner, printed-red masthead rule) as all five PNG densities plus a 512 px store icon, and the
+adaptive-icon foreground vector was rewritten from the same geometry. The generated images were
+opened and reviewed at 512 px and at launcher size; the Flutter splash uses the same shapes through
+`AmarNewsMark`.
 
 ### 7. Analyzer, unit/widget tests and the Android build — executed in GitHub Actions
 
@@ -183,6 +193,31 @@ Reads the real `CREATE TABLE` DDL out of `app_database.dart` and asserts `Articl
 excerpt, image, both timestamps, guid, cluster key), keeps Bengali bytes intact, survives a missing
 date and a corrupt tag blob, and checks the camelCase JSON payload used by saved items still maps.
 
+**`test/unit/translation_test.dart`**
+Glossary loads from an injected bundle; size/availability reporting; a missing asset leaves the
+feature unavailable instead of throwing; lookups tolerate case and punctuation; unknown words come
+back as `found: false` with no meaning (never approximated); a trailing plural falls back to the
+singular while `news` is untouched; `gloss()` keeps reading order, drops duplicates and skips Bengali
+tokens; tokenising finds Latin words only.
+
+**`test/unit/profile_test.dart`**
+The starting author profile contains only supplied facts and states that the master's-level study is
+unconfirmed; an edited profile survives an encode/decode round trip; blank and corrupt stored values
+fall back to the defaults instead of throwing; only plain `http(s)` addresses are accepted as links;
+the monogram falls back to a Bengali letter; the in-memory store starts at the default, saves and
+clears.
+
+**`test/unit/preferences_persistence_test.dart`**
+A theme change is written through the store and re-read by a fresh controller (the app after a
+restart); language, reduced motion, text scale and followed sources all persist; a store that throws
+on write never loses the in-session preference.
+
+**`test/widget/translation_sheet_test.dart`**
+A known word shows its glossary meaning; an unknown word says so instead of inventing one; a missing
+glossary asset shows the unavailable state with no input field; tapping a word chip looks it up. In
+the About suite, the author profile is edited at runtime and the change reaches the store, and a link
+that is not a web address is rejected without saving.
+
 **`test/widget/browser_test.dart`**
 Reader chrome shows the publisher's real domain (not just a title); page-history back is disabled
 until the engine reports history and then calls it; a load failure renders retry rather than a blank
@@ -199,7 +234,9 @@ Home: live render with source + relative time, empty state, cached notice, topic
 breaking banner. Directory: list, search (`daily`, `বণিক`), no-results, language filter, follow.
 Publication detail: action availability, no-feed state, follow toggle. Saved: bookmark round-trip
 including a simulated restart, unbookmark. Article card: missing-date note. Search: headline
-results, recent searches, no results. Settings: theme, text size, language switch, About counts.
+results, recent searches, no results. Settings: theme, text size, language switch. About: registry counts, the author profile rendered
+separately from the app description, runtime editing persisted to the profile store, and rejection of
+a malformed profile link.
 E-paper directory. AppShell: tab switching, Android back behaviour, detail push/pop. Dark theme.
 Layouts at 360×640 dp and 800×1280 dp without overflow.
 

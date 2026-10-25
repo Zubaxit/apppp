@@ -3,6 +3,8 @@ import 'package:bangladesh_newspaper_hub/data/models/app_preferences.dart';
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
 import 'package:bangladesh_newspaper_hub/state/feed_controller.dart';
+import 'package:bangladesh_newspaper_hub/services/profile_store.dart';
+import 'package:bangladesh_newspaper_hub/ui/screens/about_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/epaper_directory_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/home_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/newspapers_screen.dart';
@@ -318,11 +320,66 @@ void main() {
 
     testWidgets('about screen reports real registry counts', (WidgetTester tester) async {
       final TestHarness h = harness();
-      await tester.pumpWidget(h.wrap(const AboutScreen()));
+      await tester.pumpWidget(
+        h.wrap(AboutScreen(store: InMemoryProfileStore())),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('3'), findsWidgets); // 3 test publications
       expect(find.text('তালিকাভুক্ত উৎস'), findsOneWidget);
+    });
+
+    testWidgets('about screen keeps the author profile separate from the app',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(
+        h.wrap(AboutScreen(store: InMemoryProfileStore())),
+      );
+      await tester.pumpAndSettle();
+
+      // The supplied facts, and no invented qualification.
+      expect(find.text('মোঃ ইমন'), findsOneWidget);
+      expect(find.text('আমার সম্পর্কে'), findsOneWidget);
+      expect(find.textContaining('সরকারি ব্রজলাল কলেজ'), findsWidgets);
+      expect(find.textContaining('নিশ্চিত নয়'), findsWidgets);
+    });
+
+    testWidgets('the author profile can be edited at runtime and is stored',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      final InMemoryProfileStore store = InMemoryProfileStore();
+      await tester.pumpWidget(h.wrap(AboutScreen(store: store)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.edit_outlined).first);
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).first, 'পরীক্ষা নাম');
+      await tester.tap(find.text('সম্পন্ন'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('পরীক্ষা নাম'), findsWidgets);
+      expect((await store.load()).name, 'পরীক্ষা নাম');
+    });
+
+    testWidgets('a profile link that is not a web address is rejected',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      final InMemoryProfileStore store = InMemoryProfileStore();
+      await tester.pumpWidget(h.wrap(AboutScreen(store: store)));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.edit_outlined).first);
+      await tester.pumpAndSettle();
+
+      // The last field is the links box.
+      await tester.enterText(find.byType(TextField).last, 'not a link');
+      await tester.tap(find.text('সম্পন্ন'));
+      await tester.pumpAndSettle();
+
+      // Still on the editor, with the error shown, and nothing saved.
+      expect(find.text('সম্পন্ন'), findsOneWidget);
+      expect((await store.load()).links, isEmpty);
     });
   });
 

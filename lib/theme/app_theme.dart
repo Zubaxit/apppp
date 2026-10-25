@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'motion.dart';
 import 'tokens.dart';
 
-/// Editorial colour system: warm paper in light mode, deep ink in dark mode,
-/// with Bangladesh green as the brand colour and flag red reserved for
-/// breaking news only.
+export 'motion.dart' show Motion, AppMotionScope;
+
+/// Amar News colour system: graphite on warm paper, with one printed red.
+///
+/// Every surface, border and accent the interface uses resolves here or in
+/// [Tokens]; no widget picks a colour by hand, which is what keeps a grayscale
+/// interface from drifting into grey mush.
 class AppColors {
   const AppColors._();
 
-  static const Color brandGreen = Tokens.green;
-  static const Color brandGreenBright = Tokens.greenSoft;
+  /// The brand accent. Deep enough to print, bright enough to read on glass.
+  static const Color brandRed = Tokens.accent;
+  static const Color brandRedBright = Tokens.accentSoft;
+  static const Color brandRedTint = Tokens.accentTint;
+
   static const Color flagRed = Tokens.signal;
   static const Color paper = Tokens.paper;
   static const Color paperDeep = Tokens.paperSunken;
@@ -25,8 +33,14 @@ class AppColors {
   static const Color nightLine = Tokens.nightHairline;
   static const Color nightInk = Tokens.nightInk;
   static const Color nightInkSoft = Tokens.nightInkMuted;
-  static const Color mint = Tokens.mint;
-  static const Color rose = Color(0xFFFF8A8A);
+
+  /// Readable red for dark surfaces (a deep red would disappear on graphite).
+  static const Color redOnDark = Tokens.accentNight;
+
+  /// Semantic states.
+  static const Color success = Tokens.success;
+  static const Color warning = Tokens.warning;
+  static const Color danger = Tokens.danger;
 }
 
 class AppTheme {
@@ -37,16 +51,18 @@ class AppTheme {
 
   static ThemeData light() {
     final ColorScheme scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.brandGreen,
+      seedColor: AppColors.brandRed,
       brightness: Brightness.light,
     ).copyWith(
-      primary: AppColors.brandGreen,
+      primary: AppColors.brandRed,
       onPrimary: Colors.white,
-      secondary: AppColors.brandGreenBright,
+      secondary: AppColors.brandRedBright,
       surface: Tokens.paperRaised,
       onSurface: AppColors.ink,
-      error: AppColors.flagRed,
+      onSurfaceVariant: AppColors.inkSoft,
+      error: Tokens.danger,
       surfaceContainerHighest: AppColors.paperDeep,
+      outline: Tokens.hairlineStrong,
       outlineVariant: AppColors.line,
     );
     return _build(
@@ -61,16 +77,18 @@ class AppTheme {
 
   static ThemeData dark() {
     final ColorScheme scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.brandGreen,
+      seedColor: AppColors.brandRed,
       brightness: Brightness.dark,
     ).copyWith(
-      primary: AppColors.mint,
-      onPrimary: const Color(0xFF04231B),
-      secondary: const Color(0xFF8FD8C2),
+      primary: Tokens.accentNight,
+      onPrimary: const Color(0xFF2A0308),
+      secondary: const Color(0xFFFF9AA0),
       surface: AppColors.nightSurface,
       onSurface: AppColors.nightInk,
-      error: AppColors.rose,
+      onSurfaceVariant: Tokens.nightInkMuted,
+      error: Tokens.accentNight,
       surfaceContainerHighest: AppColors.nightSurfaceAlt,
+      outline: const Color(0xFF3A3A3E),
       outlineVariant: AppColors.nightLine,
     );
     return _build(
@@ -313,8 +331,8 @@ class _EditorialPageTransitionBuilder extends PageTransitionsBuilder {
     if (reduceMotion) return child;
     final CurvedAnimation fade = CurvedAnimation(
       parent: animation,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
+      curve: Tokens.easeStandard,
+      reverseCurve: Tokens.easeExit,
     );
     return FadeTransition(
       opacity: fade,
@@ -327,36 +345,4 @@ class _EditorialPageTransitionBuilder extends PageTransitionsBuilder {
       ),
     );
   }
-}
-
-/// Motion helpers that respect the system "remove animations" setting and the
-/// in-app reduce-motion preference.
-@immutable
-class Motion {
-  const Motion({required this.reduce});
-
-  final bool reduce;
-
-  static Motion of(BuildContext context) {
-    final bool systemReduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final bool appReduce = AppMotionScope.of(context);
-    return Motion(reduce: systemReduce || appReduce);
-  }
-
-  Duration get fast => reduce ? Duration.zero : const Duration(milliseconds: 160);
-  Duration get medium => reduce ? Duration.zero : const Duration(milliseconds: 260);
-  Duration get slow => reduce ? Duration.zero : const Duration(milliseconds: 420);
-}
-
-class AppMotionScope extends InheritedWidget {
-  const AppMotionScope({super.key, required this.reduceMotion, required super.child});
-
-  final bool reduceMotion;
-
-  static bool of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<AppMotionScope>()?.reduceMotion ?? false;
-
-  @override
-  bool updateShouldNotify(AppMotionScope oldWidget) =>
-      oldWidget.reduceMotion != reduceMotion;
 }

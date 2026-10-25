@@ -159,7 +159,7 @@ class _ArticleList extends StatelessWidget {
     }
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 30, top: 4),
-      itemCount: items.length,
+      itemCount: items.length + (showSavedDate ? 0 : 1),
       separatorBuilder: (BuildContext context, int index) => Divider(
         height: 0.6,
         thickness: 0.6,
@@ -168,13 +168,57 @@ class _ArticleList extends StatelessWidget {
         color: context.colors.outlineVariant,
       ),
       itemBuilder: (BuildContext context, int index) {
-        final SavedArticle item = items[index];
+        final int offset = showSavedDate ? 0 : 1;
+        if (index == 0 && offset == 1) {
+          // Say what "saved" means before showing the list, so a saved link is
+          // never mistaken for an offline copy of the story.
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+            child: Text(
+              context.strings.savedKindsNote,
+              style: context.texts.labelSmall?.copyWith(
+                fontSize: 10.8,
+                height: 1.5,
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
+          );
+        }
+        final SavedArticle item = items[index - offset];
         final NewsSource? source = registry.byId(item.article.sourceId);
-        return ArticleCard(
-          article: item.article,
-          source: source,
-          variant: showSavedDate ? ArticleCardVariant.saved : ArticleCardVariant.standard,
-          onTap: () => openArticle(context, item.article),
+        final bool hasExcerpt = (item.article.excerpt ?? '').trim().isNotEmpty;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            ArticleCard(
+              article: item.article,
+              source: source,
+              variant: showSavedDate ? ArticleCardVariant.saved : ArticleCardVariant.standard,
+              onTap: () => openArticle(context, item.article),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    hasExcerpt ? Icons.notes_rounded : Icons.link_rounded,
+                    size: 12,
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    hasExcerpt
+                        ? context.strings.savedExcerptBadge
+                        : context.strings.savedLinkOnlyBadge,
+                    style: context.texts.labelSmall?.copyWith(
+                      fontSize: 10,
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );

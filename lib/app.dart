@@ -10,6 +10,7 @@ import 'state/saved_controller.dart';
 import 'state/settings_controller.dart';
 import 'theme/app_theme.dart';
 import 'ui/shell/app_shell.dart';
+import 'theme/motion.dart';
 
 class NewspaperHubApp extends StatelessWidget {
   const NewspaperHubApp({super.key});
@@ -22,7 +23,7 @@ class NewspaperHubApp extends StatelessWidget {
       child: AppMotionScope(
         reduceMotion: settings.reduceMotion,
         child: MaterialApp(
-          title: 'Bangladesh Newspaper Hub',
+          title: 'Amar News',
           debugShowCheckedModeBanner: false,
           themeMode: settings.themeMode,
           theme: AppTheme.light(),

@@ -21,7 +21,7 @@
     </queries>
 
     <application
-        android:label="Bangladesh Newspaper Hub"
+        android:label="Amar News"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false"

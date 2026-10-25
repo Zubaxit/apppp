@@ -9,6 +9,7 @@ import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/tokens.dart';
+import '../../theme/motion.dart';
 
 /// A hairline rule: the primary structural element of the layout.
 class Hairline extends StatelessWidget {
@@ -152,7 +153,7 @@ class SourceMark extends StatelessWidget {
         : (dark ? Tokens.nightRaised : Tokens.paperSunken);
     final Color fg = filled
         ? context.colors.onPrimary
-        : (dark ? Tokens.nightInk : Tokens.green);
+        : (dark ? Tokens.nightInk : Tokens.accent);
     return Container(
       width: size,
       height: size,
@@ -216,7 +217,7 @@ class _RiseInState extends State<RiseIn> {
       child: AnimatedSlide(
         offset: _shown ? Offset.zero : Offset(0, widget.offset / 100),
         duration: motion.medium,
-        curve: Tokens.emphasized,
+        curve: Tokens.easeEmphasized,
         child: widget.child,
       ),
     );

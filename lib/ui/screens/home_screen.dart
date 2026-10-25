@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,17 +11,21 @@ import '../../data/models/news_source.dart';
 import '../../state/feed_controller.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
+import '../widgets/actions.dart';
+import '../widgets/brand.dart';
 import '../widgets/editorial.dart';
 import '../widgets/editorial_story.dart';
+import '../widgets/featured_carousel.dart';
 import '../widgets/feed_filter_sheet.dart';
 import '../widgets/feed_widgets.dart';
 import 'search_screen.dart';
 
 /// The front page.
 ///
-/// Composition rules: one lead story, then a rule-separated river of headlines.
-/// No cards, no shadows on content, no rounded blobs — the page reads like a
-/// printed front page that happens to scroll.
+/// Composition: a frosted masthead, a featured rail drawn from real articles,
+/// the All / Following switch, a compact topic rail, then a rule-separated river
+/// of headlines. No cards, no shadows on content, no invented stories — every
+/// item here came out of a verified publisher feed.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -45,8 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(feed.applyQuery(feed.query.copyWith(topics: const <ArticleTopic>{})));
   }
 
-  /// Masthead actions stay next to the title rather than in a trailing row of
-  /// their own, so the pinning app bar has a single, stable height.
   Row _mastheadActions(BuildContext context, FeedController feed) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -54,7 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _GlassAction(
           icon: Icons.tune_rounded,
           tooltip: context.strings.filterTitle,
-          badge: feed.query.sourceIds.isNotEmpty || feed.query.languages.isNotEmpty,
+          badge: feed.query.sourceIds.isNotEmpty ||
+              feed.query.languages.isNotEmpty ||
+              feed.query.topics.isNotEmpty,
           onTap: () => showFeedFilterSheet(context),
         ),
         const SizedBox(width: 6),
@@ -75,15 +80,27 @@ class _HomeScreenState extends State<HomeScreen> {
     final SourceRegistry registry = context.registry;
     final List<Article> articles = feed.articles;
     final bool hasArticles = articles.isNotEmpty;
-    final Article? lead = hasArticles ? articles.first : null;
+
+    // The rail only earns its place when there is real material for it.
+    final List<Article> carouselItems =
+        articles.where((Article a) => a.imageUrl != null).take(5).toList(growable: false);
+    final bool showCarousel = carouselItems.length >= 3;
+    final Set<String> carouselIds =
+        showCarousel ? carouselItems.map((Article a) => a.id).toSet() : <String>{};
+
+    final Article? lead = !showCarousel && hasArticles ? articles.first : null;
     final NewsSource? leadSource = lead == null ? null : registry.byId(lead.sourceId);
-    final List<Article> river = hasArticles ? articles.skip(1).toList() : const <Article>[];
+    final List<Article> river = !hasArticles
+        ? const <Article>[]
+        : showCarousel
+            ? articles.where((Article a) => !carouselIds.contains(a.id)).toList(growable: false)
+            : articles.skip(1).toList(growable: false);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
         onRefresh: _refresh,
-        edgeOffset: 90,
+        edgeOffset: 84,
         color: context.colors.primary,
         backgroundColor: context.theme.colorScheme.surface,
         child: CustomScrollView(
@@ -91,26 +108,25 @@ class _HomeScreenState extends State<HomeScreen> {
           slivers: <Widget>[
             SliverAppBar(
               pinned: true,
-              toolbarHeight: 72,
+              toolbarHeight: 70,
               automaticallyImplyLeading: false,
-              backgroundColor: context.theme.scaffoldBackgroundColor.withValues(alpha: 0.92),
+              backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,
               titleSpacing: 0,
+              flexibleSpace: const _GlassBackdrop(),
               title: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                 child: Row(
                   children: <Widget>[
-                    Expanded(child: Masthead(trailing: _mastheadActions(context, feed))),
+                    Expanded(
+                      child: Masthead(trailing: _mastheadActions(context, feed)),
+                    ),
                     if (feed.isRefreshing)
                       const Padding(
                         padding: EdgeInsetsDirectional.only(start: 8),
-                        child: SizedBox(
-                          width: 13,
-                          height: 13,
-                          child: CircularProgressIndicator(strokeWidth: 1.6),
-                        ),
+                        child: _RefreshingDot(),
                       ),
                   ],
                 ),
@@ -120,18 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _FeedControls(
-                    following: feed.query.followedOnly,
-                    onChanged: _setFollowing,
-                    count: articles.length,
-                    onRefresh: _refresh,
-                  ),
-                  _StatusLine(feed: feed),
-                  TopicRail(
-                    selected: feed.query.topics,
-                    onToggle: _toggleTopic,
-                    onClear: _clearTopics,
-                  ),
                   if (feed.lastError != null) _ErrorNote(message: feed.lastError!),
                   BreakingBanner(
                     articles: feed.breakingArticles,
@@ -142,7 +146,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   else if (!hasArticles)
                     _EmptyState(feed: feed, onRetry: _refresh)
                   else ...<Widget>[
-                    if (lead != null)
+                    if (showCarousel)
+                      RiseIn(
+                        child: FeaturedCarousel(
+                          articles: articles,
+                          sourceFor: (Article a) => registry.byId(a.sourceId),
+                          onOpen: (Article a) => openArticle(context, a),
+                        ),
+                      )
+                    else if (lead != null)
                       RiseIn(
                         child: LeadStory(
                           article: lead,
@@ -153,23 +165,51 @@ class _HomeScreenState extends State<HomeScreen> {
                               : () => openSource(context, leadSource),
                         ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 22, Tokens.gutter, 0),
-                      child: Kicker(context.strings.latestNews),
+                    _FeedControls(
+                      following: feed.query.followedOnly,
+                      onChanged: _setFollowing,
+                      count: articles.length,
+                      onRefresh: _refresh,
+                      refreshing: feed.isRefreshing,
                     ),
-                    const SizedBox(height: 10),
-                    for (int i = 0; i < river.length; i++)
-                      RiseIn(
-                        index: i + 1,
-                        child: StoryRow(
-                          article: river[i],
-                          source: registry.byId(river[i].sourceId),
-                          onTap: () => openArticle(context, river[i]),
-                          last: i == river.length - 1,
+                    _StatusLine(feed: feed),
+                    TopicRail(
+                      selected: feed.query.topics,
+                      onToggle: _toggleTopic,
+                      onClear: _clearTopics,
+                    ),
+                    if (river.isNotEmpty) ...<Widget>[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 18, Tokens.gutter, 2),
+                        child: Kicker(
+                          feed.query.followedOnly
+                              ? context.strings.followedPapers
+                              : context.strings.latestNews,
                         ),
                       ),
-                    if (river.isNotEmpty) ...<Widget>[
-                      const SizedBox(height: 28),
+                      for (int i = 0; i < river.length; i++)
+                        RiseIn(
+                          index: i + 1,
+                          child: StoryRow(
+                            article: river[i],
+                            source: registry.byId(river[i].sourceId),
+                            onTap: () => openArticle(context, river[i]),
+                            last: i == river.length - 1,
+                            trailing: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                BookmarkAction(
+                                  article: river[i],
+                                  size: 18,
+                                  dense: true,
+                                  showSnack: false,
+                                ),
+                                ShareAction(article: river[i], size: 17, dense: true),
+                              ],
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 26),
                       Center(
                         child: Text(
                           context.strings.feedEnd,
@@ -193,7 +233,55 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// Pinned masthead with a frosted backdrop once content scrolls beneath it.
+/// Frosted backdrop for the pinned masthead: real blur, a translucent fill and
+/// a single hairline at the bottom edge. The blur is clipped to the bar so it
+/// never smears the content below it.
+class _GlassBackdrop extends StatelessWidget {
+  const _GlassBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    final bool dark = context.isDark;
+    final Color base = dark ? Tokens.glassDark : Tokens.paper;
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: base.withValues(alpha: dark ? 0.70 : 0.76),
+            border: Border(
+              bottom: BorderSide(
+                color: (dark ? Tokens.nightHairline : Tokens.hairline)
+                    .withValues(alpha: 0.9),
+                width: 0.8,
+              ),
+            ),
+          ),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+  }
+}
+
+/// A two-pixel sweeping mark while a manual refresh runs: quieter than a
+/// spinner in the masthead, and it stops when the refresh does.
+class _RefreshingDot extends StatelessWidget {
+  const _RefreshingDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 14,
+      height: 14,
+      child: CircularProgressIndicator(
+        strokeWidth: 1.6,
+        color: context.colors.primary,
+      ),
+    );
+  }
+}
+
 class _GlassAction extends StatelessWidget {
   const _GlassAction({
     required this.icon,
@@ -219,7 +307,7 @@ class _GlassAction extends StatelessWidget {
           height: 36,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: dark ? Tokens.nightRaised : Tokens.paperSunken,
+            color: dark ? Tokens.nightRaised : Tokens.paperRaised.withValues(alpha: 0.7),
             shape: BoxShape.circle,
             border: Border.all(
               color: dark ? Tokens.nightHairline : Tokens.hairline,
@@ -232,8 +320,8 @@ class _GlassAction extends StatelessWidget {
               Icon(icon, size: 18, color: context.colors.onSurface),
               if (badge)
                 Positioned(
-                  right: -3,
-                  top: -3,
+                  right: -2,
+                  top: -2,
                   child: Container(
                     width: 6,
                     height: 6,
@@ -251,19 +339,22 @@ class _GlassAction extends StatelessWidget {
   }
 }
 
-/// "All / Following" as quiet text with a rule underneath the active choice.
+/// "All / Following" as quiet text with a rule under the active choice, plus the
+/// live article count and a manual refresh.
 class _FeedControls extends StatelessWidget {
   const _FeedControls({
     required this.following,
     required this.onChanged,
     required this.count,
     required this.onRefresh,
+    required this.refreshing,
   });
 
   final bool following;
   final ValueChanged<bool> onChanged;
   final int count;
   final Future<void> Function() onRefresh;
+  final bool refreshing;
 
   @override
   Widget build(BuildContext context) {
@@ -286,11 +377,13 @@ class _FeedControls extends StatelessWidget {
                 ),
               ),
             ),
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
               height: 2,
-              width: 22,
+              width: active ? 24 : 0,
               decoration: BoxDecoration(
-                color: active ? context.colors.primary : Colors.transparent,
+                color: context.colors.primary,
                 borderRadius: BorderRadius.circular(1),
               ),
             ),
@@ -300,7 +393,7 @@ class _FeedControls extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 4),
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
@@ -308,16 +401,28 @@ class _FeedControls extends StatelessWidget {
           const SizedBox(width: 18),
           tab(context.strings.followingLabel, following, () => onChanged(true)),
           const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 7),
-            child: Text(
-              count == 0
-                  ? ''
-                  : '${BengaliText.toBengaliDigits(count)} '
-                      '${context.strings.articleCountShort}',
-              style: context.texts.labelSmall?.copyWith(
-                fontSize: 10.5,
-                color: context.colors.onSurfaceVariant,
+          if (count > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: Text(
+                '${BengaliText.toBengaliDigits(count)} ${context.strings.articleCountShort}',
+                style: context.texts.labelSmall?.copyWith(
+                  fontSize: 10.5,
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
+            ),
+          const SizedBox(width: 10),
+          Pressable(
+            onTap: refreshing ? null : () => onRefresh(),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 5, left: 2),
+              child: Icon(
+                Icons.refresh_rounded,
+                size: 18,
+                color: refreshing
+                    ? context.colors.onSurfaceVariant.withValues(alpha: 0.4)
+                    : context.colors.onSurfaceVariant,
               ),
             ),
           ),
@@ -348,11 +453,8 @@ class _StatusLine extends StatelessWidget {
                 ? context.strings.neverUpdated
                 : '${context.strings.lastUpdated}: $updated';
 
-    final Color color = offline
-        ? context.colors.error
-        : cached
-            ? context.colors.onSurfaceVariant
-            : context.colors.onSurfaceVariant;
+    final Color color =
+        offline ? context.colors.error : context.colors.onSurfaceVariant;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 0),
@@ -402,9 +504,9 @@ class _ErrorNote extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: context.colors.error.withValues(alpha: 0.07),
-          borderRadius: BorderRadius.circular(Tokens.radiusMd),
-          border: Border.all(color: context.colors.error.withValues(alpha: 0.25), width: 0.8),
+          color: context.colors.error.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(Tokens.radiusSm),
+          border: Border.all(color: context.colors.error.withValues(alpha: 0.22), width: 0.8),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,45 +530,58 @@ class _ErrorNote extends StatelessWidget {
   }
 }
 
+/// Placeholders shaped like the front page, not a spinner: the masthead band,
+/// the featured image and two text blocks. Static by default (see
+/// [SkeletonBlock]) so an idle screen costs nothing.
 class _LoadingState extends StatelessWidget {
   const _LoadingState();
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 24, Tokens.gutter, 0),
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 22, Tokens.gutter, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          for (int i = 0; i < 5; i++) ...<Widget>[
-            Container(
-              height: 11,
-              width: i.isEven ? 96 : 78,
-              decoration: BoxDecoration(
-                color: context.colors.onSurface.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(2),
-              ),
+          const SkeletonBlock(height: 11, width: 88),
+          const SizedBox(height: 12),
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: SkeletonBlock(height: double.infinity, radius: Tokens.radiusSm),
+          ),
+          const SizedBox(height: 14),
+          const SkeletonBlock(height: 9, width: 72),
+          const SizedBox(height: 10),
+          const SkeletonBlock(height: 22),
+          const SizedBox(height: 8),
+          const SkeletonBlock(height: 22, width: 220),
+          const SizedBox(height: 22),
+          const FadingRule(),
+          for (int i = 0; i < 4; i++) ...<Widget>[
+            const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SkeletonBlock(height: 9, width: 66),
+                      SizedBox(height: 8),
+                      SkeletonBlock(height: 15),
+                      SizedBox(height: 6),
+                      SkeletonBlock(height: 15, width: 180),
+                      SizedBox(height: 7),
+                      SkeletonBlock(height: 9, width: 120),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                SkeletonBlock(height: 66, width: 66, radius: 3),
+              ],
             ),
-            const SizedBox(height: 10),
-            Container(
-              height: i == 0 ? 22 : 17,
-              decoration: BoxDecoration(
-                color: context.colors.onSurface.withValues(alpha: 0.09),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              height: i == 0 ? 22 : 17,
-              width: MediaQuery.sizeOf(context).width * (i == 0 ? 0.62 : 0.45),
-              decoration: BoxDecoration(
-                color: context.colors.onSurface.withValues(alpha: 0.09),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Hairline(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
+            const FadingRule(inset: 0),
           ],
         ],
       ),
@@ -496,7 +611,10 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             context.strings.emptyFeedTitle,
-            style: context.texts.headlineSmall?.copyWith(fontSize: 21),
+            style: context.texts.headlineSmall?.copyWith(
+              fontFamily: Tokens.serif,
+              fontSize: 22,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -511,7 +629,7 @@ class _EmptyState extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: context.colors.primary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(Tokens.radiusMd),
+                    borderRadius: BorderRadius.circular(Tokens.radiusSm),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),

@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import 'fakes.dart';
+import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 
 /// Connectivity stub: tests default to "online" but can force offline mode.
 class FakeConnectivity implements ConnectivityService {

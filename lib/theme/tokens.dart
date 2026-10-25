@@ -2,46 +2,55 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
-/// Design tokens for the editorial reading experience.
+/// Design tokens for Amar News.
 ///
-/// Everything visual in the app resolves to a value in this file: colour,
-/// spacing, radii, typography, elevation and motion. Screens never invent raw
-/// numbers, which is what keeps the product feeling composed rather than
-/// assembled.
+/// The identity is deliberately monochrome: graphite ink and warm paper in the
+/// light theme, near-black and light gray in the dark theme, with one deep red
+/// carrying every meaningful accent. Nothing in the app invents a raw colour or
+/// duration — it resolves through this file.
 class Tokens {
   const Tokens._();
 
   // ---------------------------------------------------------------- colour
   /// Warm newsprint ivory — the app's paper.
-  static const Color paper = Color(0xFFFAF6EE);
-  static const Color paperRaised = Color(0xFFFFFCF6);
-  static const Color paperSunken = Color(0xFFF2ECE0);
+  static const Color paper = Color(0xFFF6F4F1);
+  static const Color paperRaised = Color(0xFFFFFFFF);
+  static const Color paperSunken = Color(0xFFEDEAE5);
 
-  /// Ink, not black: a warm near-neutral that reads well on ivory.
-  static const Color ink = Color(0xFF1A1815);
-  static const Color inkMuted = Color(0xFF5C564D);
-  static const Color inkFaint = Color(0xFF8E877B);
+  /// Ink, not pure black: warm graphite that reads calmly on paper.
+  static const Color ink = Color(0xFF191A1B);
+  static const Color inkMuted = Color(0xFF5B5E61);
+  static const Color inkFaint = Color(0xFF8C9094);
 
-  /// A single restrained accent: deep bottle green.
-  static const Color green = Color(0xFF0E4A3A);
-  static const Color greenSoft = Color(0xFF2A6B57);
-  static const Color greenTint = Color(0xFFE6EEE8);
+  /// The single accent: a deep, printed red.
+  static const Color accent = Color(0xFFAF1F2B);
+  static const Color accentSoft = Color(0xFFC64A52);
+  static const Color accentTint = Color(0xFFF8E8E9);
 
-  /// Reserved for breaking news and destructive actions only.
-  static const Color signal = Color(0xFFB3261E);
+  /// Breaking news uses the accent, kept separate so the semantics stay clear.
+  static const Color signal = Color(0xFFC0182A);
 
-  static const Color hairline = Color(0xFFE6DECD);
-  static const Color hairlineStrong = Color(0xFFD6CBB5);
+  /// Semantic states, used only where they mean something.
+  static const Color success = Color(0xFF1F6F4A);
+  static const Color warning = Color(0xFF9A6407);
+  static const Color danger = Color(0xFFB3261E);
+
+  static const Color hairline = Color(0xFFE3DFD9);
+  static const Color hairlineStrong = Color(0xFFD0CBC3);
+
+  /// Translucent fills for frosted chrome.
+  static const Color glassLight = Color(0xFFFFFFFF);
+  static const Color glassDark = Color(0xFF141416);
 
   // Night edition
-  static const Color nightBg = Color(0xFF0E1211);
-  static const Color nightRaised = Color(0xFF161C1A);
-  static const Color nightSunken = Color(0xFF0A0E0D);
-  static const Color nightInk = Color(0xFFF2EDE3);
-  static const Color nightInkMuted = Color(0xFFB9B3A6);
-  static const Color nightInkFaint = Color(0xFF8A8579);
-  static const Color nightHairline = Color(0xFF2A322E);
-  static const Color mint = Color(0xFF67C9A8);
+  static const Color nightBg = Color(0xFF0B0B0C);
+  static const Color nightRaised = Color(0xFF171719);
+  static const Color nightSunken = Color(0xFF070708);
+  static const Color nightInk = Color(0xFFF3F2F0);
+  static const Color nightInkMuted = Color(0xFFB3B2AF);
+  static const Color nightInkFaint = Color(0xFF87868A);
+  static const Color nightHairline = Color(0xFF2B2B2E);
+  static const Color accentNight = Color(0xFFFF6B73);
 
   // ------------------------------------------------------------- typography
   static const String serif = 'NotoSerifBengali';
@@ -76,23 +85,46 @@ class Tokens {
   static const double radiusPill = 999;
 
   // ----------------------------------------------------------------- motion
-  static const Duration fast = Duration(milliseconds: 140);
-  static const Duration base = Duration(milliseconds: 240);
-  static const Duration slow = Duration(milliseconds: 380);
+  /// One motion vocabulary, used by every screen.
+  ///
+  /// [tap]           immediate feedback under a finger;
+  /// [standard]      the default for state changes (chips, tabs, fades);
+  /// [emphasized]    entrances and route changes;
+  /// [slow]          a single unhurried moment per screen at most.
+  static const Duration tap = Duration(milliseconds: 120);
+  static const Duration standard = Duration(milliseconds: 220);
+  static const Duration emphasized = Duration(milliseconds: 320);
+  static const Duration slow = Duration(milliseconds: 460);
+
+  // Legacy aliases kept so older widgets keep the same rhythm.
+  static const Duration fast = tap;
+  static const Duration base = standard;
 
   static const Curve easing = Curves.easeOutCubic;
-  static const Curve emphasized = Cubic(0.2, 0.8, 0.2, 1);
+  static const Curve easeStandard = Cubic(0.2, 0.0, 0.0, 1.0);
+  static const Curve easeEmphasized = Cubic(0.2, 0.8, 0.2, 1);
+  static const Curve easeExit = Cubic(0.4, 0.0, 1.0, 1.0);
+  static const Curve easeOvershoot = Curves.easeOutBack;
+
+  // Legacy alias.
+  static const Curve emphasizedCurve = easeEmphasized;
 
   // -------------------------------------------------------------- elevation
-  /// Barely-there shadow: paper lifting off a desk, not a floating card.
+  /// A soft, low shadow: a printed sheet lifting off a desk, not a floating
+  /// card. Glass surfaces get their depth from the border and blur instead.
   static List<BoxShadow> shadow(BuildContext context) {
     final bool dark = Theme.of(context).brightness == Brightness.dark;
     if (dark) return const <BoxShadow>[];
     return const <BoxShadow>[
       BoxShadow(
-        color: Color(0x0A1A1815),
-        blurRadius: 18,
-        offset: Offset(0, 6),
+        color: Color(0x0F191A1B),
+        blurRadius: 22,
+        offset: Offset(0, 8),
+      ),
+      BoxShadow(
+        color: Color(0x08000000),
+        blurRadius: 3,
+        offset: Offset(0, 1),
       ),
     ];
   }
@@ -100,7 +132,9 @@ class Tokens {
 
 /// Frosted material for navigation bars, sheets and floating controls.
 ///
-/// Used sparingly: content stays on paper, only chrome floats.
+/// Used sparingly: content stays on paper, only chrome floats. The surface is a
+/// real backdrop blur plus a translucent fill and a hairline border, which is
+/// what makes it read as glass rather than a tinted rectangle.
 class GlassSurface extends StatelessWidget {
   const GlassSurface({
     super.key,
@@ -112,6 +146,7 @@ class GlassSurface extends StatelessWidget {
     this.tint,
     this.border,
     this.showBorder = true,
+    this.shadow = false,
   });
 
   final Widget child;
@@ -122,27 +157,34 @@ class GlassSurface extends StatelessWidget {
   final Color? tint;
   final Border? border;
   final bool showBorder;
+  final bool shadow;
 
   @override
   Widget build(BuildContext context) {
     final bool dark = Theme.of(context).brightness == Brightness.dark;
     final BorderRadius shaped = borderRadius ?? BorderRadius.circular(radius);
-    final Color base = tint ?? (dark ? Tokens.nightRaised : Tokens.paperRaised);
-    final double alpha = dark ? 0.72 : 0.78;
+    final Color base = tint ?? (dark ? Tokens.glassDark : Tokens.glassLight);
+    final double alpha = dark ? 0.72 : 0.72;
     final Color line = border?.top.color ??
-        (dark ? Tokens.nightHairline : Tokens.hairline).withValues(alpha: 0.9);
+        (dark ? Colors.white.withValues(alpha: 0.10) : Colors.white.withValues(alpha: 0.75));
 
-    return ClipRRect(
-      borderRadius: shaped,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: base.withValues(alpha: alpha),
-            borderRadius: shaped,
-            border: showBorder ? Border.all(color: line, width: 0.8) : null,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: shaped,
+        boxShadow: shadow ? Tokens.shadow(context) : null,
+      ),
+      child: ClipRRect(
+        borderRadius: shaped,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: base.withValues(alpha: alpha),
+              borderRadius: shaped,
+              border: showBorder ? Border.all(color: line, width: 0.9) : null,
+            ),
+            child: Padding(padding: padding, child: child),
           ),
-          child: Padding(padding: padding, child: child),
         ),
       ),
     );

@@ -1,9 +1,10 @@
 name: bangladesh_newspaper_hub
 description: >-
-  Bangladesh Newspaper Hub — a premium, offline-friendly Android news reader and
-  verified directory of Bangladeshi newspapers, portals and e-paper editions.
+  Amar News (আমার নিউজ) — a premium, offline-friendly Android news reader that
+  brings verified Bangladeshi and international news feeds together in one
+  editorial reading experience.
 publish_to: "none"
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -48,6 +49,7 @@ flutter:
   assets:
     - assets/data/sources.json
     - assets/data/source_candidates.json
+    - assets/data/bn_glossary.json
     - assets/fonts/OFL.txt
 
   fonts:

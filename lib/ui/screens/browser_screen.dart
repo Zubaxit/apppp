@@ -12,6 +12,7 @@ import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../services/browser_engine.dart';
 import '../widgets/editorial.dart';
+import '../../theme/motion.dart';
 
 /// In-app reader for a publisher's own page.
 ///

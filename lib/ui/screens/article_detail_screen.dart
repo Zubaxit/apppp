@@ -9,9 +9,12 @@ import '../../data/services/article_repository.dart';
 import '../../services/link_service.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
+import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../services/link_launcher.dart';
+import '../widgets/actions.dart';
 import '../widgets/common.dart';
+import '../widgets/translation_sheet.dart';
 import 'browser_screen.dart';
 
 /// Reading surface for an aggregated story.
@@ -31,10 +34,31 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   List<Article> _related = const <Article>[];
   bool _loadingRelated = true;
 
+  final ScrollController _scroll = ScrollController();
+  double _progress = 0;
+
   @override
   void initState() {
     super.initState();
+    _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _afterFrame());
+  }
+
+  /// Reading progress is derived from the scroll position only, so it never
+  /// rebuilds the article text itself.
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final double max = _scroll.position.maxScrollExtent;
+    final double value = max <= 0 ? 1 : (_scroll.offset / max).clamp(0.0, 1.0);
+    if ((value - _progress).abs() < 0.004 && value != 1) return;
+    setState(() => _progress = value);
+  }
+
+  @override
+  void dispose() {
+    _scroll.removeListener(_onScroll);
+    _scroll.dispose();
+    super.dispose();
   }
 
   Future<void> _afterFrame() async {
@@ -63,7 +87,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     final SourceRegistry registry = context.registry;
     final NewsSource? source = registry.byId(article.sourceId);
     final bool bengali = context.isBengali;
-    final bool isSaved = context.watch<SavedController>().isSaved(article.id);
     final SettingsController settings = context.watch<SettingsController>();
     final double scale = settings.textScale;
     final String sourceName =
@@ -71,31 +94,30 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
     return Scaffold(
       body: CustomScrollView(
+        controller: _scroll,
         slivers: <Widget>[
           SliverAppBar(
             pinned: true,
             actions: <Widget>[
               IconButton(
-                tooltip: isSaved ? context.strings.removeSaved : context.strings.save,
-                onPressed: () async {
-                  final bool nowSaved =
-                      await context.read<SavedController>().toggle(article);
-                  if (!context.mounted) return;
-                  context.showSnack(
-                    nowSaved ? context.strings.savedLabel : context.strings.removeSaved,
-                  );
-                },
-                icon: Icon(
-                  isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                tooltip: context.strings.translateAction,
+                onPressed: () => showTranslationSheet(
+                  context,
+                  text: <String>[
+                    article.title,
+                    if ((article.excerpt ?? '').isNotEmpty) article.excerpt!,
+                  ].join(' '),
                 ),
+                icon: const Icon(Icons.translate_rounded, size: 21),
               ),
-              IconButton(
-                tooltip: context.strings.share,
-                onPressed: () => LinkLauncherShare.shareArticle(context, article),
-                icon: const Icon(Icons.ios_share_rounded),
-              ),
+              BookmarkAction(article: article, dense: true),
+              ShareAction(article: article, dense: true),
               const SizedBox(width: 4),
             ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(2),
+              child: ReadingProgressBar(progress: _progress),
+            ),
           ),
           SliverToBoxAdapter(
             child: Column(
@@ -179,8 +201,11 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                       Text(
                         article.title,
                         style: context.texts.displaySmall?.copyWith(
-                          fontSize: 25 * scale,
-                          height: 1.34,
+                          fontFamily: Tokens.serif,
+                          fontSize: 26 * scale,
+                          height: 1.36,
+                          letterSpacing: -0.2,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -196,8 +221,9 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                         Text(
                           article.excerpt!,
                           style: context.texts.bodyLarge?.copyWith(
+                            fontFamily: Tokens.serif,
                             fontSize: 16.5 * scale,
-                            height: 1.7,
+                            height: 1.85,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -241,6 +267,9 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             backgroundColor: context.colors.primary,
                             foregroundColor: context.colors.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(Tokens.radiusSm),
+                            ),
                           ),
                           icon: const Icon(Icons.menu_book_rounded, size: 18),
                           label: Text(context.strings.readInApp),

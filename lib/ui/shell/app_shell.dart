@@ -15,6 +15,7 @@ import '../screens/newspapers_screen.dart';
 import '../screens/saved_screen.dart';
 import '../screens/settings_screen.dart';
 import '../widgets/editorial.dart';
+import '../../theme/motion.dart';
 
 /// Bottom-navigation shell. Each tab keeps its own scroll state; the detail
 /// routes are pushed on the root navigator so the Android back button behaves

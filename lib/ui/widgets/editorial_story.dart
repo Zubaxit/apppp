@@ -99,6 +99,7 @@ class StoryRow extends StatelessWidget {
     this.source,
     this.last = false,
     this.showThumbnail = true,
+    this.trailing,
   });
 
   final Article article;
@@ -106,6 +107,9 @@ class StoryRow extends StatelessWidget {
   final VoidCallback onTap;
   final bool last;
   final bool showThumbnail;
+
+  /// Row-level actions (bookmark, share) shown beside the thumbnail.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +167,10 @@ class StoryRow extends StatelessWidget {
                         child: RemoteImage(url: image),
                       ),
                     ),
+                  ],
+                  if (trailing != null) ...<Widget>[
+                    const SizedBox(width: 2),
+                    trailing!,
                   ],
                 ],
               ),

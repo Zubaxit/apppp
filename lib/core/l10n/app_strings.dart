@@ -197,6 +197,33 @@ abstract class AppStrings {
   String get articleCountShort;
   String get offlineSavedNotice;
   String get saveLinkOnlyNotice;
+  String get featuredStories;
+  String get topStory;
+  String get readingProgress;
+  String get aboutAuthorTitle;
+  String get aboutAuthorSubtitle;
+  String get editProfile;
+  String get profileName;
+  String get profileRole;
+  String get profileBio;
+  String get profileLongBio;
+  String get profileInterests;
+  String get profileLinks;
+  String get profileSaved;
+  String get profileReset;
+  String get profileResetBody;
+  String get translateTitle;
+  String get translateAction;
+  String get translateLoading;
+  String get translateUnavailable;
+  String get translateNoMatch;
+  String get translateOfflineNote;
+  String get translateWordByWord;
+  String get translateCopy;
+  String get translateSelectionHint;
+  String get savedKindsNote;
+  String get savedLinkOnlyBadge;
+  String get savedExcerptBadge;
   String get readInApp;
   String get noFollowedPapers;
   String get noFollowedBody;
@@ -210,9 +237,9 @@ class BanglaStrings extends AppStrings {
   String get languageCode => 'bn';
 
   @override
-  String get appName => 'বাংলাদেশ নিউজপেপার হাব';
+  String get appName => 'আমার নিউজ';
   @override
-  String get appTagline => 'বাংলাদেশের পত্রিকাগুলো এক জায়গায়';
+  String get appTagline => 'আপনার পত্রিকা, আপনার মতো';
 
   @override
   String get navHome => 'হোম';
@@ -460,9 +487,8 @@ class BanglaStrings extends AppStrings {
   String get aboutTitle => 'অ্যাপ সম্পর্কে';
   @override
   String get aboutBody =>
-      'বাংলাদেশ নিউজপেপার হাব বাংলাদেশের পত্রিকা, অনলাইন নিউজ পোর্টাল ও ই-পেপার খুঁজে বের করার এবং '
-      'তাদের প্রকাশিত সর্বশেষ শিরোনাম একসঙ্গে পড়ার একটি অ্যাপ।  খবরের শিরোনাম ও সারাংশ আসে পত্রিকার নিজস্ব '
-      'আরএসএস ফিড থেকে; সম্পূর্ণ প্রতিবেদন পড়তে মূল ওয়েবসাইটে যেতে হয়।';
+      'আমার নিউজ বাছাই করা বাংলাদেশি ও আন্তর্জাতিক সংবাদমাধ্যমের সর্বশেষ শিরোনাম একসঙ্গে পড়ার একটি অ্যাপ। '
+      'শিরোনাম ও সারাংশ আসে পত্রিকার নিজস্ব আরএসএস ফিড থেকে; সম্পূর্ণ প্রতিবেদন পড়তে মূল ওয়েবসাইটে যেতে হয়।';
   @override
   String get publisherNotice =>
       'এই অ্যাপের সঙ্গে কোনো পত্রিকার অফিসিয়াল সম্পর্ক নেই। সব শিরোনাম, সারাংশ ও ছবি সংশ্লিষ্ট '
@@ -551,6 +577,63 @@ class BanglaStrings extends AppStrings {
   @override
   String get readInApp => 'অ্যাপে পড়ুন';
   @override
+  String get featuredStories => 'আজকের প্রধান খবর';
+  @override
+  String get topStory => 'প্রধান খবর';
+  @override
+  String get readingProgress => 'পঠন অগ্রগতি';
+  @override
+  String get aboutAuthorTitle => 'আমার সম্পর্কে';
+  @override
+  String get aboutAuthorSubtitle => 'এই অ্যাপের পেছনের মানুষ';
+  @override
+  String get editProfile => 'সম্পাদনা';
+  @override
+  String get profileName => 'নাম';
+  @override
+  String get profileRole => 'পরিচয়';
+  @override
+  String get profileBio => 'সংক্ষিপ্ত পরিচিতি';
+  @override
+  String get profileLongBio => 'বিস্তারিত';
+  @override
+  String get profileInterests => 'আগ্রহ (কমা দিয়ে আলাদা করুন)';
+  @override
+  String get profileLinks => 'লিংক (প্রতি লাইনে একটি)';
+  @override
+  String get profileSaved => 'প্রোফাইল সংরক্ষিত হয়েছে';
+  @override
+  String get profileReset => 'আগের অবস্থায় ফিরিয়ে নিন';
+  @override
+  String get profileResetBody => 'সংরক্ষিত পরিবর্তন মুছে প্রাথমিক প্রোফাইল ফিরে আসবে।';
+  @override
+  String get translateTitle => 'বাংলা অর্থ';
+  @override
+  String get translateAction => 'বাংলা অর্থ';
+  @override
+  String get translateLoading => 'শব্দ খোঁজা হচ্ছে…';
+  @override
+  String get translateUnavailable => 'অভিধানে এই অংশটি নেই';
+  @override
+  String get translateNoMatch => 'এই শব্দটি অভিধানে পাওয়া যায়নি';
+  @override
+  String get translateOfflineNote =>
+      'অফলাইন অভিধান থেকে শব্দে-শব্দে অর্থ দেখানো হচ্ছে — এটি পূর্ণ অনুবাদ নয়।';
+  @override
+  String get translateWordByWord => 'শব্দে-শব্দে';
+  @override
+  String get translateCopy => 'অর্থ কপি করুন';
+  @override
+  String get translateSelectionHint => 'ইংরেজি শব্দ বা বাক্য নির্বাচন করে বাংলা অর্থ দেখুন';
+  @override
+  String get savedKindsNote =>
+      'সংরক্ষিত আইটেম দুই রকম: শুধু লিংক, অথবা লিংকের সঙ্গে প্রকাশকের দেওয়া সারাংশ। '
+      'সম্পূর্ণ প্রতিবেদন অফলাইনে সংরক্ষণ করা হয় না।';
+  @override
+  String get savedLinkOnlyBadge => 'শুধু লিংক';
+  @override
+  String get savedExcerptBadge => 'সারাংশসহ';
+  @override
   String get noFollowedPapers => 'এখনও কোনো পত্রিকা অনুসরণ করছেন না';
   @override
   String get noFollowedBody => 'পত্রিকা নির্দেশিকা থেকে পছন্দের পত্রিকা অনুসরণ করুন।';
@@ -565,9 +648,9 @@ class EnglishStrings extends AppStrings {
   String get languageCode => 'en';
 
   @override
-  String get appName => 'Bangladesh Newspaper Hub';
+  String get appName => 'Amar News';
   @override
-  String get appTagline => "Bangladesh's newspapers, in one place";
+  String get appTagline => 'Your newspapers, the way you read';
 
   @override
   String get navHome => 'Home';
@@ -816,9 +899,9 @@ class EnglishStrings extends AppStrings {
   String get aboutTitle => 'About this app';
   @override
   String get aboutBody =>
-      'Bangladesh Newspaper Hub helps you discover Bangladeshi newspapers, online portals and e-paper '
-      'editions, and read their latest published headlines in one place. Headlines and excerpts come from '
-      'the publishers’ own RSS feeds; full stories are read on the publisher’s website.';
+      'Amar News brings selected Bangladeshi and international news sources together in one reading '
+      'experience. Headlines and excerpts come from the publishers\' own RSS feeds; full stories are read '
+      'on the publisher\'s website.';
   @override
   String get publisherNotice =>
       'This app has no official affiliation with any newspaper. All headlines, excerpts and images belong '
@@ -908,6 +991,63 @@ class EnglishStrings extends AppStrings {
       'Only the headline, excerpt and original link are saved — not the full article text. The page will not open while you are offline.';
   @override
   String get readInApp => 'Read in app';
+  @override
+  String get featuredStories => 'Top stories';
+  @override
+  String get topStory => 'Top story';
+  @override
+  String get readingProgress => 'Reading progress';
+  @override
+  String get aboutAuthorTitle => 'About the author';
+  @override
+  String get aboutAuthorSubtitle => 'The person behind this app';
+  @override
+  String get editProfile => 'Edit';
+  @override
+  String get profileName => 'Name';
+  @override
+  String get profileRole => 'Short line';
+  @override
+  String get profileBio => 'Short biography';
+  @override
+  String get profileLongBio => 'More detail';
+  @override
+  String get profileInterests => 'Interests (comma separated)';
+  @override
+  String get profileLinks => 'Links (one per line)';
+  @override
+  String get profileSaved => 'Profile saved';
+  @override
+  String get profileReset => 'Restore the starting profile';
+  @override
+  String get profileResetBody => 'Your edits are removed and the starting profile returns.';
+  @override
+  String get translateTitle => 'Bengali meaning';
+  @override
+  String get translateAction => 'বাংলা অর্থ';
+  @override
+  String get translateLoading => 'Looking up…';
+  @override
+  String get translateUnavailable => 'Not in the dictionary';
+  @override
+  String get translateNoMatch => 'No dictionary entry for this word';
+  @override
+  String get translateOfflineNote =>
+      'Word-by-word meanings from the offline glossary — this is not a full translation.';
+  @override
+  String get translateWordByWord => 'Word by word';
+  @override
+  String get translateCopy => 'Copy meaning';
+  @override
+  String get translateSelectionHint => 'Select English text to see a Bengali meaning';
+  @override
+  String get savedKindsNote =>
+      'Saved items are either a link alone, or a link with the excerpt the publisher provided. '
+      'Full stories are never stored offline.';
+  @override
+  String get savedLinkOnlyBadge => 'Link only';
+  @override
+  String get savedExcerptBadge => 'With excerpt';
   @override
   String get noFollowedPapers => 'You are not following any publication yet';
   @override

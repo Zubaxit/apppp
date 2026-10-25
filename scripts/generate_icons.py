@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Generate the app's launcher icons without any image library.
+"""Generate the Amar News launcher icons without any image library.
 
-The icon is drawn procedurally (Bangladesh-green tile with a white newspaper
-glyph and a red accent bar) and encoded as PNG with zlib. Run from the
-repository root:
+The mark is drawn procedurally and encoded as PNG with zlib: a graphite tile
+carrying a white front page whose masthead rule is the app's printed red, with
+three text lines below. It is grayscale plus one red — the same identity the
+interface uses — and reads at 48 px.
 
     python3 scripts/generate_icons.py
 """
@@ -16,10 +17,11 @@ import zlib
 
 SS = 4  # supersampling factor
 
-GREEN_TOP = (18, 118, 92)
-GREEN_BOTTOM = (11, 90, 70)
-WHITE = (255, 255, 255)
-RED = (244, 42, 65)
+GRAPHITE_TOP = (32, 32, 35)
+GRAPHITE_BOTTOM = (15, 15, 17)
+WHITE = (247, 246, 244)
+INK = (60, 60, 64)
+RED = (175, 31, 43)
 
 
 def rounded_rect_sdf(x, y, cx, cy, hw, hh, r):
@@ -41,7 +43,7 @@ def draw(size):
 
     for y in range(h):
         t = y / (h - 1)
-        bg = tuple(int(round(a + (b - a) * t)) for a, b in zip(GREEN_TOP, GREEN_BOTTOM))
+        bg = tuple(int(round(a + (b - a) * t)) for a, b in zip(GRAPHITE_TOP, GRAPHITE_BOTTOM))
         for x in range(w):
             px[y][x] = bg
 
@@ -67,19 +69,34 @@ def draw(size):
                             continue
                     px[y][x] = color
 
-    # Newspaper page.
-    fill_rect(0.24, 0.28, 0.76, 0.72, WHITE, radius=0.045)
-    # Headline block with a red accent strip, matching the flag colours.
-    fill_rect(0.30, 0.34, 0.50, 0.46, RED, radius=0.012)
-    fill_rect(0.30, 0.34, 0.50, 0.377, WHITE, radius=0.0)
-    # Body lines.
-    for row in range(3):
-        y0 = 0.35 + row * 0.042
-        fill_rect(0.53, y0, 0.70, y0 + 0.022, GREEN_BOTTOM, radius=0.006)
-    for row in range(4):
-        y0 = 0.50 + row * 0.048
-        width = 0.44 if row < 3 else 0.28
-        fill_rect(0.30, y0, 0.30 + width, y0 + 0.022, GREEN_BOTTOM, radius=0.006)
+    # Front page.
+    fill_rect(0.26, 0.25, 0.74, 0.75, WHITE, radius=0.055)
+    # Folded corner: the page is being turned, which is what the app is for.
+    # The corner is cut out of the sheet and replaced with a red dog-ear.
+    fold = 0.17
+    for y in range(int(0.25 * h), int(0.75 * h)):
+        fy = (y / h - 0.25) / fold
+        if fy > 1.0:
+            break
+        x_end = 0.74 - fold * (1.0 - fy)
+        t = y / (h - 1)
+        cut = tuple(int(round(a + (b - a) * t)) for a, b in zip(GRAPHITE_TOP, GRAPHITE_BOTTOM))
+        for x in range(int(x_end * w), int(0.74 * w)):
+            px[y][x] = cut
+    for y in range(int(0.25 * h), int((0.25 + fold) * h)):
+        fy = (y / h - 0.25) / fold
+        x_start = 0.74 - fold * (1.0 - fy)
+        for x in range(int(x_start * w), int((x_start + 0.011) * w)):
+            if 0 <= x < w:
+                px[y][x] = RED
+    # Printed-red masthead rule across the top of the page.
+    fill_rect(0.32, 0.30, 0.60, 0.345, RED, radius=0.010)
+    # Text lines, the last one short: a front page, not a paragraph.
+    fill_rect(0.32, 0.41, 0.68, 0.442, INK, radius=0.008)
+    fill_rect(0.32, 0.475, 0.68, 0.507, INK, radius=0.008)
+    fill_rect(0.32, 0.54, 0.55, 0.572, INK, radius=0.008)
+    # A thin rule under the column, echoing the app's hairline separators.
+    fill_rect(0.32, 0.635, 0.68, 0.648, RED, radius=0.004)
 
     # Box filter down to the requested size.
     out = []

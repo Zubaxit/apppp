@@ -7,6 +7,7 @@ import '../../core/utils/bengali_text.dart';
 import '../../data/models/news_source.dart';
 import '../../data/models/source_health.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/motion.dart';
 
 /// Network image with disk caching, a calm fade-in and a graceful failure
 /// state. Uses [CachedNetworkImageProvider] under a standard [Image] widget so
@@ -325,7 +326,7 @@ class HealthBadge extends StatelessWidget {
       color = context.colors.onSurfaceVariant;
     } else if (health!.status == SourceHealthStatus.ok) {
       label = context.strings.feedWorking;
-      color = context.isDark ? AppColors.mint : AppColors.brandGreen;
+      color = context.isDark ? AppColors.redOnDark : AppColors.brandRed;
     } else if (health!.status == SourceHealthStatus.disabled) {
       label = context.strings.feedNotAvailable;
       color = context.colors.onSurfaceVariant;

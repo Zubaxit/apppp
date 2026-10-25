@@ -10,6 +10,7 @@ import '../screens/newspapers_screen.dart';
 import '../screens/source_detail_screen.dart';
 import '../screens/source_health_screen.dart';
 import '../services/link_launcher.dart';
+import '../../theme/motion.dart';
 
 /// Shared route builder: a calm fade + rise, disabled when motion is reduced.
 Route<T> editorialRoute<T>(Widget page, {String? name}) {

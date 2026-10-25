@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'bootstrap.dart';
 import 'core/l10n/app_strings.dart';
 import 'theme/app_theme.dart';
+import 'theme/tokens.dart';
+import 'ui/widgets/brand.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,13 +59,67 @@ class _BootstrapGateState extends State<BootstrapGate> {
   }
 }
 
-class _SplashScreen extends StatelessWidget {
+/// The opening moment: the mark rises once, the wordmark settles, and a thin
+/// rule sweeps under it while the registry and database load. It is one short
+/// beat — no logo animation to sit through — and it disappears the instant
+/// bootstrap resolves.
+class _SplashScreen extends StatefulWidget {
   const _SplashScreen();
+
+  @override
+  State<_SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<_SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: Tokens.emphasized,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     const AppStrings strings = BanglaStrings();
     final ThemeData theme = AppTheme.light();
+    final bool reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final CurvedAnimation rise = CurvedAnimation(
+      parent: _controller,
+      curve: Tokens.easeEmphasized,
+    );
+
+    final Widget content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const AmarNewsMark(size: 78),
+        const SizedBox(height: 22),
+        Wordmark(text: strings.appName, subtitle: strings.appTagline, size: 27),
+        const SizedBox(height: 30),
+        SizedBox(
+          width: 64,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: const LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Color(0x1A191A1B),
+              color: Tokens.accent,
+            ),
+          ),
+        ),
+      ],
+    );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: theme,
@@ -71,34 +127,23 @@ class _SplashScreen extends StatelessWidget {
         strings: strings,
         child: Scaffold(
           backgroundColor: AppColors.paper,
-          body: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppColors.brandGreen,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(Icons.newspaper_rounded, color: Colors.white, size: 32),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  strings.appName,
-                  style: theme.textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                Text(strings.appTagline, style: theme.textTheme.bodySmall),
-                const SizedBox(height: 26),
-                const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2.2),
-                ),
-              ],
+          body: SafeArea(
+            child: Center(
+              child: reduce
+                  ? content
+                  : AnimatedBuilder(
+                      animation: rise,
+                      child: content,
+                      builder: (BuildContext context, Widget? child) {
+                        return Opacity(
+                          opacity: rise.value,
+                          child: Transform.translate(
+                            offset: Offset(0, (1 - rise.value) * 10),
+                            child: child,
+                          ),
+                        );
+                      },
+                    ),
             ),
           ),
         ),

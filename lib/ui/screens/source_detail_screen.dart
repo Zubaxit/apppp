@@ -429,7 +429,7 @@ class _Tag extends StatelessWidget {
     final Color color = warning
         ? context.colors.error
         : accent
-            ? (context.isDark ? AppColors.mint : AppColors.brandGreen)
+            ? (context.isDark ? AppColors.redOnDark : AppColors.brandRed)
             : context.colors.onSurfaceVariant;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

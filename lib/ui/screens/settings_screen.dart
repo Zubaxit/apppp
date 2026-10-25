@@ -6,13 +6,13 @@ import '../../data/models/app_preferences.dart';
 import '../../state/feed_controller.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
-import '../../theme/app_theme.dart';
 import '../helpers/app_nav.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  static const String appVersion = '1.0.0 (1)';
+  static const String appVersion = '1.1.0 (2)';
 
   @override
   Widget build(BuildContext context) {
@@ -387,179 +387,6 @@ class _LabeledRow extends StatelessWidget {
         Expanded(child: Text(label, style: context.texts.labelLarge)),
         const SizedBox(width: 8),
         Flexible(child: child),
-      ],
-    );
-  }
-}
-
-class AboutScreen extends StatelessWidget {
-  const AboutScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final registry = context.registry;
-    final bool bengali = context.isBengali;
-    final int withFeed = registry.sources.where((s) => s.hasFeed).length;
-    final int withEpaper = registry.sources.where((s) => s.hasEpaper).length;
-
-    return Scaffold(
-      appBar: AppBar(title: Text(context.strings.aboutTitle)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: context.isDark ? AppColors.mint : AppColors.brandGreen,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.newspaper_rounded,
-                  color: context.isDark ? AppColors.nightBg : Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(context.strings.appName, style: context.texts.titleLarge),
-                    Text(
-                      '${context.strings.version} ${SettingsScreen.appVersion}',
-                      style: context.texts.labelSmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Text(context.strings.aboutBody, style: context.texts.bodyMedium),
-          const SizedBox(height: 22),
-          _AboutBlock(
-            title: context.strings.registryTitle,
-            body: context.strings.registryBody,
-            stats: <Widget>[
-              Expanded(
-                child: _StatChip(
-                  value: '${registry.sources.length}',
-                  label: context.strings.sourcesListed,
-                ),
-              ),
-              Expanded(
-                child: _StatChip(
-                  value: '${registry.sources.where((s) => s.website.isNotEmpty).length}',
-                  label: context.strings.sourcesWithWebsite,
-                ),
-              ),
-              Expanded(
-                child: _StatChip(value: '$withFeed', label: context.strings.sourcesWithFeed),
-              ),
-              Expanded(
-                child: _StatChip(value: '$withEpaper', label: context.strings.sourcesWithEpaper),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _AboutBlock(
-            title: context.strings.publisherNotice.split('।').first,
-            body: context.strings.publisherNotice,
-          ),
-          const SizedBox(height: 16),
-          _AboutBlock(
-            title: context.strings.privacyTitle,
-            body: context.strings.privacyBody,
-          ),
-          const SizedBox(height: 16),
-          _AboutBlock(
-            title: context.strings.dataOnDevice,
-            body: context.strings.dataOnDeviceBody,
-          ),
-          const SizedBox(height: 16),
-          _AboutBlock(
-            title: context.strings.licence.split(':').first,
-            body: context.strings.licence,
-          ),
-          const SizedBox(height: 22),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.monitor_heart_outlined, color: context.colors.primary),
-            title: Text(context.strings.sourceHealth, style: context.texts.labelLarge),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => openSourceHealth(context),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            bengali
-                ? 'ডেটা: ${registry.updatedAt.year}-${registry.updatedAt.month.toString().padLeft(2, '0')}-${registry.updatedAt.day.toString().padLeft(2, '0')}'
-                : 'Registry data: ${registry.updatedAt.toIso8601String().split('T').first}',
-            style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AboutBlock extends StatelessWidget {
-  const _AboutBlock({required this.title, required this.body, this.stats});
-
-  final String title;
-  final String body;
-  final List<Widget>? stats;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(title, style: context.texts.titleSmall),
-          const SizedBox(height: 6),
-          Text(body, style: context.texts.bodySmall?.copyWith(height: 1.6)),
-          if (stats != null) ...<Widget>[
-            const SizedBox(height: 12),
-            Row(children: stats!),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          value,
-          style: context.texts.headlineSmall?.copyWith(
-            fontSize: 20,
-            color: context.colors.primary,
-          ),
-        ),
-        Text(
-          label,
-          style: context.texts.labelSmall?.copyWith(fontSize: 9.5, height: 1.3),
-          maxLines: 2,
-        ),
       ],
     );
   }

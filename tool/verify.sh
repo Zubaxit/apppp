@@ -34,8 +34,12 @@ for s in sources:
     assert s.get('categories'), (s['id'], 'no categories')
     assert set(s['categories']) <= CATEGORIES, (s['id'], s['categories'])
     assert s.get('division') in (DIVISIONS | {None}), (s['id'], s.get('division'))
-    if s['feedClaim'] != 'none':
-        assert s.get('feedUrl'), (s['id'], 'feed claim without a url')
+    # `candidate` means an unverified URL is recorded in the candidate backlog,
+    # not that the registry ships a feed; only documented or verified claims
+    # require a feed URL here.
+    if s['feedClaim'] in ('official_documented', 'verified_working'):
+        assert s.get('feedUrl'), (s['id'], 'documented feed claim without a url')
+    if s.get('feedUrl'):
         assert s.get('feedFormat') in ('rss', 'atom', 'unknown'), (s['id'], s.get('feedFormat'))
     if s.get('district'):
         assert s.get('division'), (s['id'], 'district without a division')
@@ -45,7 +49,11 @@ for s in sources:
         assert len(s['notes']) < 400, (s['id'], 'notes too long')
     if s.get('lastVerifiedAt'):
         assert re.fullmatch(r'\d{4}-\d{2}-\d{2}', s['lastVerifiedAt']), (s['id'], s['lastVerifiedAt'])
-        assert s.get('feedUrl'), (s['id'], 'verified date without a feed url')
+        # A verification date records either a feed check or a website check; a
+        # website-only source legitimately has no feed URL and must say so.
+        if not s.get('feedUrl'):
+            assert s['feedClaim'] == 'none', (s['id'], 'feed claim without a url')
+            assert s.get('notes'), (s['id'], 'website check without a note')
     if s['feedClaim'] == 'verified_working':
         assert s.get('lastVerifiedAt'), (s['id'], 'verified claim without a date')
 
@@ -95,6 +103,9 @@ for s in sources:
         assert norm(category) in dart_enum('SourceCategory'), (s['id'], category)
 print(f"    {len(sources)} sources, {len(epapers)} e-papers, {len(candidates)} candidates")
 PY
+
+echo "==> offline glossary is valid and honestly labelled"
+python3 tool/check_glossary.py
 
 echo "==> every asset declared in pubspec.yaml exists"
 python3 - <<'PY'
