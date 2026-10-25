@@ -152,36 +152,42 @@ the artifact was a zip of both:
 | Run | Artifact `apk` (zip) | Contents |
 | --- | --- | --- |
 | `40172294387` (before) | 118,486,545 B | `app-debug.apk` + `app-release.apk` under one name |
-| `40178215651` (after) | 27,914,362 B (`apk-release`) | one release APK: 55,784,100 B |
-| `40178215651` | 37,130,754 B (`apk-split`) | three per-ABI release APKs |
-| `40178215651` | 90,642,370 B (`apk-debug`) | debug build, kept for inspection only |
+| `40187196211` (after) | 28,074,460 B (`apk-release`) | one release APK: 55,944,744 B |
+| `40187196211` | 37,610,699 B (`apk-split`) | three per-ABI release APKs |
+| `40187196211` | 90,801,186 B (`apk-debug`) | debug build, kept for inspection only |
 
-An ARM64 phone installs the `app-arm64-v8a-release.apk` slice: **22,219,393 B** instead of
-55,784,100 B for the universal APK — 60 % less to transfer, identical behaviour, because the other
+An ARM64 phone installs the `app-arm64-v8a-release.apk` slice: **22,380,056 B** instead of
+55,944,744 B for the universal APK — 60 % less to transfer, identical behaviour, because the other
 two ABIs' engine copies are simply not there.
 
-Where the bytes actually go (measured inside the release APK in run `40178215651`):
+Where the bytes actually go, measured inside the universal release APK in run `40187196211`
+(GitHub Actions prints this on every build):
 
-| Entry | Uncompressed |
-| --- | --- |
-| `lib/arm64-v8a/libflutter.so` | 10,814,048 B |
-| `lib/x86_64/libflutter.so` | 11,888,112 B |
-| `classes.dex` | 9,035,152 B |
-| every bundled font | 1.6 MB total |
-| registry, glossary, icons | < 150 KB |
+| Group | Uncompressed | Share |
+| --- | --- | --- |
+| `lib/x86_64` (engine + Dart AOT) | 17.72 MB | 29.5 % |
+| `lib/arm64-v8a` (engine + Dart AOT) | 16.57 MB | 27.6 % |
+| `lib/armeabi-v7a` (engine + Dart AOT) | 14.20 MB | 23.7 % |
+| `classes*.dex` | 9.52 MB | 15.9 % |
+| bundled assets — the seven Bengali font weights (registry, glossary and icons are < 100 KB together) | 1.59 MB | 2.6 % |
+| compiled Android resources | 0.45 MB | 0.7 % |
+| everything else (signature, services, manifest) | 0.29 MB | 0.5 % |
 
-So the APK is Flutter's own per-ABI engine plus the Dart AOT output. The 64 publication entries,
-the glossary and the icon set together are a rounding error — which is exactly why no publisher was
-removed, no font was subset, no feed integration was touched, and no aggressive minification was
-enabled. The only honest lever was *what gets packaged*, and that is what changed:
+The single largest entries are `lib/x86_64/libflutter.so` (11,888,112 B) and
+`lib/arm64-v8a/libflutter.so` (10,814,048 B), then the per-ABI `libapp.so` (the compiled Dart:
+6.5–7.6 MB each) and `classes.dex` (9,035,184 B). The 64 publication entries, the glossary and the
+icon set together are a rounding error — which is exactly why no publisher was removed, no font was
+subset, no feed integration was touched, and no aggressive minification was enabled. The only honest
+lever was *what gets packaged*, and that is what changed:
 
-1. the debug build no longer masquerades as part of the release download;
+1. the debug build no longer masquerades as part of the release download (it was 197 MB inside the
+   artifact the user was told was "the APK");
 2. per-ABI release APKs are published for phones that know their own architecture;
 3. the universal release APK is still built and still available, because it installs on anything.
 
-Remaining measured composition of the universal release APK is printed as a check annotation on
-every build (`Report artifact sizes and the composition of the release APK`), so the next change to
-assets or dependencies shows up as a diff in the numbers.
+The new launcher artwork added 160 KB (`55,784,100 → 55,944,744` B between the previous and the
+final build), mostly the five adaptive foreground PNGs — an honest trade for a launcher icon that is
+not a placeholder.
 
 ## D. What is still not measured — device work
 

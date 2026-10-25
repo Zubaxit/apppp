@@ -19,6 +19,8 @@ import '../../theme/tokens.dart';
 /// * it is drawn at a fixed size, so a logo arriving late cannot shift layout;
 /// * it is decoded at the tile's own pixel width, so a 48 dp monogram never
 ///   pulls a 512 px source into memory;
+/// * below 24 dp no request is made at all — a wordmark is illegible there, so
+///   the monogram is both the better mark and the cheaper one;
 /// * when every candidate fails — no network, no icon, a corrupt file — it
 ///   paints the publisher's serif monogram on the same tile, never a broken
 ///   image glyph, and never an invented logo.
@@ -81,7 +83,9 @@ class _PublisherLogoState extends State<PublisherLogo> {
     final BorderRadius shape = BorderRadius.circular(size * 0.3);
 
     Widget content;
-    if (!PublisherLogo.remoteEnabled || showMonogram || size < 16) {
+    // Under 24 dp a wordmark is a smudge; the monogram reads better and saves
+    // the river a request per row.
+    if (!PublisherLogo.remoteEnabled || showMonogram || size < 24) {
       content = _Monogram(source: widget.source, size: size, solid: widget.solid);
     } else {
       final int pixels = (size * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2))
