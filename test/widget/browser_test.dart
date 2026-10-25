@@ -154,7 +154,8 @@ void main() {
 
     await tester.tap(back);
     await tester.pumpAndSettle();
-    expect(engine.goBacks, 1);
+    expect(engine.tryGoBacks, 1,
+        reason: 'the toolbar asks the live page history, like system back');
   });
 
   testWidgets('the controls sit on one row at an ordinary phone width',
@@ -287,20 +288,26 @@ void main() {
       await tester.pumpWidget(h.wrap(
         Builder(
           builder: (BuildContext context) => ElevatedButton(
-            onPressed: () => openInBrowser(context, url: engine.url),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) =>
+                    BrowserScreen(url: engine.url, engine: engine),
+              ),
+            ),
             child: const Text('open'),
           ),
         ),
       ));
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
+      expect(find.byType(BrowserScreen), findsOneWidget);
 
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
-      expect(find.byType(BrowserScreen), findsOneWidget);
-      // The fake engine serves the app's own screen here, so nothing is left to
-      // pop until history is exhausted; the assertion below covers that case.
-      expect(engine.tryGoBacks, greaterThanOrEqualTo(0));
+
+      expect(engine.tryGoBacks, 1, reason: 'the page history was asked first');
+      expect(find.byType(BrowserScreen), findsNothing,
+          reason: 'with nothing left in the page the route is the next step');
     });
 
     testWidgets('a second press while the first is resolving does not navigate twice',

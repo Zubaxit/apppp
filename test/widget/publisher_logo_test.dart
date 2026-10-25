@@ -131,9 +131,14 @@ void main() {
         matching: find.byType(Image),
       );
       expect(image, findsOneWidget, reason: 'the bundled file is used');
+      // A cacheWidth wraps the provider in ResizeImage; the bundled file is
+      // still the source, decoded once at the size the avatar needs.
       final Image widget = tester.widget<Image>(image);
-      expect(widget.image, isA<AssetImage>());
-      expect((widget.image as AssetImage).assetName, 'assets/publishers/prothomalo.png');
+      expect(widget.image, isA<ResizeImage>());
+      final ResizeImage resized = widget.image as ResizeImage;
+      expect(resized.imageProvider, isA<AssetImage>());
+      expect((resized.imageProvider as AssetImage).assetName,
+          'assets/publishers/prothomalo.png');
       expect(find.byType(CachedNetworkImage), findsNothing,
           reason: 'no network request for a mark that ships with the app');
     });
