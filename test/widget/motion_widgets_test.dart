@@ -78,6 +78,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 40));
       // Touch-down already registers; the reader never waits for the release.
+      debugPrint('JELLY-DIAG listeners=${find.byType(Listener).evaluate().length} '
+          'transforms=${tester.widgetList<Transform>(find.descendant(of: find.byType(JellySurface), matching: find.byType(Transform))).map((Transform t) => t.transform.getMaxScaleOnAxis()).toList()} '
+          'sizes=${tester.getSize(find.byType(JellySurface))} center=${tester.getCenter(find.byType(JellySurface))}');
       expect(scaleOf(tester), lessThan(0.99));
 
       await gesture.up();
