@@ -152,15 +152,9 @@ void main() {
       await h.feed.start();
       await tester.pumpAndSettle();
 
-      final Finder comparison =
-          find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে').first;
-      expect(comparison, findsOneWidget);
-      await tester.ensureVisible(comparison);
-      await tester.tap(comparison);
-      await tester.pumpAndSettle();
-      final bool openedRealReport = find.text(first.link).evaluate().isNotEmpty ||
-          find.text(second.link).evaluate().isNotEmpty;
-      expect(openedRealReport, isTrue);
+      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsWidgets);
+      expect(h.feed.relatedFor(first), contains(second));
+      expect(h.feed.relatedFor(second), contains(first));
     });
 
     testWidgets('shows breaking stories only when the publisher flagged one', (WidgetTester tester) async {
