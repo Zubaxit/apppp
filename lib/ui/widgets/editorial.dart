@@ -275,13 +275,16 @@ class Attribution extends StatelessWidget {
               ),
             ),
           ),
-        Text(
-          when ?? context.strings.noPublicationDate,
-          maxLines: 1,
-          style: context.texts.labelSmall?.copyWith(
-            fontSize: compact ? 10 : 10.6,
-            color: metaColor,
-            fontStyle: when == null ? FontStyle.italic : FontStyle.normal,
+        Flexible(
+          child: Text(
+            when ?? context.strings.noPublicationDate,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.texts.labelSmall?.copyWith(
+              fontSize: compact ? 10 : 10.6,
+              color: metaColor,
+              fontStyle: when == null ? FontStyle.italic : FontStyle.normal,
+            ),
           ),
         ),
         if (article.breaking) ...<Widget>[

@@ -171,14 +171,20 @@ class LeadStory extends StatelessWidget {
                       const SizedBox(height: 12),
                       Row(
                         children: <Widget>[
-                          Attribution(
+                          Expanded(
+                            child: Attribution(
+                              article: article,
+                              source: source,
+                              compact: true,
+                              onDark: true,
+                            ),
+                          ),
+                          BookmarkAction(
                             article: article,
-                            source: source,
-                            compact: true,
+                            size: 19,
+                            dense: true,
                             onDark: true,
                           ),
-                          const Spacer(),
-                          BookmarkAction(article: article, size: 19, dense: true, onDark: true),
                         ],
                       ),
                     ],

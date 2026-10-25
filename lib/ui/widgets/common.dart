@@ -266,6 +266,10 @@ class ArticleSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      // Skeletons are dropped into existing scroll views as well, so they size
+      // to their rows instead of demanding a viewport of their own.
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 24),
       children: <Widget>[
         const ShimmerBox(height: 132, radius: Tokens.radiusLg),

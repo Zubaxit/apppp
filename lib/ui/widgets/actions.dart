@@ -46,12 +46,19 @@ class BookmarkAction extends StatefulWidget {
 class _BookmarkActionState extends State<BookmarkAction>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pop;
+  bool _reduce = false;
 
   @override
   void initState() {
     super.initState();
     // Eager creation keeps dispose() off the ticker provider.
     _pop = AnimationController.unbounded(vsync: this, value: 1);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduce = Motion.of(context).reduce;
   }
 
   @override
@@ -62,7 +69,7 @@ class _BookmarkActionState extends State<BookmarkAction>
 
   void _bounce() {
     if (!mounted) return;
-    if (Motion.of(context).reduce) return;
+    if (_reduce) return;
     _pop.value = 0.78;
     _pop.animateWith(
       SpringSimulation(Springs.release, 0.78, 1, 0),

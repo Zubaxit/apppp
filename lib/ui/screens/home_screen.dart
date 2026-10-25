@@ -37,6 +37,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// Stories built with the header rather than on demand.
+  static const int _eagerRiver = 2;
+
   Future<void> _refresh() => context.read<FeedController>().refresh(force: true);
 
   void _setFollowing(bool following) {
@@ -204,21 +207,33 @@ class _HomeScreenState extends State<HomeScreen> {
                               : context.strings.latestNews,
                         ),
                       ),
+                    // The first two stories are laid out with the header so the
+                    // page has content immediately; the rest arrive lazily.
+                    for (int i = 0; i < river.length && i < _eagerRiver; i++)
+                      NewsCard(
+                        article: river[i],
+                        source: registry.byId(river[i].sourceId),
+                        index: i,
+                        onTap: () => openArticle(context, river[i]),
+                      ),
                   ],
                 ],
                 ),
               ),
               // The river is a real sliver list, so a long feed only builds the
               // rows that are on screen — no eager Column of a hundred cards.
-              if (river.isNotEmpty)
+              if (river.length > _eagerRiver)
                 SliverList.builder(
-                  itemCount: river.length,
-                  itemBuilder: (BuildContext context, int index) => NewsCard(
-                    article: river[index],
-                    source: registry.byId(river[index].sourceId),
-                    index: index,
-                    onTap: () => openArticle(context, river[index]),
-                  ),
+                  itemCount: river.length - _eagerRiver,
+                  itemBuilder: (BuildContext context, int offset) {
+                    final int index = offset + _eagerRiver;
+                    return NewsCard(
+                      article: river[index],
+                      source: registry.byId(river[index].sourceId),
+                      index: index,
+                      onTap: () => openArticle(context, river[index]),
+                    );
+                  },
                 ),
               if (river.isNotEmpty)
                 SliverToBoxAdapter(

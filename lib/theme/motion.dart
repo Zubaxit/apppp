@@ -155,10 +155,20 @@ class _JellySurfaceState extends State<JellySurface>
   late final AnimationController _spring;
   bool _held = false;
 
+  /// Read once per dependency change: the press handlers must never touch the
+  /// element tree, because a tap can be released while the tree is unmounting.
+  bool _reduce = false;
+
   @override
   void initState() {
     super.initState();
     _spring = AnimationController.unbounded(vsync: this, value: 1);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduce = Motion.of(context).reduce;
   }
 
   @override
@@ -172,8 +182,7 @@ class _JellySurfaceState extends State<JellySurface>
   void _press() {
     if (!mounted || !_interactive) return;
     setState(() => _held = true);
-    final Motion motion = Motion.of(context);
-    if (motion.reduce) {
+    if (_reduce) {
       _spring.value = widget.scale;
       return;
     }
@@ -185,8 +194,7 @@ class _JellySurfaceState extends State<JellySurface>
   void _release() {
     if (!mounted) return;
     if (_held) setState(() => _held = false);
-    final Motion motion = Motion.of(context);
-    if (motion.reduce) {
+    if (_reduce) {
       _spring.value = 1;
       return;
     }
@@ -199,17 +207,21 @@ class _JellySurfaceState extends State<JellySurface>
 
     if (!_interactive) return content;
 
-    return GestureDetector(
+    // The press is driven by raw pointer events, not by the tap recogniser, so
+    // the surface compresses on touch-down instead of after the tap deadline.
+    return Listener(
       behavior: widget.behavior,
-      onTapDown: (_) => _press(),
-      onTapUp: (_) => _release(),
-      onTapCancel: _release,
-      onTap: () {
-        if (widget.haptic) unawaited(Haptics.tick());
-        widget.onTap!();
-      },
-      onLongPress: widget.onLongPress,
-      child: AnimatedBuilder(
+      onPointerDown: (_) => _press(),
+      onPointerUp: (_) => _release(),
+      onPointerCancel: (_) => _release(),
+      child: GestureDetector(
+        behavior: widget.behavior,
+        onTap: () {
+          if (widget.haptic) unawaited(Haptics.tick());
+          widget.onTap!();
+        },
+        onLongPress: widget.onLongPress,
+        child: AnimatedBuilder(
         animation: _spring,
         // The child is captured once: only the transform repaints.
         child: content,
@@ -217,11 +229,12 @@ class _JellySurfaceState extends State<JellySurface>
           final double value = _spring.value;
           final double pressed =
               ((1 - value) / (1 - widget.scale).abs()).clamp(0.0, 1.0);
-          return Transform.translate(
-            offset: Offset(0, widget.lift * pressed),
-            child: Transform.scale(scale: value, child: child),
-          );
-        },
+            return Transform.translate(
+              offset: Offset(0, widget.lift * pressed),
+              child: Transform.scale(scale: value, child: child),
+            );
+          },
+        ),
       ),
     );
   }
