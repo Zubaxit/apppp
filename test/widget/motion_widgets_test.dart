@@ -74,13 +74,17 @@ void main() {
       final double idle = scaleOf(tester);
       expect(idle, moreOrLessEquals(1, epsilon: 0.001));
 
-      // Press inside the surface's own content, the way a finger would.
+      // Press inside the surface's own content, the way a finger would. The
+      // smallest scale seen across the hold is the compression itself, so a
+      // later release cannot hide it.
       final TestGesture gesture =
           await tester.startGesture(tester.getCenter(find.text('ট্যাপ')));
-      // The recogniser-driven trigger lands inside the tap deadline; raw
-      // pointer-down compression is what makes it feel instant on a device.
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
+      double pressed = 1;
+      for (int i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        final double current = scaleOf(tester);
+        if (current < pressed) pressed = current;
+      }
       final List<double> diagScales = tester
           .widgetList<Transform>(find.descendant(
             of: find.byType(JellySurface),
@@ -89,11 +93,9 @@ void main() {
           .map((Transform t) => t.transform.getMaxScaleOnAxis())
           .toList();
       expect(
-        scaleOf(tester),
+        pressed,
         lessThan(idle - 0.005),
-        reason: 'DIAG scales=$diagScales listeners=${find.byType(Listener).evaluate().length} '
-            'size=${tester.getSize(find.byType(JellySurface))} '
-            'centre=${tester.getCenter(find.text('ট্যাপ'))}',
+        reason: 'DIAG last=$diagScales size=${tester.getSize(find.byType(JellySurface))}',
       );
 
       await gesture.up();
@@ -121,7 +123,6 @@ void main() {
       final TestGesture gesture =
           await tester.startGesture(tester.getCenter(find.text('ট্যাপ')));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
       // Reduced motion is a static state change, not a spring animation.
       expect(scaleOf(tester), moreOrLessEquals(0.9, epsilon: 0.001));
 
