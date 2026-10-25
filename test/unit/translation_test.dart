@@ -38,7 +38,7 @@ void main() {
       await service.load();
       expect(service.isLoaded, isTrue);
       expect(service.isAvailable, isTrue);
-      expect(service.size, 5);
+      expect(service.size, 6);
     });
 
     test('a missing asset leaves the feature unavailable instead of throwing',

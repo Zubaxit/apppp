@@ -398,21 +398,30 @@ class _FeedControls extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
           tab(context.strings.all, !following, () => onChanged(false)),
-          const SizedBox(width: 18),
+          const SizedBox(width: 16),
           tab(context.strings.followingLabel, following, () => onChanged(true)),
-          const Spacer(),
-          if (count > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 7),
-              child: Text(
-                '${BengaliText.toBengaliDigits(count)} ${context.strings.articleCountShort}',
-                style: context.texts.labelSmall?.copyWith(
-                  fontSize: 10.5,
-                  color: context.colors.onSurfaceVariant,
-                ),
-              ),
-            ),
           const SizedBox(width: 10),
+          // The count is the only elastic part of this row: on a 320 dp phone the
+          // tabs must stay intact and the count can ellipsise.
+          Expanded(
+            child: count > 0
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 7),
+                    child: Text(
+                      '${BengaliText.toBengaliDigits(count)} '
+                      '${context.strings.articleCountShort}',
+                      textAlign: TextAlign.end,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.texts.labelSmall?.copyWith(
+                        fontSize: 10.5,
+                        color: context.colors.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          const SizedBox(width: 6),
           Pressable(
             onTap: refreshing ? null : onRefresh,
             child: Padding(

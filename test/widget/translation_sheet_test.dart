@@ -36,7 +36,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // The notice is explicit that this is a glossary, not a translation.
-    expect(find.textContaining('শব্দে-শব্দে'), findsOneWidget);
+    expect(find.textContaining('অফলাইন অভিধান থেকে'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'poem');
     await tester.pumpAndSettle();

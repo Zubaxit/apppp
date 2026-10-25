@@ -331,6 +331,11 @@ void main() {
 
     testWidgets('about screen keeps the author profile separate from the app',
         (WidgetTester tester) async {
+      // The About page is a long lazy list; a tall surface keeps the author
+      // section mounted so the assertions below are about content, not scrolling.
+      tester.view.physicalSize = const Size(1080, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final TestHarness h = harness();
       await tester.pumpWidget(
         h.wrap(AboutScreen(store: InMemoryProfileStore())),
@@ -346,6 +351,9 @@ void main() {
 
     testWidgets('the author profile can be edited at runtime and is stored',
         (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final TestHarness h = harness();
       final InMemoryProfileStore store = InMemoryProfileStore();
       await tester.pumpWidget(h.wrap(AboutScreen(store: store)));
@@ -364,6 +372,9 @@ void main() {
 
     testWidgets('a profile link that is not a web address is rejected',
         (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1080, 2600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
       final TestHarness h = harness();
       final InMemoryProfileStore store = InMemoryProfileStore();
       await tester.pumpWidget(h.wrap(AboutScreen(store: store)));
