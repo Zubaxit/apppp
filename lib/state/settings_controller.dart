@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/l10n/app_strings.dart';
 import '../data/models/app_preferences.dart';
 import '../data/models/article.dart';
+import '../services/news_shield.dart';
 import '../services/preferences_store.dart';
 
 /// Owns every user preference and persists it on change.
@@ -77,8 +80,16 @@ class SettingsController extends ChangeNotifier {
   Future<void> setBreakingBannerEnabled(bool enabled) =>
       _update(_prefs.copyWith(breakingBannerEnabled: enabled));
 
-  Future<void> setNewsShieldEnabled(bool enabled) =>
-      _update(_prefs.copyWith(newsShieldEnabled: enabled));
+  Future<void> setNewsShieldEnabled(bool enabled) async {
+    await _update(_prefs.copyWith(newsShieldEnabled: enabled));
+    final DateTime? updated = NewsShield.updatedAt;
+    if (enabled &&
+        (updated == null ||
+            DateTime.now().toUtc().difference(updated) >=
+                NewsShield.updateInterval)) {
+      unawaited(NewsShield.update());
+    }
+  }
 
   Future<void> setShieldException(String domain, {required bool except}) {
     final String host = domain.trim().toLowerCase().replaceFirst('www.', '');

@@ -21,7 +21,7 @@ import 'about_screen.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  static const String appVersion = '1.1.0 (2)';
+  static const String appVersion = '1.2.0 (3)';
 
   @override
   Widget build(BuildContext context) {
