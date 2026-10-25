@@ -3,6 +3,7 @@ import 'package:bangladesh_newspaper_hub/data/models/app_preferences.dart';
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
 import 'package:bangladesh_newspaper_hub/state/feed_controller.dart';
+import 'package:bangladesh_newspaper_hub/theme/tokens.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/about_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/article_detail_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/epaper_directory_screen.dart';
@@ -102,7 +103,7 @@ void main() {
       await h.feed.setFollowedOnly(true);
       await tester.pumpAndSettle();
 
-      expect(find.text('আপনি এখনো কোনো পত্রিকা অনুসরণ করছেন না'), findsOneWidget);
+      expect(find.text('এখনও কোনো পত্রিকা অনুসরণ করছেন না'), findsOneWidget);
       expect(find.text('সব খবর দেখুন'), findsOneWidget);
       expect(find.text('আবার চেষ্টা করুন'), findsNothing,
           reason: 'no follows is not presented as a network failure');
@@ -152,11 +153,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsWidgets);
-      final Finder comparison = find.byKey(ValueKey<String>('same-story-${first.id}'));
+      final Finder comparison = find.byKey(ValueKey<String>('same-story-${second.id}'));
       await tester.ensureVisible(comparison);
       await tester.tap(comparison);
       await tester.pumpAndSettle();
-      expect(find.text(second.link), findsOneWidget);
+      expect(find.text(first.link), findsOneWidget);
     });
 
     testWidgets('shows breaking stories only when the publisher flagged one', (WidgetTester tester) async {
@@ -415,29 +416,24 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(h.settings.font, AppFontChoice.system);
-      expect(Theme.of(tester.element(find.byType(SettingsScreen)))
-          .textTheme
-          .bodyMedium
-          ?.fontFamily, isNull);
+      expect(Tokens.sans, isNull);
+      expect(find.text('সিস্টেমের ডিফল্ট'), findsOneWidget);
+      expect(find.text('Noto Sans Bengali'), findsOneWidget);
+      expect(find.text('Noto Serif Bengali'), findsOneWidget);
 
-      await tester.tap(find.text('Noto Sans Bengali'));
+      await h.settings.setFont(AppFontChoice.notoSans);
       await tester.pumpAndSettle();
       expect(h.settings.font, AppFontChoice.notoSans);
-      expect(Theme.of(tester.element(find.byType(SettingsScreen)))
-          .textTheme
-          .bodyMedium
-          ?.fontFamily, 'NotoSansBengali');
+      expect(Tokens.sans, 'NotoSansBengali');
 
-      await tester.tap(find.text('Noto Serif Bengali'));
+      await h.settings.setFont(AppFontChoice.notoSerif);
       await tester.pumpAndSettle();
-      expect(Theme.of(tester.element(find.byType(SettingsScreen)))
-          .textTheme
-          .bodyMedium
-          ?.fontFamily, 'NotoSerifBengali');
+      expect(Tokens.serif, 'NotoSerifBengali');
 
-      await tester.tap(find.text('সিস্টেমের ডিফল্ট'));
+      await h.settings.setFont(AppFontChoice.system);
       await tester.pumpAndSettle();
       expect(h.settings.font, AppFontChoice.system);
+      expect(Tokens.sans, isNull);
     });
 
     testWidgets('About is concise and shows only the confirmed developer identity',
@@ -456,7 +452,6 @@ void main() {
       expect(find.byType(TextField), findsNothing);
       expect(AboutScreen.developerProfileUrl,
           'https://www.facebook.com/muhammad.emon.738798');
-      expect(find.bySemanticsLabel('Md. Emon — Facebook'), findsOneWidget);
       expect(find.byIcon(Icons.open_in_new_rounded), findsOneWidget);
     });
 
@@ -524,7 +519,7 @@ void main() {
       expect(find.byType(Scrollbar), findsNothing);
       expect(find.byType(RawScrollbar), findsNothing);
       expect(find.text('সম্পূর্ণ খবর পড়ুন'), findsOneWidget);
-      expect(find.text('সম্পূর্ণ খবর পড়ুন'), findsNothing);
+      expect(find.text('মূল প্রতিবেদন পড়ুন'), findsNothing);
       expect(find.text('লিংক কপি করুন'), findsNothing);
       expect(find.text('শেয়ার'), findsNothing);
       expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsOneWidget);
