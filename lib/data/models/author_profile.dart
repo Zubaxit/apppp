@@ -126,7 +126,9 @@ class AuthorProfile {
   /// would be a broken promise in the UI.
   static bool isSupportedLink(String value) {
     final String lower = value.trim().toLowerCase();
-    if (!(lower.startsWith('https://') || lower.startsWith('http://'))) return false;
+    if (!(lower.startsWith('https://') || lower.startsWith('http://'))) {
+      return false;
+    }
     return Uri.tryParse(value.trim())?.host.isNotEmpty ?? false;
   }
 }

@@ -159,8 +159,12 @@ class FeedParser {
 
   String? _nextPage(XmlDocument document) {
     for (final XmlElement link in document.descendants.whereType<XmlElement>()) {
-      if (link.name.local.toLowerCase() != 'link') continue;
-      if ((link.getAttribute('rel') ?? '').toLowerCase() != 'next') continue;
+      if (link.name.local.toLowerCase() != 'link') {
+        continue;
+      }
+      if ((link.getAttribute('rel') ?? '').toLowerCase() != 'next') {
+        continue;
+      }
       final String value = (link.getAttribute('href') ?? link.innerText).trim();
       if (value.isNotEmpty) return value;
     }
@@ -346,7 +350,9 @@ class FeedParser {
     bool breaking = false;
     for (final String category in categories) {
       final String key = category.toLowerCase();
-      if (key.contains('breaking') || category.contains('ব্রেকিং')) breaking = true;
+      if (key.contains('breaking') || category.contains('ব্রেকিং')) {
+        breaking = true;
+      }
     }
     final RegExp breakingPrefix =
         RegExp(r'^\s*(ব্রেকিং\s*নিউজ|ব্রেকিং|breaking news|breaking)\s*[:\-–|]\s*',
@@ -415,7 +421,9 @@ class FeedParser {
     final List<Article> output = <Article>[];
     for (final Article article in input) {
       final String titleKey = '${article.sourceId}|${article.title.toLowerCase()}';
-      if (seenIds.contains(article.id) || seenTitles.contains(titleKey)) continue;
+      if (seenIds.contains(article.id) || seenTitles.contains(titleKey)) {
+        continue;
+      }
       seenIds.add(article.id);
       seenTitles.add(titleKey);
       output.add(article);
@@ -509,14 +517,18 @@ class FeedParser {
     // Guard against obviously bogus dates (pre-internet or far future).
     final int yearNow = DateTime.now().toUtc().year;
     if (utc.year < 1995 || utc.year > yearNow + 1) return null;
-    if (utc.isAfter(DateTime.now().toUtc().add(const Duration(days: 1)))) return null;
+    if (utc.isAfter(DateTime.now().toUtc().add(const Duration(days: 1)))) {
+      return null;
+    }
     return utc;
   }
 
   int? _parseOffset(String? raw) {
     if (raw == null || raw.isEmpty) return null;
     final String value = raw.trim().toUpperCase();
-    if (value == 'Z' || value == 'GMT' || value == 'UT' || value == 'UTC') return 0;
+    if (value == 'Z' || value == 'GMT' || value == 'UT' || value == 'UTC') {
+      return 0;
+    }
     final RegExpMatch? match = RegExp(r'^([+-])(\d{2}):?(\d{2})$').firstMatch(value);
     if (match != null) {
       final int hours = int.parse(match.group(2)!);

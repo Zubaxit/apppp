@@ -91,6 +91,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _run(String raw) async {
     final String query = raw.trim();
+    final bool bengali = context.isBengali;
     final int generation = ++_requestGeneration;
     if (query.isEmpty) {
       setState(() {
@@ -123,7 +124,7 @@ class _SearchScreenState extends State<SearchScreen> {
       }
     } catch (_) {
       warnings = <String>[
-        context.isBengali
+        bengali
             ? 'উপলভ্য আর্কাইভে এখন খোঁজা যায়নি।'
             : 'The available archive could not be searched.',
       ];

@@ -76,7 +76,9 @@ class NewsHttpClient {
     int attempts = 2,
   }) async {
     final String? safeUrl = UrlSafety.sanitize(url);
-    if (safeUrl == null) return HttpFetchResult.failure('Unsafe or invalid URL');
+    if (safeUrl == null) {
+      return HttpFetchResult.failure('Unsafe or invalid URL');
+    }
     final Uri uri = Uri.parse(safeUrl);
     String? lastError;
     for (var attempt = 1; attempt <= attempts; attempt++) {
