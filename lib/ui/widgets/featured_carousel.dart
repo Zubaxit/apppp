@@ -161,12 +161,25 @@ class _FeaturedCard extends StatelessWidget {
                 if (parallax.hasClients && parallax.position.haveDimensions) {
                   delta = (parallax.page ?? index.toDouble()) - index;
                 }
-                return Transform.translate(
-                  offset: Offset(delta * MediaQuery.sizeOf(context).width * 0.055, 0),
-                  child: Transform.scale(scale: 1.07, child: child),
+                // One matrix for the drift and the 1.07 crop scale: a single
+                // transform layer over a cached photograph raster, so dragging
+                // the rail moves pixels instead of repainting the image.
+                return Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()
+                    ..translate(
+                      delta * MediaQuery.sizeOf(context).width * 0.055,
+                    )
+                    ..scale(1.07),
+                  child: child,
                 );
               },
-              child: RemoteImage(url: article.imageUrl!),
+              child: RepaintBoundary(
+                child: RemoteImage(
+                  url: article.imageUrl!,
+                  decodeWidth: width,
+                ),
+              ),
             ),
             const DecoratedBox(
               decoration: BoxDecoration(

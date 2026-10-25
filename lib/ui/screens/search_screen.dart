@@ -145,7 +145,9 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _field(BuildContext context) {
     return GlassPanel(
       radius: Tokens.radiusPill,
-      blur: Tokens.blurBar,
+      // The field scrolls with the results; a blur behind it would re-run on
+      // every scroll frame to reveal nothing.
+      blur: 0,
       elevation: 0.6,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(

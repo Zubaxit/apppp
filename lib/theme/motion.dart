@@ -127,6 +127,7 @@ class JellySurface extends StatefulWidget {
     this.behavior = HitTestBehavior.opaque,
     this.lift = 0,
     this.enabled = true,
+    this.boundary = true,
   });
 
   final Widget child;
@@ -143,6 +144,15 @@ class JellySurface extends StatefulWidget {
   /// Extra translation (px) applied while held — used sparingly for buttons.
   final double lift;
   final bool enabled;
+
+  /// Rasterises the content once and animates only the transform over it.
+  ///
+  /// Scaling a subtree that contains shadows, gradients, clipping and text makes
+  /// Skia repaint all of it every frame; a boundary turns the press into a pure
+  /// layer transform. It is on by default because that is what the jelly
+  /// interaction needs, and off for a few tiny inline marks where the extra
+  /// layer would cost more than the repaint.
+  final bool boundary;
 
   @override
   State<JellySurface> createState() => _JellySurfaceState();
@@ -180,8 +190,11 @@ class _JellySurfaceState extends State<JellySurface>
   bool get _interactive => widget.enabled && widget.onTap != null;
 
   void _press() {
-    if (!mounted || !_interactive) return;
-    setState(() => _held = true);
+    if (!mounted || !_interactive || _held) return;
+    // _held is bookkeeping only: nothing in build() reads it, so setting it
+    // must not rebuild the surface's content. The transform is driven by the
+    // animation controller, which repaints the layer and nothing else.
+    _held = true;
     if (_reduce) {
       _spring.value = widget.scale;
       return;
@@ -193,7 +206,8 @@ class _JellySurfaceState extends State<JellySurface>
 
   void _release() {
     if (!mounted) return;
-    if (_held) setState(() => _held = false);
+    if (!_held) return;
+    _held = false;
     if (_reduce) {
       _spring.value = 1;
       return;
@@ -228,16 +242,24 @@ class _JellySurfaceState extends State<JellySurface>
         },
         onLongPress: widget.onLongPress,
         child: AnimatedBuilder(
-        animation: _spring,
-        // The child is captured once: only the transform repaints.
-        child: content,
-        builder: (BuildContext context, Widget? child) {
-          final double value = _spring.value;
-          final double pressed =
-              ((1 - value) / (1 - widget.scale).abs()).clamp(0.0, 1.0);
-            return Transform.translate(
-              offset: Offset(0, widget.lift * pressed),
-              child: Transform.scale(scale: value, child: child),
+          animation: _spring,
+          // The content is captured once: the spring repaints one transform,
+          // not the card, its shadows, its clipping or its text.
+          child: widget.boundary ? RepaintBoundary(child: content) : content,
+          builder: (BuildContext context, Widget? child) {
+            final double value = _spring.value;
+            final double pressed =
+                ((1 - value) / (1 - widget.scale).abs()).clamp(0.0, 1.0);
+            // A single matrix instead of a translate wrapping a scale: one
+            // render object and one layer per animated item.
+            final Matrix4 matrix = Matrix4.identity()
+              ..translate(0.0, widget.lift * pressed)
+              ..scale(value);
+            return Transform(
+              transform: matrix,
+              alignment: Alignment.center,
+              filterQuality: FilterQuality.low,
+              child: child,
             );
           },
         ),
@@ -460,9 +482,71 @@ class _RevealState extends State<Reveal> with SingleTickerProviderStateMixin {
   }
 }
 
-/// Small deferred block used by the skeleton shimmer: a soft, honest placeholder
-/// that does not loop unless the surrounding screen is genuinely waiting.
-class ShimmerBox extends StatefulWidget {
+/// One ticker shared by every skeleton block on a screen.
+///
+/// Each [ShimmerBox] used to own a repeating [AnimationController]. A loading
+/// front page holds seventeen of them, which is seventeen tickers, seventeen
+/// rebuilds per frame and seventeen independent schedules for one uniform
+/// pulse. The scope owns a single controller and the boxes listen to it, so the
+/// shimmer looks identical and costs one ticker.
+class ShimmerScope extends StatefulWidget {
+  const ShimmerScope({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<ShimmerScope> createState() => _ShimmerScopeState();
+}
+
+class _ShimmerScopeState extends State<ShimmerScope>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final bool reduce = Motion.of(context).reduce;
+    if (reduce) {
+      _controller?.dispose();
+      _controller = null;
+      return;
+    }
+    _controller ??= AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShimmerPulse(animation: _controller, child: widget.child);
+  }
+}
+
+class _ShimmerPulse extends InheritedWidget {
+  const _ShimmerPulse({required this.animation, required super.child});
+
+  final Animation<double>? animation;
+
+  static Animation<double>? of(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<_ShimmerPulse>()
+      ?.animation;
+
+  @override
+  bool updateShouldNotify(_ShimmerPulse oldWidget) =>
+      oldWidget.animation != animation;
+}
+
+/// A soft, honest placeholder block. Inert when it is not inside a
+/// [ShimmerScope] or when motion is reduced, so a skeleton can never animate
+/// forever by accident.
+class ShimmerBox extends StatelessWidget {
   const ShimmerBox({
     super.key,
     required this.height,
@@ -477,57 +561,31 @@ class ShimmerBox extends StatefulWidget {
   final bool animate;
 
   @override
-  State<ShimmerBox> createState() => _ShimmerBoxState();
-}
-
-class _ShimmerBoxState extends State<ShimmerBox> with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final bool reduce = Motion.of(context).reduce;
-    if (widget.animate && !reduce && _controller == null) {
-      _controller = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1500),
-      )..repeat(reverse: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final Color ink = Theme.of(context).colorScheme.onSurface;
     final Color base = ink.withValues(alpha: 0.055);
     final Color bright = ink.withValues(alpha: 0.095);
-    final AnimationController? controller = _controller;
-    if (controller == null) {
+    final Animation<double>? pulse = animate ? _ShimmerPulse.of(context) : null;
+    final BorderRadius shape = BorderRadius.circular(radius);
+
+    if (pulse == null) {
       return Container(
-        height: widget.height,
-        width: widget.width,
-        decoration: BoxDecoration(
-          color: base,
-          borderRadius: BorderRadius.circular(widget.radius),
-        ),
+        height: height,
+        width: width,
+        decoration: BoxDecoration(color: base, borderRadius: shape),
       );
     }
+
     return AnimatedBuilder(
-      animation: controller,
+      animation: pulse,
       builder: (BuildContext context, Widget? child) => Container(
-        height: widget.height,
-        width: widget.width,
+        height: height,
+        width: width,
         decoration: BoxDecoration(
-          color: Color.lerp(base, bright, controller.value),
-          borderRadius: BorderRadius.circular(widget.radius),
+          color: Color.lerp(base, bright, pulse.value),
+          borderRadius: shape,
         ),
       ),
     );
   }
 }
-

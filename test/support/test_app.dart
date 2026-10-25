@@ -11,6 +11,7 @@ import 'package:bangladesh_newspaper_hub/state/saved_controller.dart';
 import 'package:bangladesh_newspaper_hub/state/settings_controller.dart';
 import 'package:bangladesh_newspaper_hub/theme/app_theme.dart';
 import 'package:bangladesh_newspaper_hub/theme/motion.dart';
+import 'package:bangladesh_newspaper_hub/ui/widgets/publisher_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +39,10 @@ class TestHarness {
   })  : registry = registry ?? testRegistry(),
         stores = stores ?? fakeStores(),
         gateway = gateway ?? FakeFeedGateway() {
+    // The widget suite has no image stack and no network. Publisher marks are
+    // asserted through their resolution and their fallback; the fetch itself is
+    // device-verified (see docs/TESTING.md).
+    PublisherLogo.remoteEnabled = false;
     settings = SettingsController(
       initial: prefs,
       store: InMemoryPreferencesStore(prefs.encode()),

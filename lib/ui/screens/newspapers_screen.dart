@@ -121,7 +121,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
             padding: const EdgeInsets.fromLTRB(Tokens.gutter, 6, Tokens.gutter, 8),
             child: GlassPanel(
               radius: Tokens.radiusMd,
-              blur: Tokens.blurSoft,
+              blur: 0,
               elevation: 0.4,
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               child: TextField(
@@ -328,7 +328,7 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                 onTap: () => setState(() => _showAll = !_showAll),
                 child: GlassPanel(
                   radius: Tokens.radiusMd,
-                  blur: Tokens.blurSoft,
+                  blur: 0,
                   elevation: 0.4,
                   padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
                   child: Row(

@@ -1,4 +1,5 @@
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
+import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/browser_screen.dart';
 import 'package:bangladesh_newspaper_hub/ui/services/browser_engine.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,7 @@ void main() {
     expect(find.text('publisher-page'), findsOneWidget);
   });
 
-  testWidgets('back arrow is disabled until the page has history', (WidgetTester tester) async {
+  testWidgets('back is disabled until the page has history', (WidgetTester tester) async {
     final TestHarness h = TestHarness();
     final FakeBrowserEngine engine = FakeBrowserEngine();
     await tester.pumpWidget(h.wrap(
@@ -101,27 +102,80 @@ void main() {
     engine.finishLoading();
     await tester.pumpAndSettle();
 
-    IconButton back = tester.widget<IconButton>(
-      find.ancestor(
-        of: find.byIcon(Icons.arrow_back_rounded),
-        matching: find.byType(IconButton),
-      ),
-    );
-    expect(back.onPressed, isNull);
+    Finder back = find.byKey(const ValueKey<String>('browser-back'));
+    expect(tester.widget<JellySurface>(back).enabled, isFalse);
 
     engine.setCanGoBack(true);
     await tester.pumpAndSettle();
-    back = tester.widget<IconButton>(
-      find.ancestor(
-        of: find.byIcon(Icons.arrow_back_rounded),
-        matching: find.byType(IconButton),
-      ),
-    );
-    expect(back.onPressed, isNotNull);
+    back = find.byKey(const ValueKey<String>('browser-back'));
+    expect(tester.widget<JellySurface>(back).enabled, isTrue);
 
-    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+    await tester.tap(back);
     await tester.pumpAndSettle();
     expect(engine.goBacks, 1);
+  });
+
+  testWidgets('the controls sit on one row at an ordinary phone width',
+      (WidgetTester tester) async {
+    final TestHarness h = TestHarness();
+    final FakeBrowserEngine engine = FakeBrowserEngine();
+    await tester.binding.setSurfaceSize(const Size(412, 892));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(h.wrap(
+      BrowserScreen(url: engine.url, title: 'নির্বাচনী প্রস্তুতি', engine: engine),
+    ));
+    engine.finishLoading();
+    await tester.pumpAndSettle();
+
+    // The bar is a single line of chrome, not a panel with a second row.
+    expect(tester.getSize(find.byType(BrowserToolbar)).height, lessThan(72));
+
+    final double rowY = tester.getCenter(
+      find.byKey(const ValueKey<String>('browser-close')),
+    ).dy;
+    for (final BrowserTool tool in BrowserTool.values) {
+      final Finder disc = find.byKey(ValueKey<String>('browser-${tool.name}'));
+      expect(disc, findsOneWidget, reason: '${tool.name} missing');
+      expect(
+        (tester.getCenter(disc).dy - rowY).abs(),
+        lessThan(1.5),
+        reason: '${tool.name} is not on the toolbar row',
+      );
+      // Every control keeps a real touch target and stays inside the screen.
+      expect(tester.getSize(disc).width, greaterThanOrEqualTo(32));
+      expect(tester.getTopRight(disc).dx, lessThanOrEqualTo(412));
+    }
+
+    // The address field keeps the leftover width and is never squeezed out.
+    final Rect pill = tester.getRect(find.byType(BrowserToolbar));
+    expect(pill.width, greaterThan(300));
+    expect(find.text('prothomalo.com'), findsOneWidget);
+  });
+
+  testWidgets('a narrow phone keeps every control usable, without overflow',
+      (WidgetTester tester) async {
+    final TestHarness h = TestHarness();
+    final FakeBrowserEngine engine = FakeBrowserEngine();
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(h.wrap(
+      BrowserScreen(url: engine.url, title: 'খুব দীর্ঘ একটি শিরোনাম যা কখনই পুরোটা দেখানো উচিত নয়', engine: engine),
+    ));
+    engine.finishLoading();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    for (final BrowserTool tool in BrowserTool.values) {
+      final Finder disc = find.byKey(ValueKey<String>('browser-${tool.name}'));
+      expect(disc, findsOneWidget, reason: '${tool.name} missing at 320 dp');
+      expect(tester.getTopRight(disc).dx, lessThanOrEqualTo(320));
+      expect(tester.getSize(disc).width, greaterThanOrEqualTo(32));
+    }
+    // The domain survives; the long headline is ellipsised rather than wrapping.
+    expect(find.text('prothomalo.com'), findsOneWidget);
+    final Text headline = tester.widget<Text>(find.textContaining('খুব দীর্ঘ'));
+    expect(headline.maxLines, 1);
+    expect(headline.overflow, TextOverflow.ellipsis);
   });
 
   testWidgets('load failure offers retry instead of a blank page', (WidgetTester tester) async {
@@ -152,7 +206,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(h.saved.count, 0);
 
-    await tester.tap(find.byIcon(Icons.bookmark_border_rounded));
+    await tester.tap(find.byKey(const ValueKey<String>('browser-bookmark')));
     await tester.pumpAndSettle();
     expect(find.text(h.settings.strings.saveLinkOnlyNotice), findsOneWidget);
 

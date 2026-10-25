@@ -89,7 +89,7 @@ class _Standard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(Tokens.radiusSm),
                   child: AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: RemoteImage(url: image),
+                    child: RemoteImage(url: image, decodeWidth: 380),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -247,7 +247,11 @@ class _Compact extends StatelessWidget {
                     child: SizedBox(
                       width: 74,
                       height: 74,
-                      child: RemoteImage(url: image),
+                      child: RemoteImage(
+                        url: image,
+                        decodeWidth: 74,
+                        fade: false,
+                      ),
                     ),
                   ),
                 ],

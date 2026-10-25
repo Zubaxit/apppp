@@ -45,16 +45,26 @@ class _BrowserScreenState extends State<BrowserScreen> {
   late final bool _ownsEngine;
   bool _savedLink = false;
 
+  /// Mirrors the only two engine facts that the surrounding route needs: the
+  /// system back gesture depends on page history, and the bookmark state
+  /// changes when the user saves. Everything else — progress, loading, domain —
+  /// is drawn by a [ListenableBuilder] inside the chrome, so the platform view
+  /// is not rebuilt a hundred times while a page loads.
+  bool _canGoBack = false;
+
   @override
   void initState() {
     super.initState();
     _ownsEngine = widget.engine == null;
     _engine = widget.engine ?? WebViewBrowserEngine(url: widget.url);
+    _canGoBack = _engine.canGoBack;
     _engine.addListener(_onEngine);
   }
 
   void _onEngine() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    if (_engine.canGoBack == _canGoBack) return;
+    setState(() => _canGoBack = _engine.canGoBack);
   }
 
   @override
@@ -143,31 +153,22 @@ class _BrowserScreenState extends State<BrowserScreen> {
         backgroundColor: context.theme.scaffoldBackgroundColor,
         body: Column(
           children: <Widget>[
-            _BrowserChrome(
-              domain: domain,
-              title: widget.title,
-              loading: _engine.loading,
-              canGoBack: _engine.canGoBack,
-              onClose: () => Navigator.of(context).maybePop(),
-              onBack: () => _engine.goBack(),
-              onReload: () => _engine.reload(),
-              onExternal: () => openUrlFeedback(context, _engine.url),
-              onSave: _savedLink ? null : _explainOfflineSave,
-              saved: _savedLink,
-            ),
-            if (_engine.loading)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: _engine.progress == 0 ? null : _engine.progress,
-                    minHeight: 2,
-                    backgroundColor:
-                        context.colors.onSurface.withValues(alpha: 0.06),
-                  ),
-                ),
+            ListenableBuilder(
+              listenable: _engine,
+              builder: (BuildContext context, Widget? child) => BrowserToolbar(
+                domain: _engine.domain.isNotEmpty ? _engine.domain : domain,
+                title: widget.title,
+                loading: _engine.loading,
+                progress: _engine.progress,
+                canGoBack: _engine.canGoBack,
+                onClose: () => Navigator.of(context).maybePop(),
+                onBack: () => _engine.goBack(),
+                onReload: () => _engine.reload(),
+                onExternal: () => openUrlFeedback(context, _engine.url),
+                onSave: _savedLink ? null : _explainOfflineSave,
+                saved: _savedLink,
               ),
+            ),
             Expanded(
               child: _engine.error != null
                   ? _BrowserError(
@@ -184,11 +185,20 @@ class _BrowserScreenState extends State<BrowserScreen> {
   }
 }
 
-class _BrowserChrome extends StatelessWidget {
-  const _BrowserChrome({
+/// The browser's controls, in one row: close, the address pill, then page
+/// history, reload, hand-off to the system browser and save.
+///
+/// The pill takes whatever width the discs leave, so the layout never pushes a
+/// control off screen; below [compactBreakpoint] the discs and the type step
+/// down one size instead of clipping anything. The row is deliberately one
+/// line tall — the page below it is the content, the chrome is a tool.
+class BrowserToolbar extends StatelessWidget {
+  const BrowserToolbar({
+    super.key,
     required this.domain,
     required this.title,
     required this.loading,
+    required this.progress,
     required this.canGoBack,
     required this.onClose,
     required this.onBack,
@@ -198,9 +208,13 @@ class _BrowserChrome extends StatelessWidget {
     required this.saved,
   });
 
+  /// Below this width the toolbar switches to its compact metric.
+  static const double compactBreakpoint = 360;
+
   final String domain;
   final String? title;
   final bool loading;
+  final double progress;
   final bool canGoBack;
   final VoidCallback onClose;
   final VoidCallback onBack;
@@ -213,118 +227,249 @@ class _BrowserChrome extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: GlassBar(
-        padding: const EdgeInsets.fromLTRB(8, 7, 8, 9),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                IconButton(
-                  onPressed: onClose,
-                  iconSize: 19,
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                  icon: const Icon(Icons.close_rounded),
-                ),
-                const SizedBox(width: 2),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(Tokens.radiusPill),
-                      color: context.isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.black.withValues(alpha: 0.035),
-                      border: Border.all(
-                        color: context.isDark
-                            ? Tokens.nightHairline
-                            : Tokens.hairline,
-                        width: 0.8,
+            GlassBar(
+              radius: Tokens.radiusLg,
+              padding: const EdgeInsets.all(4),
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final bool compact =
+                      constraints.maxWidth < compactBreakpoint;
+                  final double tap = compact ? 32 : 36;
+                  final double glyph = compact ? 17 : 18.5;
+                  return Row(
+                    children: <Widget>[
+                      BrowserToolButton(
+                        tool: BrowserTool.close,
+                        icon: Icons.close_rounded,
+                        tooltip:
+                            MaterialLocalizations.of(context).closeButtonTooltip,
+                        size: glyph,
+                        tap: tap,
+                        onTap: onClose,
                       ),
-                    ),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          Icons.public_rounded,
-                          size: 13,
-                          color: context.colors.onSurfaceVariant,
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: _AddressPill(
+                          domain: domain,
+                          title: title,
+                          compact: compact,
                         ),
-                        const SizedBox(width: 7),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                domain,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.texts.labelSmall?.copyWith(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.1,
-                                ),
-                              ),
-                              if (title != null)
-                                Text(
-                                  title!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.texts.labelSmall?.copyWith(
-                                    fontSize: 9.5,
-                                    height: 1.3,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        // Progress is stated by the hairline under the chrome;
-                        // a spinner here would run forever on a failed page.
-
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                      ),
+                      BrowserToolButton(
+                        tool: BrowserTool.back,
+                        icon: Icons.arrow_back_rounded,
+                        tooltip:
+                            MaterialLocalizations.of(context).backButtonTooltip,
+                        size: glyph,
+                        tap: tap,
+                        onTap: canGoBack ? onBack : null,
+                      ),
+                      BrowserToolButton(
+                        tool: BrowserTool.reload,
+                        icon: Icons.refresh_rounded,
+                        tooltip: context.strings.refresh,
+                        size: glyph,
+                        tap: tap,
+                        onTap: loading ? null : onReload,
+                      ),
+                      BrowserToolButton(
+                        tool: BrowserTool.external,
+                        icon: Icons.open_in_new_rounded,
+                        tooltip: context.strings.openWebsite,
+                        size: glyph,
+                        tap: tap,
+                        onTap: onExternal,
+                      ),
+                      BrowserToolButton(
+                        tool: BrowserTool.bookmark,
+                        icon: saved
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_border_rounded,
+                        tooltip: context.strings.save,
+                        size: glyph,
+                        tap: tap,
+                        active: saved,
+                        onTap: onSave,
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                IconButton(
-                  onPressed: canGoBack ? onBack : null,
-                  iconSize: 19,
-                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                  icon: const Icon(Icons.arrow_back_rounded),
-                ),
-                IconButton(
-                  onPressed: loading ? null : onReload,
-                  iconSize: 19,
-                  tooltip: context.strings.refresh,
-                  icon: const Icon(Icons.refresh_rounded),
-                ),
-                IconButton(
-                  onPressed: onExternal,
-                  iconSize: 19,
-                  tooltip: context.strings.openWebsite,
-                  icon: const Icon(Icons.open_in_new_rounded),
-                ),
-                IconButton(
-                  onPressed: onSave,
-                  iconSize: 19,
-                  tooltip: context.strings.save,
-                  icon: Icon(
-                    saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                    color: saved ? context.colors.primary : null,
-                  ),
-                ),
-              ],
+            // A 2 px rule states loading without adding a second chrome row.
+            // It is determinate when the engine reports a fraction and a thin
+            // sweep when it does not; it disappears entirely once the page is
+            // in, so a failed page is never left spinning.
+            AnimatedSize(
+              duration: Motion.of(context).standard,
+              curve: Tokens.easeStandard,
+              child: loading
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: progress <= 0 ? null : progress,
+                          minHeight: 2,
+                          backgroundColor:
+                              context.colors.onSurface.withValues(alpha: 0.05),
+                        ),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity, height: 0),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The controls the toolbar owns. The enum exists so tests can address one
+/// control by name instead of by icon or by position.
+enum BrowserTool { close, back, reload, external, bookmark }
+
+/// One toolbar disc.
+///
+/// A disabled disc stays in place and keeps its size — removing it would make
+/// the remaining controls jump around mid-page-load — and only drops to a
+/// quieter ink. The press compression comes from the shared jelly surface.
+class BrowserToolButton extends StatelessWidget {
+  const BrowserToolButton({
+    super.key,
+    required this.tool,
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.size = 18.5,
+    this.tap = 36,
+    this.active = false,
+  });
+
+  final BrowserTool tool;
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final double size;
+  final double tap;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool enabled = onTap != null;
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        enabled: enabled,
+        label: tooltip,
+        child: JellySurface(
+          key: ValueKey<String>('browser-${tool.name}'),
+          onTap: onTap,
+          scale: 0.9,
+          enabled: enabled,
+          boundary: false,
+          child: SizedBox(
+            width: tap,
+            height: tap,
+            child: Center(
+              child: Icon(
+                icon,
+                size: size,
+                color: active
+                    ? context.colors.primary
+                    : (enabled
+                        ? context.colors.onSurface
+                        : context.colors.onSurfaceVariant
+                            .withValues(alpha: 0.38)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The address pill: the real origin on the first line, the article's own
+/// headline as a quieter second line when there is room for it.
+class _AddressPill extends StatelessWidget {
+  const _AddressPill({
+    required this.domain,
+    required this.title,
+    required this.compact,
+  });
+
+  final String domain;
+  final String? title;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool dark = context.isDark;
+    final String? subtitle = (title ?? '').trim().isEmpty ? null : title;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 9 : 11,
+        vertical: compact ? 5 : 6,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(Tokens.radiusPill),
+        color: dark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.black.withValues(alpha: 0.035),
+        border: Border.all(
+          color: dark ? Tokens.nightHairline : Tokens.hairline,
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(
+            Icons.public_rounded,
+            size: compact ? 11 : 12,
+            color: context.colors.onSurfaceVariant,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  domain,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: context.texts.labelSmall?.copyWith(
+                    fontSize: compact ? 10.5 : 11.5,
+                    height: 1.25,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.1,
+                    color: context.colors.onSurface,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: context.texts.labelSmall?.copyWith(
+                      fontSize: compact ? 9 : 9.5,
+                      height: 1.3,
+                      color: context.colors.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

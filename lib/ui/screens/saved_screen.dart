@@ -246,7 +246,7 @@ class _SavedTabs extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 2),
       child: GlassPanel(
         radius: Tokens.radiusPill,
-        blur: Tokens.blurSoft,
+        blur: 0,
         elevation: 0.4,
         padding: const EdgeInsets.all(4),
         child: LayoutBuilder(

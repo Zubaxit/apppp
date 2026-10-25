@@ -92,6 +92,7 @@ class NewsSource {
     this.status = SourceStatus.active,
     this.featured = false,
     this.epaperUrl,
+    this.logoUrl,
     this.notes = '',
     this.curated = false,
     this.curationOrder = 99,
@@ -118,6 +119,15 @@ class NewsSource {
   final SourceStatus status;
   final bool featured;
   final String? epaperUrl;
+
+  /// An explicit, maintainer-checked icon asset for this publisher.
+  ///
+  /// Null for every entry we have not verified an official asset for; the UI
+  /// then asks the publisher's own site for its declared touch icon and falls
+  /// back to its favicon. Either way the mark identifies the publisher, and a
+  /// missing asset never removes the publisher or changes its feed status.
+  final String? logoUrl;
+
   final String notes;
 
   /// Part of the hand-picked reading set shown first in the app. Curation is a
@@ -133,6 +143,25 @@ class NewsSource {
   /// URL is never presented as verified.
   bool get hasVerifiedFeed => feedClaim == FeedClaim.verifiedWorking;
   bool get hasEpaper => (epaperUrl ?? '').isNotEmpty;
+
+  /// Ordered candidate icon URLs: the maintainer's explicit asset first, then
+  /// the icon a publisher advertises on its own site, then the plain favicon.
+  /// The UI walks this list and paints a monogram if every entry fails.
+  List<String> get logoUrls {
+    final List<String> urls = <String>[];
+    final String? explicit = TextUtils.nullIfBlank(logoUrl);
+    if (explicit != null) urls.add(explicit);
+    final Uri? site = Uri.tryParse(website);
+    final String host = site?.host ?? '';
+    if (host.isNotEmpty) {
+      final String origin = '${site!.scheme.isEmpty ? 'https' : site.scheme}://$host';
+      urls.add('$origin/apple-touch-icon.png');
+      urls.add('$origin/favicon.ico');
+    }
+    return List<String>.unmodifiable(urls);
+  }
+
+  bool get hasLogo => logoUrls.isNotEmpty;
   bool get isActive => status == SourceStatus.active;
   bool get isRegional => categories.contains(SourceCategory.regional);
   bool get isBusiness => categories.contains(SourceCategory.business);
@@ -208,6 +237,7 @@ class NewsSource {
         'status': status.name,
         'featured': featured,
         'epaperUrl': epaperUrl,
+        'logoUrl': logoUrl,
         'notes': notes,
         'curated': curated,
         'curationOrder': curationOrder,
@@ -249,6 +279,7 @@ class NewsSource {
       ),
       featured: map['featured'] == true,
       epaperUrl: TextUtils.nullIfBlank(map['epaperUrl'] as String?),
+      logoUrl: TextUtils.nullIfBlank(map['logoUrl'] as String?),
       notes: (map['notes'] as String?) ?? '',
       curated: map['curated'] == true,
       curationOrder:

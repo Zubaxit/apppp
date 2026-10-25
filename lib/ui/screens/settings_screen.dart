@@ -309,7 +309,7 @@ class _Panel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
       child: GlassPanel(
         radius: Tokens.radiusMd,
-        blur: Tokens.blurSoft,
+        blur: 0,
         elevation: 0.5,
         padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),

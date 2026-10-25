@@ -42,7 +42,14 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   bool _loadingRelated = true;
 
   final ScrollController _scroll = ScrollController();
-  double _progress = 0;
+
+  /// Reading progress is a value, not widget state.
+  ///
+  /// It used to be a field updated through setState on every scroll tick, which
+  /// rebuilt the article column — headline, excerpt, photograph, actions — once
+  /// per frame while the reader moved. A notifier repaints the 2 px rule and
+  /// leaves the page alone.
+  final ValueNotifier<double> _progress = ValueNotifier<double>(0);
 
   @override
   void initState() {
@@ -57,14 +64,15 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     if (!_scroll.hasClients) return;
     final double max = _scroll.position.maxScrollExtent;
     final double value = max <= 0 ? 1 : (_scroll.offset / max).clamp(0.0, 1.0);
-    if ((value - _progress).abs() < 0.004 && value != 1) return;
-    setState(() => _progress = value);
+    if ((value - _progress.value).abs() < 0.004 && value != 1) return;
+    _progress.value = value;
   }
 
   @override
   void dispose() {
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
+    _progress.dispose();
     super.dispose();
   }
 
@@ -201,7 +209,10 @@ class _ArticleBody extends StatelessWidget {
               borderRadius: BorderRadius.circular(Tokens.radiusLg),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: RemoteImage(url: article.imageUrl!),
+                child: RemoteImage(
+                  url: article.imageUrl!,
+                  decodeWidth: MediaQuery.sizeOf(context).width,
+                ),
               ),
             ),
           ),

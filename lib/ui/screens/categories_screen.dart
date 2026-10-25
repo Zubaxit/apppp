@@ -235,7 +235,9 @@ class _TopicTile extends StatelessWidget {
       scale: 0.955,
       child: GlassPanel(
         radius: Tokens.radiusMd,
-        blur: Tokens.blurSoft,
+        // Sits in the scrolling column over the static backdrop, so the fill
+        // and hairline carry the material and no blur pass runs per frame.
+        blur: 0,
         elevation: 0.6,
         padding: const EdgeInsets.all(14),
         child: Stack(

@@ -8,6 +8,7 @@ import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import 'editorial.dart';
+import 'publisher_logo.dart';
 
 /// Network image with disk caching, a soft fade-in and a graceful failure state.
 ///
@@ -15,19 +16,41 @@ import 'editorial.dart';
 /// a photograph resolving should feel like ink settling on paper, not like a
 /// component loading.
 class RemoteImage extends StatelessWidget {
-  const RemoteImage({super.key, required this.url, this.fit = BoxFit.cover});
+  const RemoteImage({
+    super.key,
+    required this.url,
+    this.fit = BoxFit.cover,
+    this.decodeWidth = 420,
+    this.fade = true,
+  });
 
   final String url;
   final BoxFit fit;
 
+  /// Decode target, in logical pixels. Feed photographs are published at
+  /// 1200–2000 px; decoding that for a 92 dp thumbnail costs megabytes per row
+  /// and shows up as scroll jank and GC pauses. Every call site states the size
+  /// it actually paints, and the codec is asked for that size.
+  final double decodeWidth;
+
+  /// Large photographs fade in; thumbnails appear at once, because a fade on a
+  /// row that is scrolling past is work nobody sees.
+  final bool fade;
+
   @override
   Widget build(BuildContext context) {
     final bool dark = context.isDark;
+    final int memWidth =
+        (decodeWidth * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2))
+            .round();
     return CachedNetworkImage(
       imageUrl: url,
       fit: fit,
-      fadeInDuration: const Duration(milliseconds: 260),
-      fadeOutDuration: const Duration(milliseconds: 120),
+      memCacheWidth: memWidth,
+      maxWidthDiskCache: memWidth,
+      filterQuality: FilterQuality.low,
+      fadeInDuration: Duration(milliseconds: fade ? 260 : 0),
+      fadeOutDuration: Duration(milliseconds: fade ? 120 : 0),
       placeholder: (BuildContext context, String value) => DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -55,7 +78,12 @@ class RemoteImage extends StatelessWidget {
   }
 }
 
-/// Publication identity without a logo: a serif monogram on a glass tile.
+/// Publication identity: the publisher's own mark on a light tile.
+///
+/// The tile is the same shape and size it has always been; only its contents
+/// changed from a drawn initial to the publisher's real icon. When no icon can
+/// be fetched, [PublisherLogo] paints the monogram in that same tile, so the
+/// directory never shows a broken image and never invents a logo.
 class SourceAvatar extends StatelessWidget {
   const SourceAvatar({super.key, required this.source, this.size = 44});
 
@@ -64,32 +92,7 @@ class SourceAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool dark = context.isDark;
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: dark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(size * 0.32),
-        border: Border.all(
-          color: dark ? Tokens.nightHairline : Tokens.hairline,
-          width: 0.9,
-        ),
-      ),
-      child: Text(
-        source.monogram,
-        style: TextStyle(
-          fontFamily: Tokens.serif,
-          fontSize: size * 0.38,
-          height: 1.05,
-          fontWeight: FontWeight.w700,
-          color: context.colors.primary,
-        ),
-      ),
-    );
+    return PublisherLogo(source: source, size: size);
   }
 }
 
@@ -265,7 +268,9 @@ class ArticleSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    // One pulse for every block in the list instead of one ticker per block.
+    return ShimmerScope(
+      child: ListView(
       // Skeletons are dropped into existing scroll views as well, so they size
       // to their rows instead of demanding a viewport of their own.
       shrinkWrap: true,
@@ -299,6 +304,7 @@ class ArticleSkeleton extends StatelessWidget {
           const SizedBox(height: 18),
         ],
       ],
+      ),
     );
   }
 }

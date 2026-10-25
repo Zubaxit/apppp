@@ -543,7 +543,10 @@ class _ErrorNote extends StatelessWidget {
       child: GlassPanel(
         radius: Tokens.radiusMd,
         tone: GlassTone.subtle,
-        blur: Tokens.blurSoft,
+        // A note inside the scrolling column: nothing moves behind it that
+        // blurring would reveal, so it keeps its translucency without a
+        // BackdropFilter re-running on every scroll frame.
+        blur: 0,
         shadow: false,
         padding: const EdgeInsets.all(11),
         child: Row(
@@ -574,7 +577,8 @@ class _LoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return ShimmerScope(
+      child: Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,6 +612,7 @@ class _LoadingState extends StatelessWidget {
             const SizedBox(height: 16),
           ],
         ],
+      ),
       ),
     );
   }

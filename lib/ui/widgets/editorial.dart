@@ -7,6 +7,7 @@ import '../../data/models/news_source.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
+import 'publisher_logo.dart';
 
 /// A hairline rule: the primary structural element of the layout.
 class Hairline extends StatelessWidget {
@@ -97,7 +98,9 @@ class Pressable extends StatelessWidget {
   }
 }
 
-/// Publisher identity without a logo: a monogram on a glass tile.
+/// Publisher identity at a smaller size: the publisher's own mark, or its
+/// monogram when no icon can be had. [filled] fills the tile with the accent,
+/// which is how the app says "this is the publisher you are reading".
 class SourceMark extends StatelessWidget {
   const SourceMark({super.key, required this.source, this.size = 34, this.filled = false});
 
@@ -107,35 +110,10 @@ class SourceMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool dark = context.isDark;
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: filled
-            ? context.colors.primary
-            : (dark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.white.withValues(alpha: 0.72)),
-        borderRadius: BorderRadius.circular(size * 0.3),
-        border: Border.all(
-          color: filled
-              ? Colors.transparent
-              : (dark ? Tokens.nightHairline : Tokens.hairline),
-          width: 0.9,
-        ),
-      ),
-      child: Text(
-        source.monogram,
-        style: TextStyle(
-          fontFamily: Tokens.serif,
-          fontSize: size * 0.4,
-          height: 1.05,
-          fontWeight: FontWeight.w700,
-          color: filled ? context.colors.onPrimary : context.colors.primary,
-        ),
-      ),
+    return PublisherLogo(
+      source: source,
+      size: size,
+      solid: filled ? context.colors.primary : null,
     );
   }
 }

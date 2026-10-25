@@ -53,7 +53,7 @@ class LeadStory extends StatelessWidget {
               fit: StackFit.expand,
               children: <Widget>[
                 if (image != null)
-                  RemoteImage(url: image)
+                  RemoteImage(url: image, decodeWidth: width)
                 else
                   DecoratedBox(
                     decoration: BoxDecoration(
@@ -93,7 +93,10 @@ class LeadStory extends StatelessWidget {
                         children: <Widget>[
                           GlassPanel(
                             tone: GlassTone.subtle,
-                            blur: Tokens.blurSoft,
+                            // Sits on a photograph that is already covered by
+                            // a black scrim: blurring a flat dark area is pure
+                            // cost, so the pill keeps its fill and hairline.
+                            blur: 0,
                             radius: Tokens.radiusPill,
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             child: Row(
@@ -127,7 +130,7 @@ class LeadStory extends StatelessWidget {
                           if (onOpenSource != null)
                             GlassPanel(
                               tone: GlassTone.subtle,
-                              blur: Tokens.blurSoft,
+                              blur: 0,
                               radius: Tokens.radiusPill,
                               padding: const EdgeInsets.all(8),
                               child: Pressable(
@@ -302,7 +305,11 @@ class StoryRow extends StatelessWidget {
                       child: SizedBox(
                         width: thumb,
                         height: thumb,
-                        child: RemoteImage(url: image),
+                        child: RemoteImage(
+                          url: image,
+                          decodeWidth: thumb,
+                          fade: false,
+                        ),
                       ),
                     ),
                   ],
@@ -404,8 +411,9 @@ class NewsCard extends StatelessWidget {
     final String? image = article.imageUrl;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 10),
-      child: AnimatedContainer(
-        duration: Motion.of(context).standard,
+      // Deliberately not an AnimatedContainer: this decoration never changes,
+      // and a river of them would allocate one implicit controller per row.
+      child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
           gradient: LinearGradient(
@@ -448,7 +456,11 @@ class NewsCard extends StatelessWidget {
                           child: SizedBox(
                             width: 92,
                             height: 88,
-                            child: RemoteImage(url: image),
+                            child: RemoteImage(
+                              url: image,
+                              decodeWidth: 92,
+                              fade: false,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),

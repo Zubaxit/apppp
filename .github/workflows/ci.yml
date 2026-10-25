@@ -137,15 +137,65 @@ jobs:
 
       - run: flutter pub get
 
+      - name: Build release APK (universal)
+        run: flutter build apk --release
+
+      # One APK per ABI as well: an arm64 phone only needs its own engine, and
+      # that slice is roughly a third of the universal file. The universal APK
+      # stays available because it installs anywhere without a choice.
+      - name: Build split release APKs
+        run: flutter build apk --release --split-per-abi
+
       - name: Build debug APK
         run: flutter build apk --debug
 
-      - name: Build release APK (unsigned/debug-signed fallback)
-        run: flutter build apk --release
+      # Size evidence, published as check annotations because runner logs are
+      # not reachable from a headless session. These are measurements of the
+      # real artifacts, not estimates.
+      - name: Report artifact sizes and the largest APK entries
+        run: |
+          set -euo pipefail
+          mkdir -p dist/split
+          cp build/app/outputs/flutter-apk/app-release.apk dist/
+          cp build/app/outputs/flutter-apk/app-debug.apk dist/
+          cp build/app/outputs/flutter-apk/app-*-release.apk dist/split/ 2>/dev/null || true
+          note() { echo "::notice::$1"; }
+          note "APK sizes (bytes) — universal release, per-ABI release slices, debug:"
+          for f in dist/*.apk dist/split/*.apk; do
+            [ -f "$f" ] || continue
+            note "$(basename "$f") = $(stat -c%s "$f")"
+          done
+          note "Universal release APK, largest entries by uncompressed size:"
+          unzip -l dist/app-release.apk \
+            | awk 'NF>=4 && $1 ~ /^[0-9]+$/ {print $1" "$4}' \
+            | sort -k1,1 -nr | head -18 \
+            | while read -r size name; do note "  $size  $name"; done
+          note "Compressed contribution by top-level group:"
+          unzip -lv dist/app-release.apk \
+            | awk 'NF>=8 && $1 ~ /^[0-9]+$/ {n=$8; split(n,p,"/"); g=p[1]; c[g]+=$3} END {for (k in c) print c[k]" "k}' \
+            | sort -k1,1 -nr | head -8 \
+            | while read -r bytes group; do note "  $bytes  $group"; done
 
-      - name: Upload APKs
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: apk
-          path: build/app/outputs/flutter-apk/*.apk
+          name: apk-release
+          path: dist/app-release.apk
+          if-no-files-found: error
+
+      - name: Upload per-ABI release APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-split
+          path: dist/split/*.apk
+          if-no-files-found: error
+
+      # The debug build is kept for inspection only. It embeds a JIT snapshot
+      # for every ABI and is ~5x the release APK, which is why it is no longer
+      # bundled with the release file under one artifact name.
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-debug
+          path: dist/app-debug.apk
           if-no-files-found: error

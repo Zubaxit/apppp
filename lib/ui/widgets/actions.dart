@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:provider/provider.dart';
@@ -113,7 +114,8 @@ class _BookmarkActionState extends State<BookmarkAction>
             height: widget.dense ? 32 : 38,
             child: GlassPanel(
               radius: Tokens.radiusPill,
-              blur: widget.onDark ? Tokens.blurSoft : 0,
+              // Over a scrimmed photograph there is nothing worth blurring.
+              blur: 0,
               tone: widget.onDark
                   ? GlassTone.subtle
                   : (saved ? GlassTone.selected : GlassTone.raised),
@@ -195,7 +197,7 @@ class ShareAction extends StatelessWidget {
                 height: dense ? 32 : 38,
                 child: GlassPanel(
                   radius: Tokens.radiusPill,
-                  blur: onDark ? Tokens.blurSoft : 0,
+                  blur: 0,
                   tone: onDark ? GlassTone.subtle : GlassTone.raised,
                   shadow: false,
                   child: Center(child: icon),
@@ -238,7 +240,9 @@ class GlassIconButton extends StatelessWidget {
           height: diameter,
           child: GlassPanel(
             radius: Tokens.radiusPill,
-            blur: Tokens.blurSoft,
+            // Masthead discs sit on the pinned glass bar, which is already
+            // blurred; blurring again would stack two filters for one look.
+            blur: 0,
             shadow: false,
             child: Center(
               child: Stack(
@@ -272,31 +276,39 @@ class GlassIconButton extends StatelessWidget {
 class ReadingProgressBar extends StatelessWidget {
   const ReadingProgressBar({super.key, required this.progress, this.height = 2.5});
 
-  final double progress;
+  /// The scroll fraction, published as a value so the reader's page is not
+  /// rebuilt while it scrolls.
+  final ValueListenable<double> progress;
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final double value = progress.clamp(0.0, 1.0);
-          return Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 110),
-              curve: Curves.easeOut,
-              width: constraints.maxWidth * value,
-              height: height,
+    final Color start = context.colors.primary;
+    return RepaintBoundary(
+      child: SizedBox(
+        height: height,
+        child: ValueListenableBuilder<double>(
+          valueListenable: progress,
+          builder: (BuildContext context, double value, Widget? child) {
+            return Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FractionallySizedBox(
+                widthFactor: value.clamp(0.0, 1.0),
+                child: child,
+              ),
+            );
+          },
+          child: SizedBox(
+            height: height,
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: <Color>[context.colors.primary, Tokens.accentSoft],
+                  colors: <Color>[start, Tokens.accentSoft],
                 ),
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -339,7 +351,9 @@ class GlassTag extends StatelessWidget {
     super.key,
     required this.label,
     this.color,
-    this.blur = Tokens.blurSoft,
+    // Tags sit on photographs inside cards; the black scrim beneath them is
+    // already flat, so a blur pass would only cost time.
+    this.blur = 0,
   });
 
   final String label;
