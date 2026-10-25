@@ -529,6 +529,14 @@ void main() {
       await h.settings.setLanguage(AppLanguage.en);
       await tester.pumpAndSettle();
       expect(find.text('Read full story'), findsOneWidget);
+
+      final NavigatorState navigator =
+          tester.state<NavigatorState>(find.byType(Navigator).first);
+      await tester.ensureVisible(find.text(other.title));
+      await tester.tap(find.text(other.title));
+      await tester.pumpAndSettle();
+      expect(navigator.canPop(), isTrue,
+          reason: 'a comparison row opens that real report in article detail');
     });
   });
 
