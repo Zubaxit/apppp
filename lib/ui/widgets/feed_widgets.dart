@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../core/extensions.dart';
+import '../../core/l10n/labels.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../data/models/source_health.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
-import '../../core/l10n/labels.dart';
 import 'common.dart';
 import 'editorial.dart';
 

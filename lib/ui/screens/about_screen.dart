@@ -7,7 +7,6 @@ import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../widgets/actions.dart';
 import '../widgets/brand.dart';
-import '../widgets/editorial.dart';
 import 'settings_screen.dart' show SettingsScreen;
 
 /// A deliberately short About page: what Amar News does, then the confirmed
