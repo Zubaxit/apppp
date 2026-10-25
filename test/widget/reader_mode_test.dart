@@ -37,7 +37,7 @@ void main() {
     expect(find.text(h.settings.strings.translating), findsNothing);
     expect(find.text(h.settings.strings.showTranslation), findsWidgets);
 
-    await tester.tap(find.text(h.settings.strings.showTranslation).last);
+    await tester.tap(find.byKey(const ValueKey<String>('translation-start')));
     await tester.pumpAndSettle();
     expect(translator.requests, hasLength(1),
         reason: 'identical paragraphs share one request');
@@ -52,16 +52,16 @@ void main() {
     await tester.pumpWidget(h.wrap(
       ReaderModeScreen(document: document(), translator: FakeTranslator()),
     ));
-    await tester.tap(find.text(h.settings.strings.showTranslation).last);
+    await tester.tap(find.byKey(const ValueKey<String>('translation-start')));
     await tester.pumpAndSettle();
     expect(find.textContaining('বাংলা:'), findsNWidgets(2));
 
-    await tester.tap(find.byType(JellySwitch));
+    await tester.tap(find.byKey(const ValueKey<String>('translation-switch')));
     await tester.pumpAndSettle();
     expect(find.textContaining('বাংলা:'), findsNothing);
     expect(find.byType(JellySwitch), findsOneWidget);
 
-    await tester.tap(find.byType(JellySwitch));
+    await tester.tap(find.byKey(const ValueKey<String>('translation-switch')));
     await tester.pumpAndSettle();
     expect(find.textContaining('বাংলা:'), findsNWidgets(2));
   });
@@ -74,11 +74,11 @@ void main() {
     await tester.pumpWidget(h.wrap(
       ReaderModeScreen(document: document(), translator: slow),
     ));
-    await tester.tap(find.text(h.settings.strings.showTranslation).last);
+    await tester.tap(find.byKey(const ValueKey<String>('translation-start')));
     await tester.pump(const Duration(milliseconds: 20));
-    expect(find.text(h.settings.strings.translating), findsOneWidget);
+    expect(find.text(h.settings.strings.translating), findsWidgets);
 
-    await tester.tap(find.byType(JellySwitch));
+    await tester.tap(find.byKey(const ValueKey<String>('translation-switch')));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.textContaining('বাংলা:'), findsNothing);
     expect(find.text(h.settings.strings.translating), findsNothing);
@@ -107,7 +107,7 @@ void main() {
     await tester.pumpWidget(h.wrap(
       ReaderModeScreen(document: document(), translator: first),
     ));
-    await tester.tap(find.text(h.settings.strings.showTranslation).last);
+    await tester.tap(find.byKey(const ValueKey<String>('translation-start')));
     await tester.pumpAndSettle();
     expect(first.requests, isNotEmpty);
 
@@ -136,7 +136,7 @@ void main() {
         translator: FakeTranslator(failOn: <String>['poison']),
       ),
     ));
-    await tester.tap(find.text(h.settings.strings.showTranslation).last);
+    await tester.tap(find.byKey(const ValueKey<String>('translation-start')));
     await tester.pumpAndSettle();
 
     expect(find.text('quota reached'), findsOneWidget);

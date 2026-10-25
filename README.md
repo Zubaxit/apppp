@@ -110,7 +110,7 @@ publication time, and sends readers to the original article on the publisher's s
 - Follow/unfollow publications, preferred topics, default feed, automatic refresh interval,
   reading-history toggle, breaking-banner toggle, app language (Bengali/English), theme, text size
   and reduced motion — all persisted locally.
-- **Editable author profile** in About (see [Privacy…](#privacy-publisher-rights-and-the-author-profile)).
+- **Minimal animated About** with the confirmed developer name and supplied photograph.
 - Everything is stored **on the device only**: `shared_preferences` for preferences and the profile,
   SQLite for the article cache, bookmarks and history. No account, no cloud sync, no analytics.
 
@@ -184,24 +184,54 @@ edit. Every duration and curve the interface uses is declared in `Tokens`.
 
 ## Reader mode and machine translation
 
-- **Reader mode** opens on the page you are already looking at: the browser's own DOM is read once
-  through the engine, headings and paragraphs are extracted, and the article is re-set in the app's
-  serif type. Nothing is re-fetched, no scraping service is called, and the publisher page is still
-  there when you go back (`Return to the original page`).
-- **What it refuses to do**: a page that yields fewer than two blocks or under 200 characters is
-  reported as unreadable — the app says so and offers the original site rather than showing an empty
-  reader.
-- **Bengali under the English**: each paragraph is sent to **MyMemory**
-  (`api.mymemory.translated.net`), a free, key-less public endpoint. Requests are split at sentence
-  boundaries (≤ 420 characters per request), serialised two at a time, cached in memory, and
-  duplicate paragraphs cost one request. The English is never replaced — the translation sits
-  beneath it, in the app's Bengali font, always labelled *machine translation · MyMemory*.
-- **Its limits, stated plainly**: it needs a connection (there is no on-device model, so this is not
-  an offline feature); the anonymous tier has a small daily allowance, and when that or the service
-  is unavailable the paragraph says so with a retry and keeps the English; output is statistical and
-  can be wrong. Offline, the 269-word glossary above is still the only lookup, and it says so.
-- **No key, no secret**: the endpoint needs no API key, so nothing to leak in the APK, and no request
-  carries anything but the paragraph text being translated.
+- **OFF on every open**: Reader Mode begins with the original article only. It does not remember an
+  ON state between reading sessions and sends text only after the reader explicitly enables Bengali
+  translation. Turning it OFF immediately hides output, clears loading indicators and invalidates
+  the current async generation, so late responses cannot turn the UI back on.
+- **Language-aware**: a deterministic script counter inspects the article body (not publisher or URL).
+  Bengali-majority and too-short/uncertain text show no translation UI; substantial mixed or
+  non-Bengali prose may opt in. The headline is never trusted as the sole signal when too short.
+- **Reader extraction** uses the already-open DOM and preserves the headline, source metadata,
+  paragraphs, headings and safe HTTPS figure images in document order. It makes no second HTML
+  request. Fewer than two blocks or 200 prose characters is an honest extraction failure.
+- **Current MyMemory limits, checked 2026-10-25**: the provider documents 5,000 characters/day for
+  anonymous API use, 50,000/day only when a valid contact email (`de`) is supplied, unspecified
+  anti-abuse call-rate enforcement, and a 500-byte maximum `q` value. Amar News supplies no email,
+  account, key or payment details, so it uses the 5,000-character anonymous allowance and can never
+  create a charge. The client enforces ≤480 UTF-8 bytes (and ≤420 characters), two paragraph jobs at
+  a time, 15-second timeouts, in-memory dedupe/cache, and explicit 403/429/network/malformed errors.
+- The service is **not lifetime-free or guaranteed**. Its terms describe it as-is/as-available, forbid
+  circumventing limits and offer commercial RapidAPI plans for larger volumes. Terms also state
+  that submitted segments can be retained and that external MT partners can be involved. Therefore
+  internet is required, article paragraph text leaves the device only after opt-in, and English is
+  always retained with provider attribution. Sources:
+  [API limits](https://mymemory.translated.net/doc/usagelimits.php),
+  [500-byte specification](https://mymemory.translated.net/doc/spec.php), and
+  [terms](https://mymemory.translated.net/terms-and-conditions).
+
+## News Shield
+
+News Shield is a persisted global setting plus persisted site exceptions in the browser address
+pill. It uses a ~55 KB host-only EasyList/EasyPrivacy fallback, updates a validated last-known-good
+cache at most every seven days, blocks matching third-party fetch/XHR/beacon and dynamic resources,
+prevents navigation to listed ad hosts, and applies a short conservative cosmetic rule set. OFF
+removes Amar News rules; a site exception reloads that site unprotected. Android WebView can start
+some parser-created/native subresources before injection, so this is real but deliberately **not**
+described as complete ad blocking. Exact mechanism, licenses, cache rules and compatibility limits:
+[`docs/NEWS_SHIELD.md`](docs/NEWS_SHIELD.md).
+
+## Topics, Same Story, and shared cards
+
+- The ten existing topics remain. Jobs & Careers, Learning & Knowledge, Government Notices, and
+  Scholarships & Fellowships add transparent weighted Bangla/English rules; Education remains the
+  sole admissions/exams/results/university category. Counts come only from cached matching articles.
+- Same Story is computed once after feed load/refresh, not in widget builds. It canonicalises URLs,
+  requires distinct publishers, a 36-hour window, at least three informative overlapping tokens and
+  conservative containment/Jaccard thresholds. A small bilingual event-word bridge helps obvious
+  Bangla/English equivalents. Uncertain stories stay separate; this is comparison, not a verdict.
+- Feed, search, source, list and saved surfaces all use the shared `NewsCard`: fixed 16:9 art,
+  headline, optional summary, publisher/time, bookmark/share, then the expandable coverage row.
+  Missing/loading/failed images use the same bundled graphite/red fallback without layout shift.
 
 ## Source coverage (verified vs. listed)
 
@@ -355,7 +385,7 @@ Test suites (see [docs/TESTING.md](docs/TESTING.md) for the full matrix):
 | `test/unit/translation_test.dart` | Glossary load, case/punctuation tolerance, plural fallback, unknown-word honesty, missing-asset behaviour, tokenising |
 | `test/unit/profile_test.dart` | Default profile contains only supplied facts, edit round-trip, blank/corrupt fallbacks, link validation |
 | `test/unit/preferences_persistence_test.dart` | Theme, language, motion, text size and follows survive a restart; a failing store never loses the session value |
-| `test/widget/screens_test.dart` | Home (live/empty/cached/breaking/topic filter), directory, publication detail, bookmarks, search, settings, About (registry counts, author profile, runtime editing, link rejection), e-paper list, shell navigation + Android back, dark theme, small-phone and tablet layouts |
+| `test/widget/screens_test.dart` | Home (live/empty/cached/breaking/topic filter), directory, publication detail, bookmarks, search, settings, About (concise copy, supplied photo, no biography/editor, reduced motion), e-paper list, shell navigation + Android back, dark theme, small-phone and tablet layouts |
 | `test/widget/translation_sheet_test.dart` | Known word, unknown word, missing glossary, tapping a word chip |
 | `test/unit/reader_extract_test.dart` | Reader extraction: blocks, headings, dedupe, size caps, malformed and double-encoded payloads, honest refusal |
 | `test/unit/machine_translation_test.dart` | Sentence-boundary splitting, request size cap, GET shape, error mapping (429/403/5xx/unreadable), caching, concurrency, per-paragraph isolation, dispose safety |
@@ -392,7 +422,7 @@ still produce an installable artifact. **APKs are build artifacts, not committed
 ## Privacy, publisher rights and the author profile
 
 - No account, no analytics, no advertising, no personal data collection.
-- Follows, bookmarks, history, settings and the author profile live in app-private storage on the
+- Follows, bookmarks, history, settings and News Shield exceptions live in app-private storage on the
   device. Nothing is uploaded.
 - The app fetches only the publishers' public feeds, one request per feed at a time, with caching and
   a refresh floor. It never scrapes article pages, never bypasses paywalls or logins, and never
@@ -402,16 +432,11 @@ still produce an installable artifact. **APKs are build artifacts, not committed
   publisher.
 - Every external URL is validated (`https` only; no `javascript:`/`data:`/`file:`/`intent:`, no local
   hosts, no userinfo, no executable downloads) before it is opened.
-- **The About screen has two separate parts.** The app part describes the app and its data sources.
-  The *About the author* part is a profile of the developer that can be **edited at runtime**
-  (name, one-line role, short and long biography, interests, optional links) and is stored only in
-  local preferences. Its starting text contains only the facts the owner supplied — Md Emon
-  (মোঃ ইমন); Bangla studies at Government Brojalal College (B. L. College), Khulna; interests in
-  Bengali literature, poetry, criticism, philosophy and classics; writing of poetry, essays and
-  research; a particular interest in Shamsur Rahman's poetry; and an interest in useful digital
-  tools. The master's-level study is mentioned as **unconfirmed** rather than claimed, and the
-  profile contains no awards, publications, titles, degrees, employers, dates, contact details or
-  family/medical/financial information. Links are only accepted if they are plain web addresses.
+- **About is intentionally minimal.** Four concise purpose lines are followed by only the confirmed
+  developer name, `Md. Emon`, and the photograph supplied for this update. There is no biography,
+  contact information, profile editor, social link, address, degree or invented personal detail.
+  One finite red-light/glass reveal uses one controller and jumps to its final frame when reduced
+  motion is active.
 
 ## Known limitations
 

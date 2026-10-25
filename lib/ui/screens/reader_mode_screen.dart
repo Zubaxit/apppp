@@ -484,6 +484,7 @@ class _TranslationBar extends StatelessWidget {
                 )
               else if (!controller.started)
                 JellyButton(
+                  key: const ValueKey<String>('translation-start'),
                   label: context.strings.showTranslation,
                   icon: Icons.translate_rounded,
                   compact: true,
@@ -495,6 +496,7 @@ class _TranslationBar extends StatelessWidget {
                   value: enabled ? 'ON' : 'OFF',
                   toggled: enabled,
                   child: JellySwitch(
+                    key: const ValueKey<String>('translation-switch'),
                     value: enabled,
                     onChanged: (_) => onToggle(),
                   ),

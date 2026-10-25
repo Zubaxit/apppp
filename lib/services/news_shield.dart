@@ -35,7 +35,10 @@ class NewsShield {
 
   /// Loads local/cache rules before the first browser can be opened. Updating is
   /// explicitly background work and never delays app startup or navigation.
-  static Future<void> load({AssetBundle? bundle}) async {
+  static Future<void> load({
+    AssetBundle? bundle,
+    bool updateEnabled = true,
+  }) async {
     final AssetBundle source = bundle ?? rootBundle;
     final String bundled = await source.loadString(asset);
     _hosts = _parse(bundled);
@@ -48,8 +51,9 @@ class NewsShield {
       if (millis != null) {
         _updatedAt = DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
       }
-      if (_updatedAt == null ||
-          DateTime.now().toUtc().difference(_updatedAt!) >= updateInterval) {
+      if (updateEnabled &&
+          (_updatedAt == null ||
+              DateTime.now().toUtc().difference(_updatedAt!) >= updateInterval)) {
         unawaited(update());
       }
     } catch (_) {

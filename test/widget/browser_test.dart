@@ -367,6 +367,10 @@ void main() {
       expect(find.text('Climate talks resume'), findsOneWidget);
       expect(find.textContaining('The first paragraph'), findsOneWidget,
           reason: 'the English original stays on screen');
+      expect(find.textContaining('বাংলা:'), findsNothing,
+          reason: 'translation defaults OFF in every reader session');
+      await tester.tap(find.byKey(const ValueKey<String>('translation-start')));
+      await tester.pumpAndSettle();
       expect(find.textContaining('বাংলা:'), findsWidgets,
           reason: 'the translation sits under it');
     });

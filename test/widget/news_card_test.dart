@@ -49,7 +49,10 @@ void main() {
 
     expect(find.textContaining('আরও 1টি'), findsOneWidget);
     expect(find.text(other.title), findsNothing);
-    await tester.tap(find.byKey(ValueKey<String>('same-story-${primary.id}')));
+    final Finder row = find.byKey(ValueKey<String>('same-story-${primary.id}'));
+    await tester.ensureVisible(row);
+    await tester.pump();
+    await tester.tap(row);
     await tester.pumpAndSettle();
     expect(find.text(other.title), findsOneWidget);
     expect(find.text(primary.title), findsOneWidget,

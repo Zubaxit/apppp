@@ -48,11 +48,14 @@ class AppBootstrap {
     // Publisher marks are local data, read once before the first frame so the
     // directory never has to wait for a network icon.
     await PublisherLogos.load(bundle: bundle);
-    await NewsShield.load(bundle: bundle);
     final AppDatabase db = database ?? await AppDatabase.open();
     final PreferencesStore store = preferencesStore ?? await SharedPreferencesStore.create();
     final AppPreferences prefs =
         initialPreferences ?? AppPreferences.decode(await store.read());
+    await NewsShield.load(
+      bundle: bundle,
+      updateEnabled: prefs.newsShieldEnabled,
+    );
 
     final SettingsController settings =
         SettingsController(initial: prefs, store: store);

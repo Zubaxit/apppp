@@ -320,6 +320,20 @@ Layouts at 360×640 dp and 800×1280 dp without overflow.
   the tap contract, the disabled state and the motion policy rather than the spring's intermediate
   frames.
 
+## Complete-feature pass (translation, shield, topics, About, groups, cards)
+
+The new unit cases cover script-based language certainty, all four weighted topic rules, same-event
+matching, broad-entity false positives, canonical duplicate URLs, a Bangla/English match, a
+late-arriving report, the real bundled News Shield rules, first-party exclusion and persisted global /
+per-site policy. Widget regressions cover default-OFF Reader Mode, repeated toggles, OFF during an
+in-flight response, reopening OFF, Bengali control suppression, concise reduced-motion About, the
+local image fallback, and expanding a real Same Story report. Browser tests continue to cover page
+history Back and narrow one-row chrome.
+
+CI remains the source of truth for analyzer/tests/APKs because this workspace has no Flutter SDK.
+News Shield's native-WebView limitation and physical-device steps are in `docs/NEWS_SHIELD.md`; no
+claim of complete blocking or real-device validation is made.
+
 ## Manual QA checklist for a real device
 
 1. Fresh install → Home shows the skeleton, then headlines (or the honest empty state).
@@ -339,16 +353,16 @@ Layouts at 360×640 dp and 800×1280 dp without overflow.
 8. Search in Bengali and in English → both find publications and headlines.
 9. Toggle dark theme, 140 % text size, reduce motion → no clipped Bengali headlines, and the
    bookmark fill animation is skipped while the saved state still changes.
-10. About → the author profile edits and persists across a force-stop; a non-URL link is rejected.
-11. Reader → the progress rule advances with scrolling; the translation sheet reports unknown words
-    as unknown and states that it is word-by-word.
+10. About → four concise purpose lines, the supplied Md. Emon photograph and name only; reduced motion skips directly to the final reveal frame.
+11. Reader Mode opens translation OFF; Bengali prose shows no translation control. Turn ON, then OFF while loading, then ON again: state, output and spinners must agree and English must remain.
 12. Android back: detail → list → Home tab → app exits (no navigation loop).
 12a. Browser toolbar at 360 dp and 411 dp: close, pill, back, reload, external and save on **one**
     line; the domain never truncates before the headline does; the page scrolls under it without the
     bar moving.
 12b. Publisher marks: the directory shows real publication icons (light or thin wordmarks must stay
     legible on the tile); in airplane mode they fall back to monograms at exactly the same box size.
-12c. Profile the five interactions listed in `docs/PERFORMANCE.md` §D and record the frame chart.
+12c. News Shield: verify global OFF allows a known ad test request; global ON blocks it; add a site exception from the address-pill shield and verify it persists after force-stop.
+12d. Profile the five interactions listed in `docs/PERFORMANCE.md` §D and record the frame chart.
 13. Rotate and use split-screen → no overflow stripes.
 14. Let the app idle for the configured interval → "last updated" advances; no request storm in
     a proxy trace.

@@ -232,7 +232,10 @@ void main() {
       await tester.pumpWidget(h.wrap(const SavedScreen()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.bookmark_rounded).first);
+      final Finder bookmark = find.byIcon(Icons.bookmark_rounded).first;
+      await tester.ensureVisible(bookmark);
+      await tester.pump();
+      await tester.tap(bookmark);
       await tester.pumpAndSettle();
       expect(find.text('মুছে ফেলার খবর'), findsNothing);
     });

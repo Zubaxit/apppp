@@ -85,10 +85,14 @@ class StoryMatcher {
             lower == 'gclid' ||
             lower == 'ref';
       });
+    final String encodedQuery = query.entries
+        .map((MapEntry<String, String> entry) =>
+            '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(entry.value)}')
+        .join('&');
     return uri
         .replace(
           fragment: '',
-          queryParameters: query.isEmpty ? null : query,
+          query: encodedQuery,
           path: uri.path.replaceAll(RegExp(r'/+$'), ''),
         )
         .toString()
