@@ -216,6 +216,12 @@ class _JellySurfaceState extends State<JellySurface>
       onPointerCancel: (_) => _release(),
       child: GestureDetector(
         behavior: widget.behavior,
+        // Pointer events give the instant compression; the tap callbacks are a
+        // second, recogniser-driven trigger so the surface also responds on
+        // platforms that resolve the arena before delivering raw events.
+        onTapDown: (_) => _press(),
+        onTapUp: (_) => _release(),
+        onTapCancel: _release,
         onTap: () {
           if (widget.haptic) unawaited(Haptics.tick());
           widget.onTap!();
