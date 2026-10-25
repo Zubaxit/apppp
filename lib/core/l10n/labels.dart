@@ -48,6 +48,14 @@ class Labels {
           return 'Health';
         case ArticleTopic.lifestyle:
           return 'Lifestyle';
+        case ArticleTopic.jobs:
+          return 'Jobs & Careers';
+        case ArticleTopic.learning:
+          return 'Learning';
+        case ArticleTopic.government:
+          return 'Government Notices';
+        case ArticleTopic.scholarships:
+          return 'Scholarships';
         case ArticleTopic.other:
           return 'More';
       }
@@ -73,6 +81,14 @@ class Labels {
         return 'স্বাস্থ্য';
       case ArticleTopic.lifestyle:
         return 'জীবনযাপন';
+      case ArticleTopic.jobs:
+        return 'চাকরি ও নিয়োগ';
+      case ArticleTopic.learning:
+        return 'শিক্ষামূলক ও জ্ঞান';
+      case ArticleTopic.government:
+        return 'সরকারি বিজ্ঞপ্তি';
+      case ArticleTopic.scholarships:
+        return 'বৃত্তি ও ফেলোশিপ';
       case ArticleTopic.other:
         return 'অন্যান্য';
     }
@@ -100,9 +116,57 @@ class Labels {
         return Icons.health_and_safety_outlined;
       case ArticleTopic.lifestyle:
         return Icons.spa_outlined;
+      case ArticleTopic.jobs:
+        return Icons.work_outline_rounded;
+      case ArticleTopic.learning:
+        return Icons.lightbulb_outline_rounded;
+      case ArticleTopic.government:
+        return Icons.campaign_outlined;
+      case ArticleTopic.scholarships:
+        return Icons.workspace_premium_outlined;
       case ArticleTopic.other:
         return Icons.article_outlined;
     }
+  }
+
+  /// Short labels for chips, cards and rails — the same topics, fewer words.
+  static String topicShort(ArticleTopic topic, {required bool bengali}) {
+    if (!bengali) {
+      return switch (topic) {
+        ArticleTopic.bangladesh => 'Bangladesh',
+        ArticleTopic.politics => 'Politics',
+        ArticleTopic.economy => 'Economy',
+        ArticleTopic.international => 'World',
+        ArticleTopic.education => 'Education',
+        ArticleTopic.sports => 'Sport',
+        ArticleTopic.entertainment => 'Culture',
+        ArticleTopic.technology => 'Technology',
+        ArticleTopic.health => 'Health',
+        ArticleTopic.lifestyle => 'Lifestyle',
+        ArticleTopic.jobs => 'Jobs',
+        ArticleTopic.learning => 'Knowledge',
+        ArticleTopic.government => 'Notices',
+        ArticleTopic.scholarships => 'Scholarships',
+        ArticleTopic.other => 'More',
+      };
+    }
+    return switch (topic) {
+      ArticleTopic.bangladesh => 'বাংলাদেশ',
+      ArticleTopic.politics => 'রাজনীতি',
+      ArticleTopic.economy => 'অর্থনীতি',
+      ArticleTopic.international => 'বিশ্ব',
+      ArticleTopic.education => 'শিক্ষা',
+      ArticleTopic.sports => 'খেলা',
+      ArticleTopic.entertainment => 'সংস্কৃতি',
+      ArticleTopic.technology => 'প্রযুক্তি',
+      ArticleTopic.health => 'স্বাস্থ্য',
+      ArticleTopic.lifestyle => 'জীবনযাপন',
+      ArticleTopic.jobs => 'চাকরি',
+      ArticleTopic.learning => 'জ্ঞান',
+      ArticleTopic.government => 'বিজ্ঞপ্তি',
+      ArticleTopic.scholarships => 'বৃত্তি',
+      ArticleTopic.other => 'অন্যান্য',
+    };
   }
 
   static String category(SourceCategory category, {required bool bengali}) {

@@ -24,6 +24,9 @@ import 'newspapers_screen.dart';
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
 
+  /// The registry of sections the app offers. Education stays one section —
+  /// admissions, exams, results and universities all live there — and the four
+  /// career and knowledge sections are additions, not replacements.
   static const List<ArticleTopic> _topics = <ArticleTopic>[
     ArticleTopic.bangladesh,
     ArticleTopic.politics,
@@ -35,6 +38,10 @@ class CategoriesScreen extends StatelessWidget {
     ArticleTopic.education,
     ArticleTopic.health,
     ArticleTopic.lifestyle,
+    ArticleTopic.jobs,
+    ArticleTopic.learning,
+    ArticleTopic.government,
+    ArticleTopic.scholarships,
   ];
 
   @override

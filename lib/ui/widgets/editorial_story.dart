@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
+import '../../state/feed_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
+import '../helpers/app_nav.dart';
 import 'actions.dart';
 import 'common.dart';
 import 'editorial.dart';
@@ -391,13 +394,14 @@ class StoryTile extends StatelessWidget {
 /// Cards are used only for the river; the lead and the featured rail stay
 /// unboxed so the page still has three distinct densities instead of one
 /// repeated rectangle.
-class NewsCard extends StatelessWidget {
+class NewsCard extends StatefulWidget {
   const NewsCard({
     super.key,
     required this.article,
     required this.onTap,
     this.source,
     this.index = 0,
+    this.related,
   });
 
   final Article article;
@@ -405,14 +409,28 @@ class NewsCard extends StatelessWidget {
   final VoidCallback onTap;
   final int index;
 
+  /// Injected for focused tests. Production takes the precomputed index from
+  /// [FeedController], never recomputing matches from a widget build.
+  final List<Article>? related;
+
+  @override
+  State<NewsCard> createState() => _NewsCardState();
+}
+
+class _NewsCardState extends State<NewsCard> {
+  bool _expanded = false;
+
   @override
   Widget build(BuildContext context) {
     final bool dark = context.isDark;
-    final String? image = article.imageUrl;
+    final Article article = widget.article;
+    final List<Article> related = widget.related ??
+        context.read<FeedController>().relatedFor(article);
+    final SourceRegistry registry = context.registry;
+    final String summary = (article.excerpt ?? '').trim();
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 10),
-      // Deliberately not an AnimatedContainer: this decoration never changes,
-      // and a river of them would allocate one implicit controller per row.
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
@@ -435,116 +453,212 @@ class NewsCard extends StatelessWidget {
                 : Colors.white.withValues(alpha: 0.9),
             width: 0.9,
           ),
-          // No boxShadow. A blurred shadow behind every row means a saveLayer
-          // and a blur per card in the feed — the single most expensive paint
-          // operation here, repeated once per row as rows scroll into view.
-          // The hairline plus the raised gradient carry the same hierarchy, and
-          // the accent is spent on the bookmark instead.
         ),
-        child: JellySurface(
-          onTap: onTap,
-          scale: 0.988,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(Tokens.radiusMd),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      if (image != null) ...<Widget>[
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(Tokens.radiusXs),
-                          child: SizedBox(
-                            width: 92,
-                            height: 88,
-                            child: RemoteImage(
-                              url: image,
-                              decodeWidth: 92,
-                              fade: false,
-                            ),
-                          ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Tokens.radiusMd),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Pressable(
+                onTap: widget.onTap,
+                scale: 0.992,
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: article.imageUrl == null
+                      ? const NewsImageFallback()
+                      : RemoteImage(
+                          url: article.imageUrl!,
+                          decodeWidth: 420,
+                          fade: false,
                         ),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: SizedBox(
-                          height: image != null ? 88 : null,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                article.title,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontFamily: Tokens.serif,
-                                  fontSize: 15.5,
-                                  height: 1.45,
-                                  letterSpacing: -0.05,
-                                  fontWeight: FontWeight.w600,
-                                  color: dark ? Tokens.nightInk : Tokens.ink,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: <Widget>[
-                      if (source != null) ...<Widget>[
-                        Container(
-                          width: 15,
-                          height: 15,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: context.colors.primary.withValues(alpha: 0.10),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: context.colors.primary.withValues(alpha: 0.22),
-                              width: 0.7,
-                            ),
-                          ),
-                          child: Text(
-                            source!.monogram.characters.take(1).toString(),
-                            style: TextStyle(
-                              fontFamily: Tokens.serif,
-                              fontSize: 7.5,
-                              height: 1,
-                              fontWeight: FontWeight.w700,
-                              color: context.colors.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                      ],
-                      Flexible(
-                        child: Attribution(
-                          article: article,
-                          source: source,
-                          compact: true,
-                        ),
-                      ),
-                      const Spacer(),
-                      ShareAction(article: article, size: 15, dense: true),
-                      const SizedBox(width: 2),
-                      BookmarkAction(
-                        article: article,
-                        size: 16,
-                        dense: true,
-                        showSnack: false,
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(13, 12, 13, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Pressable(
+                      onTap: widget.onTap,
+                      scale: 0.995,
+                      child: Text(
+                        article.title,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: Tokens.serif,
+                          fontSize: 17,
+                          height: 1.42,
+                          letterSpacing: -0.08,
+                          fontWeight: FontWeight.w600,
+                          color: dark ? Tokens.nightInk : Tokens.ink,
+                        ),
+                      ),
+                    ),
+                    if (summary.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 7),
+                      Text(
+                        summary,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.texts.bodySmall?.copyWith(
+                          fontSize: 12,
+                          height: 1.55,
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 11),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Attribution(
+                            article: article,
+                            source: widget.source,
+                            compact: true,
+                          ),
+                        ),
+                        BookmarkAction(
+                          article: article,
+                          size: 17,
+                          dense: true,
+                          showSnack: false,
+                        ),
+                        const SizedBox(width: 2),
+                        ShareAction(article: article, size: 16, dense: true),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (related.isNotEmpty) ...<Widget>[
+                const SoftRule(opacity: 0.55),
+                Semantics(
+                  button: true,
+                  child: JellySurface(
+                    key: ValueKey<String>('same-story-${article.id}'),
+                    onTap: () => setState(() => _expanded = !_expanded),
+                    scale: 0.99,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.library_books_outlined,
+                            size: 15,
+                            color: context.colors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              context.isBengali
+                                  ? 'আরও ${related.length}টি সংবাদমাধ্যমে'
+                                  : 'Also from ${related.length} other ${related.length == 1 ? 'source' : 'sources'}',
+                              style: context.texts.labelSmall?.copyWith(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            _expanded
+                                ? Icons.expand_less_rounded
+                                : Icons.expand_more_rounded,
+                            size: 19,
+                            color: context.colors.onSurfaceVariant,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                AnimatedSize(
+                  duration: Motion.of(context).standard,
+                  curve: Motion.of(context).curve,
+                  alignment: Alignment.topCenter,
+                  child: _expanded
+                      ? Column(
+                          children: <Widget>[
+                            for (final Article other in related)
+                              _CoverageReport(
+                                article: other,
+                                source: registry.byId(other.sourceId),
+                                onTap: () => openArticle(context, other),
+                              ),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoverageReport extends StatelessWidget {
+  const _CoverageReport({
+    required this.article,
+    required this.source,
+    required this.onTap,
+  });
+
+  final Article article;
+  final NewsSource? source;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(13, 0, 13, 8),
+      child: JellySurface(
+        onTap: onTap,
+        scale: 0.99,
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: context.colors.onSurface.withValues(alpha: 0.035),
+            borderRadius: BorderRadius.circular(Tokens.radiusSm),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              if (source != null) ...<Widget>[
+                SourceAvatar(source: source!, size: 28),
+                const SizedBox(width: 9),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Attribution(article: article, source: source, compact: true),
+                    const SizedBox(height: 4),
+                    Text(
+                      article.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.texts.bodySmall?.copyWith(
+                        fontFamily: Tokens.serif,
+                        fontSize: 12.2,
+                        height: 1.45,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 7),
+              Icon(
+                Icons.open_in_new_rounded,
+                size: 15,
+                color: context.colors.primary,
+              ),
+            ],
           ),
         ),
       ),

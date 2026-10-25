@@ -7,7 +7,7 @@ import '../../data/models/source_health.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
-import 'article_card.dart' show topicLabel;
+import '../../core/l10n/labels.dart';
 import 'common.dart';
 import 'editorial.dart';
 
@@ -24,6 +24,10 @@ IconData topicIcon(ArticleTopic topic) {
     ArticleTopic.technology: Icons.memory_rounded,
     ArticleTopic.health: Icons.favorite_border_rounded,
     ArticleTopic.lifestyle: Icons.local_cafe_rounded,
+    ArticleTopic.jobs: Icons.work_outline_rounded,
+    ArticleTopic.learning: Icons.lightbulb_outline_rounded,
+    ArticleTopic.government: Icons.campaign_outlined,
+    ArticleTopic.scholarships: Icons.workspace_premium_outlined,
     ArticleTopic.other: Icons.more_horiz_rounded,
   }[topic]!;
 }
@@ -42,6 +46,9 @@ class TopicRail extends StatelessWidget {
   final ValueChanged<ArticleTopic> onToggle;
   final VoidCallback onClear;
 
+  /// The full topic set, in the order the rail shows it. The four career and
+  /// knowledge sections sit after the ten it shipped with, so the rail keeps its
+  /// familiar first screen.
   static const List<ArticleTopic> topics = <ArticleTopic>[
     ArticleTopic.bangladesh,
     ArticleTopic.politics,
@@ -53,6 +60,10 @@ class TopicRail extends StatelessWidget {
     ArticleTopic.education,
     ArticleTopic.health,
     ArticleTopic.lifestyle,
+    ArticleTopic.jobs,
+    ArticleTopic.learning,
+    ArticleTopic.government,
+    ArticleTopic.scholarships,
   ];
 
   @override
@@ -74,7 +85,7 @@ class TopicRail extends StatelessWidget {
           const SizedBox(width: 7),
           for (final ArticleTopic topic in topics) ...<Widget>[
             GlassChip(
-              label: topicLabel(topic, bengali: bengali),
+              label: Labels.topicShort(topic, bengali: bengali),
               selected: selected.contains(topic),
               onTap: () => onToggle(topic),
             ),
@@ -672,6 +683,7 @@ class CategoryStrip extends StatelessWidget {
   final ValueChanged<ArticleTopic> onToggle;
   final VoidCallback onClear;
 
+  /// Same set as [TopicRail.topics], ordered by what readers open first.
   static const List<ArticleTopic> topics = <ArticleTopic>[
     ArticleTopic.bangladesh,
     ArticleTopic.international,
@@ -683,6 +695,10 @@ class CategoryStrip extends StatelessWidget {
     ArticleTopic.education,
     ArticleTopic.health,
     ArticleTopic.lifestyle,
+    ArticleTopic.jobs,
+    ArticleTopic.learning,
+    ArticleTopic.scholarships,
+    ArticleTopic.government,
   ];
 
   @override
@@ -707,7 +723,7 @@ class CategoryStrip extends StatelessWidget {
           }
           final ArticleTopic topic = topics[index - 1];
           return CategoryCircle(
-            label: topicLabel(topic, bengali: bengali),
+            label: Labels.topicShort(topic, bengali: bengali),
             icon: topicIcon(topic),
             selected: selected.contains(topic),
             onTap: () => onToggle(topic),

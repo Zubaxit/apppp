@@ -25,6 +25,8 @@ class AppPreferences {
     this.refreshMinutes = 30,
     this.historyEnabled = true,
     this.breakingBannerEnabled = true,
+    this.newsShieldEnabled = true,
+    this.newsShieldExceptions = const <String>{},
     this.searchHistory = const <String>[],
     this.onboardingComplete = false,
   });
@@ -43,6 +45,10 @@ class AppPreferences {
   final int refreshMinutes;
   final bool historyEnabled;
   final bool breakingBannerEnabled;
+
+  /// Global News Shield policy and user-owned per-site allow-list.
+  final bool newsShieldEnabled;
+  final Set<String> newsShieldExceptions;
   final List<String> searchHistory;
   final bool onboardingComplete;
 
@@ -59,6 +65,8 @@ class AppPreferences {
     int? refreshMinutes,
     bool? historyEnabled,
     bool? breakingBannerEnabled,
+    bool? newsShieldEnabled,
+    Set<String>? newsShieldExceptions,
     List<String>? searchHistory,
     bool? onboardingComplete,
   }) {
@@ -73,6 +81,8 @@ class AppPreferences {
       refreshMinutes: refreshMinutes ?? this.refreshMinutes,
       historyEnabled: historyEnabled ?? this.historyEnabled,
       breakingBannerEnabled: breakingBannerEnabled ?? this.breakingBannerEnabled,
+      newsShieldEnabled: newsShieldEnabled ?? this.newsShieldEnabled,
+      newsShieldExceptions: newsShieldExceptions ?? this.newsShieldExceptions,
       searchHistory: searchHistory ?? this.searchHistory,
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
     );
@@ -111,6 +121,8 @@ class AppPreferences {
         'refreshMinutes': refreshMinutes,
         'historyEnabled': historyEnabled,
         'breakingBannerEnabled': breakingBannerEnabled,
+        'newsShieldEnabled': newsShieldEnabled,
+        'newsShieldExceptions': newsShieldExceptions.toList(),
         'searchHistory': searchHistory,
         'onboardingComplete': onboardingComplete,
       };
@@ -142,6 +154,12 @@ class AppPreferences {
       refreshMinutes: (map['refreshMinutes'] as num?)?.toInt() ?? 30,
       historyEnabled: map['historyEnabled'] != false,
       breakingBannerEnabled: map['breakingBannerEnabled'] != false,
+      newsShieldEnabled: map['newsShieldEnabled'] != false,
+      newsShieldExceptions: <String>{
+        for (final dynamic host in
+            (map['newsShieldExceptions'] as List<dynamic>? ?? const <dynamic>[]))
+          '$host',
+      },
       searchHistory: <String>[
         for (final dynamic item in (map['searchHistory'] as List<dynamic>? ?? const <dynamic>[]))
           '$item',

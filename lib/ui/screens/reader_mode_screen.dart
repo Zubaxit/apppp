@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/extensions.dart';
+import '../../core/utils/language_detect.dart';
 import '../../core/utils/reader_extract.dart';
 import '../../services/machine_translation.dart';
 import '../../services/reader_translation_controller.dart';
@@ -11,6 +12,7 @@ import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../widgets/actions.dart';
+import '../widgets/common.dart';
 
 /// The bilingual reading surface.
 ///
@@ -29,15 +31,15 @@ class ReaderModeScreen extends StatefulWidget {
     required this.document,
     required this.translator,
     this.onOpenOriginal,
-    this.startTranslated = true,
+    this.startTranslated = false,
   });
 
   final ReaderDocument document;
   final MachineTranslator translator;
   final VoidCallback? onOpenOriginal;
 
-  /// Whether translation starts immediately. Turning it off lets a reader read
-  /// the English without spending a request.
+  /// Test/migration hook. Production always uses the default (`false`): every
+  /// reader session opens on the untouched article and needs an explicit tap.
   final bool startTranslated;
 
   @override
@@ -74,6 +76,11 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
   @override
   Widget build(BuildContext context) {
     final ReaderDocument document = widget.document;
+    final TextLanguage language = LanguageDetect.ofArticle(
+      body: document.paragraphs.join(' '),
+      title: document.title,
+    );
+    final bool canTranslate = LanguageDetect.offersTranslation(language);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AuroraBackdrop(
@@ -97,12 +104,13 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
                   ),
                 ),
               ),
-              _TranslationBar(
-                controller: _controller,
-                onToggle: _controller.toggleVisibility,
-                onStart: () => unawaited(_controller.translateAll()),
-                onRetry: () => unawaited(_controller.translateAll()),
-              ),
+              if (canTranslate)
+                _TranslationBar(
+                  controller: _controller,
+                  onToggle: () => unawaited(_controller.toggle()),
+                  onStart: () => unawaited(_controller.setEnabled(true)),
+                  onRetry: () => unawaited(_controller.translateAll()),
+                ),
             ],
           ),
         ),
@@ -186,6 +194,34 @@ class _Article extends StatelessWidget {
         if (index == 0) return _ArticleHead(document: document);
 
         final ReaderBlock block = document.blocks[index - 1];
+        if (block.isImage) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 18),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(Tokens.radiusSm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: RemoteImage(url: block.imageUrl!, decodeWidth: 720),
+                  ),
+                  if (block.text.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        block.text,
+                        style: context.texts.labelSmall?.copyWith(
+                          fontSize: 10.5,
+                          color: context.colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        }
         if (block.heading) {
           return Padding(
             padding: const EdgeInsets.only(top: 20, bottom: 6),
@@ -206,7 +242,7 @@ class _Article extends StatelessWidget {
         final ParagraphTranslation unit = controller.unitAt(paragraph);
         // A page that has not started translating shows nothing under the
         // paragraph: a pending spinner there would spin forever.
-        final bool show = controller.showTranslations && controller.started;
+        final bool show = controller.enabled && controller.started;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 18),
@@ -391,67 +427,78 @@ class _TranslationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool failed = controller.started && !controller.hasAnyTranslation && controller.allFailed;
+    final bool enabled = controller.enabled;
+    final bool failed = enabled && controller.complete &&
+        !controller.hasAnyTranslation && controller.allFailed;
+    final String state = enabled
+        ? '${context.strings.hideTranslation} · ${controller.attribution}'
+        : context.strings.showTranslation;
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
         child: GlassBar(
           padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
             children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Icon(Icons.translate_rounded, size: 16, color: context.colors.primary),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Text(
-                      failed
-                          ? context.strings.translationUnavailable
-                          : '${context.strings.translationLabel} · ${controller.attribution}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.texts.labelSmall?.copyWith(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: failed ? context.colors.error : null,
-                      ),
-                    ),
-                  ),
-                  if (failed)
-                    JellyButton(
-                      label: context.strings.retry,
-                      compact: true,
-                      onPressed: onRetry,
-                    )
-                  else if (!controller.started)
-                    JellyButton(
-                      label: context.strings.translationLabel,
-                      compact: true,
-                      onPressed: onStart,
-                    )
-                  else
-                    JellySwitch(
-                      value: controller.showTranslations,
-                      onChanged: (_) => onToggle(),
-                    ),
-                ],
+              Icon(
+                enabled ? Icons.translate_rounded : Icons.translate_outlined,
+                size: 17,
+                color: enabled
+                    ? context.colors.primary
+                    : context.colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 2),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
+              const SizedBox(width: 9),
+              Expanded(
                 child: Text(
-                  context.strings.translationNotice,
-                  maxLines: 2,
+                  failed
+                      ? context.strings.translationUnavailable
+                      : controller.busy
+                          ? context.strings.translating
+                          : state,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: context.texts.labelSmall?.copyWith(
-                    fontSize: 9.5,
-                    height: 1.45,
-                    color: context.colors.onSurfaceVariant,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: failed ? context.colors.error : null,
                   ),
                 ),
               ),
+              if (controller.busy) ...<Widget>[
+                SizedBox(
+                  width: 13,
+                  height: 13,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    color: context.colors.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
+              if (failed)
+                JellyButton(
+                  label: context.strings.retry,
+                  compact: true,
+                  onPressed: onRetry,
+                )
+              else if (!controller.started)
+                JellyButton(
+                  label: context.strings.showTranslation,
+                  icon: Icons.translate_rounded,
+                  compact: true,
+                  onPressed: onStart,
+                )
+              else
+                Semantics(
+                  label: context.strings.translationLabel,
+                  value: enabled ? 'ON' : 'OFF',
+                  toggled: enabled,
+                  child: JellySwitch(
+                    value: enabled,
+                    onChanged: (_) => onToggle(),
+                  ),
+                ),
             ],
           ),
         ),

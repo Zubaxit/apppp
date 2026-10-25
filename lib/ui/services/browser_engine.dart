@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../core/utils/reader_extract.dart';
+import '../../services/news_shield.dart';
 import 'reader_scripts.dart';
 
 /// Minimal in-app browser surface.
@@ -54,6 +55,13 @@ abstract class BrowserEngine extends ChangeNotifier {
   /// Runs a one-off translation/selection probe. Exposed for tests.
   bool get supportsReaderMode => false;
 
+  /// Effective policy for the current site (global setting minus exception).
+  bool get shieldEnabled => false;
+
+  /// Changes protection for this live page. Implementations reload so rules are
+  /// applied from the beginning of the next document.
+  Future<void> setShieldEnabled(bool enabled) async {}
+
   /// The platform view. Tests provide a lightweight stand-in.
   Widget buildView(BuildContext context);
 }
@@ -64,9 +72,10 @@ abstract class BrowserEngine extends ChangeNotifier {
 /// injected into the page, no credentials are read and no paywall, login or
 /// anti-bot measure is bypassed.
 class WebViewBrowserEngine extends BrowserEngine {
-  WebViewBrowserEngine({required String url})
+  WebViewBrowserEngine({required String url, bool shieldEnabled = true})
       : _url = url,
-        _domain = _domainOf(url) {
+        _domain = _domainOf(url),
+        _shieldEnabled = shieldEnabled {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
@@ -86,6 +95,7 @@ class WebViewBrowserEngine extends BrowserEngine {
             _url = value;
             _domain = _domainOf(value);
             notifyListeners();
+            unawaited(_installShield());
             // A new document means the history changed shape; read it now rather
             // than waiting for `onPageFinished`, which a slow page may delay
             // until after the user has already pressed Back.
@@ -96,7 +106,15 @@ class WebViewBrowserEngine extends BrowserEngine {
             _url = value;
             _domain = _domainOf(value);
             await _refreshHistory();
+            await _installShield();
             notifyListeners();
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            if (_shieldEnabled &&
+                NewsShield.blocks(request.url, pageUrl: _url)) {
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
           },
           onUrlChange: (UrlChange change) {
             final String? value = change.url;
@@ -124,6 +142,7 @@ class WebViewBrowserEngine extends BrowserEngine {
   bool _canGoBack = false;
   String? _error;
   double _progress = 0;
+  bool _shieldEnabled;
 
   ValueChanged<String>? _onSelection;
   Future<bool>? _historyInFlight;
@@ -245,6 +264,28 @@ class WebViewBrowserEngine extends BrowserEngine {
       (_) => _controller.runJavaScript(ReaderScripts.watchSelection),
       onError: (Object error) {},
     );
+  }
+
+  @override
+  bool get shieldEnabled => _shieldEnabled;
+
+  @override
+  Future<void> setShieldEnabled(bool enabled) async {
+    if (_shieldEnabled == enabled) return;
+    _shieldEnabled = enabled;
+    notifyListeners();
+    await _controller.reload();
+  }
+
+  Future<void> _installShield() async {
+    try {
+      await _controller.runJavaScript(
+        NewsShield.script(enabled: _shieldEnabled),
+      );
+    } catch (_) {
+      // Some pages are between documents when onPageStarted fires. The same
+      // script is attempted again onPageFinished; failure must not break load.
+    }
   }
 
   @override

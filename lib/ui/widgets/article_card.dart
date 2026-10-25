@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
+import '../../core/l10n/labels.dart';
 import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
@@ -400,36 +401,8 @@ class ArticleMetaRow extends StatelessWidget {
 }
 
 /// Human labels for topics, in the active language.
-String topicLabel(ArticleTopic topic, {required bool bengali}) {
-  if (!bengali) {
-    return <ArticleTopic, String>{
-          ArticleTopic.bangladesh: 'Bangladesh',
-          ArticleTopic.politics: 'Politics',
-          ArticleTopic.economy: 'Economy',
-          ArticleTopic.international: 'World',
-          ArticleTopic.education: 'Education',
-          ArticleTopic.sports: 'Sport',
-          ArticleTopic.entertainment: 'Culture',
-          ArticleTopic.technology: 'Technology',
-          ArticleTopic.health: 'Health',
-          ArticleTopic.lifestyle: 'Lifestyle',
-          ArticleTopic.other: 'More',
-        }[topic]!;
-  }
-  return <ArticleTopic, String>{
-    ArticleTopic.bangladesh: 'বাংলাদেশ',
-    ArticleTopic.politics: 'রাজনীতি',
-    ArticleTopic.economy: 'অর্থনীতি',
-    ArticleTopic.international: 'বিশ্ব',
-    ArticleTopic.education: 'শিক্ষা',
-    ArticleTopic.sports: 'খেলা',
-    ArticleTopic.entertainment: 'সংস্কৃতি',
-    ArticleTopic.technology: 'প্রযুক্তি',
-    ArticleTopic.health: 'স্বাস্থ্য',
-    ArticleTopic.lifestyle: 'জীবনযাপন',
-    ArticleTopic.other: 'অন্যান্য',
-  }[topic]!;
-}
+String topicLabel(ArticleTopic topic, {required bool bengali}) =>
+    Labels.topicShort(topic, bengali: bengali);
 
 /// Headline styles shared by the hero card and the reader.
 class AppThemeText {

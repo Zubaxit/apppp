@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/utils/story_matcher.dart';
 import '../data/models/article.dart';
 import '../data/models/feed_query.dart';
 import '../data/models/news_source.dart';
@@ -35,6 +36,7 @@ class FeedController extends ChangeNotifier {
 
   FeedQuery _query = const FeedQuery(limit: pageSize);
   List<Article> _articles = const <Article>[];
+  Map<String, List<Article>> _related = const <String, List<Article>>{};
   Map<String, SourceHealth> _health = const <String, SourceHealth>{};
   DateTime? _lastRefreshAt;
   DateTime? _lastAttemptAt;
@@ -52,6 +54,8 @@ class FeedController extends ChangeNotifier {
 
   FeedQuery get query => _query;
   List<Article> get articles => _articles;
+  List<Article> relatedFor(Article article) =>
+      _related[article.id] ?? const <Article>[];
   Map<String, SourceHealth> get health => _health;
   DateTime? get lastRefreshAt => _lastRefreshAt;
   bool get isRefreshing => _busy;
@@ -108,9 +112,11 @@ class FeedController extends ChangeNotifier {
         _query,
         followedSourceIds: settings.followedSourceIds,
       );
+      _related = StoryMatcher.index(_articles);
       _error = null;
     } catch (error) {
       _articles = const <Article>[];
+      _related = const <String, List<Article>>{};
       _error = 'Could not read the local cache';
       if (kDebugMode) debugPrint('Feed cache read failed: $error');
     }

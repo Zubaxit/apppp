@@ -162,6 +162,13 @@ class SettingsScreen extends StatelessWidget {
                   _Panel(
                     children: <Widget>[
                       _ToggleRow(
+                        title: context.strings.newsShield,
+                        subtitle: context.strings.newsShieldBody,
+                        value: settings.newsShieldEnabled,
+                        onChanged: settings.setNewsShieldEnabled,
+                      ),
+                      const _PanelDivider(),
+                      _ToggleRow(
                         title: context.strings.historyToggle,
                         subtitle: context.strings.historyToggleBody,
                         value: settings.historyEnabled,

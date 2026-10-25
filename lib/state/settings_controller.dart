@@ -36,6 +36,10 @@ class SettingsController extends ChangeNotifier {
   Set<String> get followedSourceIds => _prefs.followedSourceIds;
   bool get historyEnabled => _prefs.historyEnabled;
   bool get breakingBannerEnabled => _prefs.breakingBannerEnabled;
+  bool get newsShieldEnabled => _prefs.newsShieldEnabled;
+  Set<String> get newsShieldExceptions => _prefs.newsShieldExceptions;
+  bool shieldEnabledFor(String domain) =>
+      _prefs.newsShieldEnabled && !_prefs.newsShieldExceptions.contains(domain.toLowerCase());
   bool get reduceMotion => _prefs.motion == MotionChoice.reduced;
   int get refreshMinutes => _prefs.refreshMinutes;
   DefaultFeed get defaultFeed => _prefs.defaultFeed;
@@ -72,6 +76,21 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> setBreakingBannerEnabled(bool enabled) =>
       _update(_prefs.copyWith(breakingBannerEnabled: enabled));
+
+  Future<void> setNewsShieldEnabled(bool enabled) =>
+      _update(_prefs.copyWith(newsShieldEnabled: enabled));
+
+  Future<void> setShieldException(String domain, {required bool except}) {
+    final String host = domain.trim().toLowerCase().replaceFirst('www.', '');
+    if (host.isEmpty) return Future<void>.value();
+    final Set<String> next = Set<String>.of(_prefs.newsShieldExceptions);
+    if (except) {
+      next.add(host);
+    } else {
+      next.remove(host);
+    }
+    return _update(_prefs.copyWith(newsShieldExceptions: next));
+  }
 
   Future<void> setReduceMotion(bool reduce) => _update(
         _prefs.copyWith(motion: reduce ? MotionChoice.reduced : MotionChoice.system),

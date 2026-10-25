@@ -39,7 +39,6 @@ class RemoteImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool dark = context.isDark;
     final int memWidth =
         (decodeWidth * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2))
             .round();
@@ -51,31 +50,27 @@ class RemoteImage extends StatelessWidget {
       filterQuality: FilterQuality.low,
       fadeInDuration: Duration(milliseconds: fade ? 260 : 0),
       fadeOutDuration: Duration(milliseconds: fade ? 120 : 0),
-      placeholder: (BuildContext context, String value) => DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: dark
-                ? const <Color>[Color(0xFF1B1D21), Color(0xFF111214)]
-                : const <Color>[Color(0xFFEDEAE5), Color(0xFFF6F4F1)],
-          ),
-        ),
-      ),
-      errorWidget: (BuildContext context, String value, Object error) => DecoratedBox(
-        decoration: BoxDecoration(
-          color: dark ? Tokens.nightRaised : Tokens.paperSunken,
-        ),
-        child: Center(
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            size: 18,
-            color: context.colors.onSurfaceVariant.withValues(alpha: 0.6),
-          ),
-        ),
-      ),
+      placeholder: (BuildContext context, String value) =>
+          const NewsImageFallback(),
+      errorWidget: (BuildContext context, String value, Object error) =>
+          const NewsImageFallback(),
     );
   }
+}
+
+/// Offline, fixed-size visual used for missing, loading and failed story art.
+/// It is intentionally the same asset in every card, so a failed request cannot
+/// create a broken icon or a late layout shift.
+class NewsImageFallback extends StatelessWidget {
+  const NewsImageFallback({super.key});
+
+  @override
+  Widget build(BuildContext context) => Image.asset(
+        'assets/images/news_fallback.jpg',
+        fit: BoxFit.cover,
+        cacheWidth: 960,
+        filterQuality: FilterQuality.low,
+      );
 }
 
 /// Publication identity: the publisher's own mark on a light tile.

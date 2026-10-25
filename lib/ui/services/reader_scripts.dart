@@ -109,10 +109,22 @@ class ReaderScripts {
   function paragraphs(root) {
     var out = [];
     var seen = {};
-    var nodes = root.querySelectorAll('p, h2, h3, blockquote');
+    var nodes = root.querySelectorAll('p, h2, h3, blockquote, figure');
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
       if (blocked(node)) continue;
+      if ((node.tagName || '').toLowerCase() === 'figure') {
+        var img = node.querySelector('img');
+        if (img) {
+          var src = img.currentSrc || img.src || img.getAttribute('data-src') || '';
+          if (/^https:\/\//i.test(src) && !seen[src]) {
+            seen[src] = 1;
+            var caption = node.querySelector('figcaption');
+            out.push({ image: src, text: caption ? text(caption) : (img.alt || '') });
+          }
+        }
+        continue;
+      }
       var value = text(node);
       if (value.length < 30) continue;
       if (seen[value]) continue;

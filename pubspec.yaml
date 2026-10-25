@@ -53,6 +53,9 @@ flutter:
     - assets/fonts/OFL.txt
     - assets/publishers/logos.json
     - assets/publishers/
+    - assets/filters/news_shield_hosts.txt
+    - assets/developer/md_emon.jpg
+    - assets/images/news_fallback.jpg
 
   fonts:
     - family: NotoSansBengali

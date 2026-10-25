@@ -39,7 +39,9 @@ abstract class MachineTranslator {
 ///
 /// Why this one:
 ///  * no API key, so nothing secret can leak into the APK;
-///  * no cost: the public endpoint is free with a daily quota;
+///  * no API charge at the anonymous allowance; there is no guarantee that the
+///    public service, quota or terms stay available; larger commercial volumes
+///    are offered separately by the provider;
 ///  * no dependency beyond `http`, which the app already ships;
 ///  * it accepts plain text, so no HTML or script is ever sent anywhere.
 ///
@@ -63,9 +65,11 @@ class MyMemoryTranslator implements MachineTranslator {
   final http.Client _client;
   final Uri _endpoint;
 
-  /// One request may carry at most this much text. The public endpoint rejects
-  /// larger payloads, so the limit is enforced here rather than discovered.
+  /// MyMemory documents a hard 500-*byte* `q` limit. Keeping a 420-character
+  /// packing target leaves URL/service headroom for ordinary Latin text; the
+  /// splitter also verifies UTF-8 bytes, so non-ASCII input never exceeds 480.
   static const int maxChunkCharacters = 420;
+  static const int maxChunkBytes = 480;
 
   /// Requests are serialised with a small in-memory cache, because the free tier
   /// rewards fewer calls and duplicate paragraphs are common in feeds.
@@ -83,7 +87,8 @@ class MyMemoryTranslator implements MachineTranslator {
   Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
     final String input = text.trim();
     if (input.isEmpty) return '';
-    if (input.length <= maxChunkCharacters) {
+    if (input.length <= maxChunkCharacters &&
+        utf8.encode(input).length <= maxChunkBytes) {
       return _translateChunk(input, from: from, to: to);
     }
     final List<String> pieces = splitForTranslation(input, maxChunkCharacters);
@@ -198,37 +203,69 @@ class MyMemoryTranslator implements MachineTranslator {
 
   /// Splits text at sentence, then word, boundaries so no request exceeds
   /// [limit]. Exposed because the split is behaviour worth testing on its own.
-  static List<String> splitForTranslation(String text, [int limit = maxChunkCharacters]) {
+  static List<String> splitForTranslation(
+    String text, [
+    int limit = maxChunkCharacters,
+  ]) {
     final String source = text.replaceAll(RegExp(r'\s+'), ' ').trim();
-    if (source.length <= limit) return <String>[source];
+    if (_fits(source, limit)) return <String>[source];
 
     final List<String> chunks = <String>[];
+    String current = '';
+
+    void addWord(String word) {
+      if (word.isEmpty) return;
+      final String candidate = current.isEmpty ? word : '$current $word';
+      if (_fits(candidate, limit)) {
+        current = candidate;
+        return;
+      }
+      if (current.isNotEmpty) {
+        chunks.add(current);
+        current = '';
+      }
+      // One token can itself exceed 480 bytes (for example a long URL). Pack
+      // runes, never UTF-16 code units, so a surrogate pair is not split.
+      String runeChunk = '';
+      for (final int rune in word.runes) {
+        final String next = '$runeChunk${String.fromCharCode(rune)}';
+        if (!_fits(next, limit) && runeChunk.isNotEmpty) {
+          chunks.add(runeChunk);
+          runeChunk = String.fromCharCode(rune);
+        } else {
+          runeChunk = next;
+        }
+      }
+      current = runeChunk;
+    }
+
     final List<String> sentences = source
         .split(RegExp(r'(?<=[.!?।])\s+'))
-        .where((String s) => s.isNotEmpty)
+        .where((String value) => value.isNotEmpty)
         .toList(growable: false);
-
-    String current = '';
-    void flush() {
-      if (current.trim().isNotEmpty) chunks.add(current.trim());
-      current = '';
-    }
-
     for (final String sentence in sentences) {
-      if (sentence.length > limit) {
-        // A single enormous sentence: fall back to word packing.
-        flush();
-        for (final String word in sentence.split(' ')) {
-          if (current.length + word.length + 1 > limit) flush();
-          current = current.isEmpty ? word : '$current $word';
-        }
-        flush();
+      final String candidate = current.isEmpty ? sentence : '$current $sentence';
+      if (_fits(candidate, limit)) {
+        current = candidate;
         continue;
       }
-      if (current.length + sentence.length + 1 > limit) flush();
-      current = current.isEmpty ? sentence : '$current $sentence';
+      if (current.isNotEmpty) {
+        chunks.add(current);
+        current = '';
+      }
+      if (_fits(sentence, limit)) {
+        current = sentence;
+      } else {
+        for (final String word in sentence.split(' ')) {
+          addWord(word);
+        }
+      }
     }
-    flush();
+    if (current.isNotEmpty) chunks.add(current);
     return chunks;
   }
+
+  static bool _fits(String value, int characterLimit) =>
+      value.length <= characterLimit && utf8.encode(value).length <= maxChunkBytes;
+
 }

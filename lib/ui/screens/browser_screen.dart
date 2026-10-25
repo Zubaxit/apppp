@@ -12,6 +12,7 @@ import '../../data/models/news_source.dart';
 import '../../services/machine_translation.dart';
 import '../../services/translation_service.dart';
 import '../../state/saved_controller.dart';
+import '../../state/settings_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
@@ -77,7 +78,12 @@ class _BrowserScreenState extends State<BrowserScreen> {
   void initState() {
     super.initState();
     _ownsEngine = widget.engine == null;
-    _engine = widget.engine ?? WebViewBrowserEngine(url: widget.url);
+    final SettingsController settings = context.read<SettingsController>();
+    final String host = Uri.tryParse(widget.url)?.host.replaceFirst('www.', '') ?? '';
+    _engine = widget.engine ?? WebViewBrowserEngine(
+      url: widget.url,
+      shieldEnabled: settings.shieldEnabledFor(host),
+    );
     _canGoBack = _engine.canGoBack;
     _engine.addListener(_onEngine);
     _engine.watchSelection(_onSelectionChanged);
@@ -289,6 +295,20 @@ class _BrowserScreenState extends State<BrowserScreen> {
     );
   }
 
+  Future<void> _toggleShield() async {
+    final SettingsController settings = context.read<SettingsController>();
+    final String host = _engine.domain;
+    if (host.isEmpty || !settings.newsShieldEnabled) return;
+    final bool next = !_engine.shieldEnabled;
+    // An enabled shield means this site is removed from the exception set.
+    await settings.setShieldException(host, except: !next);
+    await _engine.setShieldEnabled(next);
+    if (!mounted) return;
+    context.showSnack(next
+        ? (context.isBengali ? 'এই সাইটে নিউজ শিল্ড চালু' : 'News Shield enabled for this site')
+        : (context.isBengali ? 'এই সাইটে নিউজ শিল্ড বন্ধ' : 'News Shield disabled for this site'));
+  }
+
   @override
   Widget build(BuildContext context) {
     final String domain = _engine.domain.isNotEmpty ? _engine.domain : widget.url;
@@ -323,6 +343,10 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 saved: _savedLink,
                 reading: _extracting,
                 onRead: _engine.supportsReaderMode ? _openReaderMode : null,
+                shieldEnabled: _engine.shieldEnabled,
+                onShield: context.read<SettingsController>().newsShieldEnabled
+                    ? _toggleShield
+                    : null,
               ),
             ),
             // The page surface listens to the engine itself, so a navigation
@@ -394,6 +418,8 @@ class BrowserToolbar extends StatelessWidget {
     required this.saved,
     this.onRead,
     this.reading = false,
+    this.onShield,
+    this.shieldEnabled = false,
   });
 
   /// Below this width the toolbar switches to its compact metric.
@@ -416,6 +442,8 @@ class BrowserToolbar extends StatelessWidget {
 
   /// True while the page is being read, so the control can say so.
   final bool reading;
+  final VoidCallback? onShield;
+  final bool shieldEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -455,6 +483,9 @@ class BrowserToolbar extends StatelessWidget {
                           onRead: onRead,
                           reading: reading,
                           tooltip: context.strings.readerMode,
+                          onShield: onShield,
+                          shieldEnabled: shieldEnabled,
+                          shieldTooltip: context.strings.newsShield,
                         ),
                       ),
                       BrowserToolButton(
@@ -598,6 +629,9 @@ class _AddressPill extends StatelessWidget {
     this.onRead,
     this.reading = false,
     this.tooltip,
+    this.onShield,
+    this.shieldEnabled = false,
+    this.shieldTooltip,
   });
 
   final String domain;
@@ -606,6 +640,9 @@ class _AddressPill extends StatelessWidget {
   final VoidCallback? onRead;
   final bool reading;
   final String? tooltip;
+  final VoidCallback? onShield;
+  final bool shieldEnabled;
+  final String? shieldTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -667,8 +704,32 @@ class _AddressPill extends StatelessWidget {
               ],
             ),
           ),
+          if (onShield != null) ...<Widget>[
+            const SizedBox(width: 3),
+            Tooltip(
+              message: shieldTooltip ?? '',
+              child: JellySurface(
+                key: const ValueKey<String>('browser-shield'),
+                onTap: onShield,
+                scale: 0.9,
+                boundary: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Icon(
+                    shieldEnabled
+                        ? Icons.shield_rounded
+                        : Icons.shield_outlined,
+                    size: compact ? 14 : 15,
+                    color: shieldEnabled
+                        ? context.colors.primary
+                        : context.colors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          ],
           if (onRead != null) ...<Widget>[
-            const SizedBox(width: 4),
+            const SizedBox(width: 3),
             // Reader mode lives inside the address pill: the toolbar stays one
             // row tall and no control is pushed off a narrow screen.
             Tooltip(

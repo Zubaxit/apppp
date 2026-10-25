@@ -50,6 +50,28 @@ void main() {
       controller.dispose();
     });
 
+    test('News Shield global policy and site exceptions survive restart', () async {
+      final InMemoryPreferencesStore store = InMemoryPreferencesStore();
+      final SettingsController controller =
+          SettingsController(initial: const AppPreferences(), store: store);
+
+      expect(controller.newsShieldEnabled, isTrue);
+      await controller.setShieldException('example.com', except: true);
+      expect(controller.shieldEnabledFor('example.com'), isFalse);
+      expect(controller.shieldEnabledFor('publisher.com'), isTrue);
+
+      final SettingsController restarted = SettingsController(
+        initial: AppPreferences.decode(await store.read()),
+        store: store,
+      );
+      expect(restarted.newsShieldExceptions, contains('example.com'));
+      await restarted.setNewsShieldEnabled(false);
+      expect(restarted.shieldEnabledFor('publisher.com'), isFalse);
+
+      controller.dispose();
+      restarted.dispose();
+    });
+
     test('an unreadable store never loses the in-session preference', () async {
       final SettingsController controller = SettingsController(
         initial: const AppPreferences(),

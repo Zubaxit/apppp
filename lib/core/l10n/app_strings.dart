@@ -145,6 +145,8 @@ abstract class AppStrings {
   String get historyToggleBody;
   String get breakingBannerToggle;
   String get breakingBannerBody;
+  String get newsShield;
+  String get newsShieldBody;
   String get reduceMotion;
   String get on;
   String get off;
@@ -490,6 +492,10 @@ class BanglaStrings extends AppStrings {
   String get breakingBannerToggle => 'ব্রেকিং নিউজ ব্যানার';
   @override
   String get breakingBannerBody => 'পত্রিকা নিজে ব্রেকিং হিসেবে চিহ্নিত করলে দেখানো হবে';
+  @override
+  String get newsShield => 'নিউজ শিল্ড';
+  @override
+  String get newsShieldBody => 'পরিচিত বিজ্ঞাপন ও ট্র্যাকার সীমিত করে';
   @override
   String get reduceMotion => 'অ্যানিমেশন কমান';
   @override
@@ -941,6 +947,10 @@ class EnglishStrings extends AppStrings {
   String get breakingBannerToggle => 'Breaking news banner';
   @override
   String get breakingBannerBody => 'Only shown when a publisher labels a story as breaking';
+  @override
+  String get newsShield => 'News Shield';
+  @override
+  String get newsShieldBody => 'Limits known ads and trackers in the in-app browser';
   @override
   String get reduceMotion => 'Reduce motion';
   @override

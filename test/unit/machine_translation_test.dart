@@ -155,6 +155,8 @@ void main() {
       expect(result, contains('অংশ'));
       for (final String chunk in sent) {
         expect(chunk.length, lessThanOrEqualTo(MyMemoryTranslator.maxChunkCharacters));
+        expect(utf8.encode(chunk).length,
+            lessThanOrEqualTo(MyMemoryTranslator.maxChunkBytes));
       }
     });
   });
@@ -207,7 +209,7 @@ void main() {
         paragraphs: <String>['A flaky paragraph.'],
       );
       addTearDown(retried.dispose);
-      await retried.retry(0);
+      await retried.setEnabled(true);
       expect(retried.unitAt(0).done, isTrue);
     });
 
@@ -220,11 +222,13 @@ void main() {
       await controller.translateAll();
       expect(controller.showTranslations, isTrue);
 
-      controller.toggleVisibility();
+      await controller.setEnabled(false);
+      expect(controller.enabled, isFalse);
       expect(controller.showTranslations, isFalse);
       expect(controller.unitAt(0).done, isTrue, reason: 'hidden is not discarded');
 
-      controller.toggleVisibility();
+      await controller.setEnabled(true);
+      expect(controller.enabled, isTrue);
       expect(controller.showTranslations, isTrue);
     });
 

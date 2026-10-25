@@ -5,12 +5,21 @@ import 'dart:convert';
 /// The English original is kept verbatim: the reader never replaces the
 /// publisher's words with a translation, it places the translation beneath them.
 class ReaderBlock {
-  const ReaderBlock({required this.text, this.heading = false});
+  const ReaderBlock({
+    required this.text,
+    this.heading = false,
+    this.imageUrl,
+  });
 
   final String text;
 
   /// `h2`/`h3` blocks are rendered as a sub-heading rather than body text.
   final bool heading;
+
+  /// Useful article images, in document order. The URL is supplied by the
+  /// already-open page; no second HTML fetch is performed.
+  final String? imageUrl;
+  bool get isImage => imageUrl != null;
 }
 
 /// The readable part of a publisher's page.
@@ -42,7 +51,7 @@ class ReaderDocument {
   /// Paragraphs only (no sub-headings) — what gets translated.
   List<String> get paragraphs => <String>[
         for (final ReaderBlock block in blocks)
-          if (!block.heading) block.text,
+          if (!block.heading && !block.isImage) block.text,
       ];
 
   int get characterCount =>
@@ -71,19 +80,27 @@ class ReaderDocument {
       final Set<String> seen = <String>{};
       for (final Object? item in rawBlocks) {
         if (item is! Map<String, dynamic>) continue;
+        final String? image = _safeImage(item['image']);
         final String text = _clean('${item['text'] ?? ''}');
-        if (text.length < 2) continue;
-        if (!seen.add(text)) continue;
-        blocks.add(ReaderBlock(
-          text: text.length > maxBlockLength ? text.substring(0, maxBlockLength) : text,
-          heading: item['heading'] == true,
-        ));
+        if (image != null) {
+          if (!seen.add(image)) continue;
+          blocks.add(ReaderBlock(text: text, imageUrl: image));
+        } else {
+          if (text.length < 2) continue;
+          if (!seen.add(text)) continue;
+          blocks.add(ReaderBlock(
+            text: text.length > maxBlockLength
+                ? text.substring(0, maxBlockLength)
+                : text,
+            heading: item['heading'] == true,
+          ));
+        }
         if (blocks.length >= maxBlocks) break;
       }
     }
 
     final int prose = blocks
-        .where((ReaderBlock b) => !b.heading)
+        .where((ReaderBlock b) => !b.heading && !b.isImage)
         .fold<int>(0, (int sum, ReaderBlock b) => sum + b.text.length);
     if (blocks.length < 2 || prose < 200) return null;
 
@@ -111,6 +128,13 @@ class ReaderDocument {
       }
     }
     return value;
+  }
+
+  static String? _safeImage(Object? value) {
+    final String text = _clean('${value ?? ''}');
+    final Uri? uri = Uri.tryParse(text);
+    if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) return null;
+    return uri.toString();
   }
 
   static String? _optional(Object? value) {

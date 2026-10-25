@@ -8,6 +8,7 @@ import 'data/models/news_source.dart';
 import 'data/services/app_database.dart';
 import 'data/services/article_repository.dart';
 import 'services/connectivity_service.dart';
+import 'services/news_shield.dart';
 import 'services/preferences_store.dart';
 import 'services/publisher_logos.dart';
 import 'services/registry_loader.dart';
@@ -47,6 +48,7 @@ class AppBootstrap {
     // Publisher marks are local data, read once before the first frame so the
     // directory never has to wait for a network icon.
     await PublisherLogos.load(bundle: bundle);
+    await NewsShield.load(bundle: bundle);
     final AppDatabase db = database ?? await AppDatabase.open();
     final PreferencesStore store = preferencesStore ?? await SharedPreferencesStore.create();
     final AppPreferences prefs =

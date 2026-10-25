@@ -18,25 +18,20 @@ class ParagraphTranslation {
 
 /// Drives the bilingual reading surface.
 ///
-/// It is deliberately a [ChangeNotifier] rather than screen state: the reader
-/// screen subscribes, so a paragraph that finishes translating repaints that
-/// paragraph instead of rebuilding the whole article, and the request logic is
-/// testable without a widget tree.
-///
-/// Responsibilities that matter for correctness:
-///  * never send the same paragraph twice (identical paragraphs share one
-///    request);
-///  * never run more than [_concurrency] requests at once;
-///  * stop cleanly when the screen goes away, without touching state after
-///    dispose;
-///  * keep per-paragraph errors so one failure does not poison the page.
+/// [enabled] is the one authoritative ON/OFF state. Turning it off immediately
+/// hides translations, clears loading indicators and invalidates the current
+/// async generation. HTTP already sent cannot be unsent by `package:http`, but
+/// its eventual result is ignored and can never turn the UI back on.
 class ReaderTranslationController extends ChangeNotifier {
   ReaderTranslationController({
     required MachineTranslator translator,
     required List<String> paragraphs,
   })  : _translator = translator,
         _paragraphs = List<String>.unmodifiable(paragraphs),
-        _units = List<ParagraphTranslation>.filled(paragraphs.length, const ParagraphTranslation());
+        _units = List<ParagraphTranslation>.filled(
+          paragraphs.length,
+          const ParagraphTranslation(),
+        );
 
   static const int _concurrency = 2;
 
@@ -47,113 +42,145 @@ class ReaderTranslationController extends ChangeNotifier {
   final Map<String, Future<String>> _inFlight = <String, Future<String>>{};
 
   bool _disposed = false;
-  bool _visible = true;
+  bool _enabled = false;
   bool _started = false;
+  int _generation = 0;
   int _cursor = 0;
 
-  bool get showTranslations => _visible;
+  bool get enabled => _enabled;
+  bool get showTranslations => _enabled;
   bool get started => _started;
-  bool get busy => _units.any((ParagraphTranslation u) => u.loading);
+  bool get busy => _enabled && _units.any((ParagraphTranslation u) => u.loading);
   bool get hasAnyTranslation => _units.any((ParagraphTranslation u) => u.done);
+  bool get hasAnyFailure => _units.any((ParagraphTranslation u) => u.failed);
   bool get allFailed =>
       _units.isNotEmpty && _units.every((ParagraphTranslation u) => u.failed);
+  bool get complete => _units.isNotEmpty &&
+      _units.every((ParagraphTranslation u) => u.done || u.failed);
   String get attribution => _translator.attribution;
   bool get requiresNetwork => _translator.requiresNetwork;
   int get length => _units.length;
 
   ParagraphTranslation unitAt(int index) =>
-      index >= 0 && index < _units.length ? _units[index] : const ParagraphTranslation();
+      index >= 0 && index < _units.length
+          ? _units[index]
+          : const ParagraphTranslation();
 
   @override
   void dispose() {
     _disposed = true;
+    _generation += 1;
     super.dispose();
   }
 
-  void setVisible(bool value) {
-    if (_visible == value || _disposed) return;
-    _visible = value;
+  /// Changes the complete translation feature state.
+  ///
+  /// Enabling starts any unfinished paragraph. Disabling performs a logical
+  /// cancellation: pending responses from the old generation are ignored.
+  Future<void> setEnabled(bool value) async {
+    if (_disposed || _enabled == value) return;
+    _enabled = value;
+    _generation += 1;
+    if (!value) {
+      _units = <ParagraphTranslation>[
+        for (final ParagraphTranslation unit in _units)
+          ParagraphTranslation(text: unit.text, error: unit.error),
+      ];
+      notifyListeners();
+      return;
+    }
+    _started = true;
     notifyListeners();
+    await _translateUnfinished(_generation);
   }
 
-  void toggleVisibility() => setVisible(!_visible);
+  Future<void> toggle() => setEnabled(!_enabled);
 
-  /// Translates every paragraph that has no translation yet. Calling it twice is
-  /// harmless: only unfinished units are queued.
+  /// Compatibility entry point used by the screen's start/retry actions.
   Future<void> translateAll() async {
     if (_disposed) return;
+    if (!_enabled) {
+      await setEnabled(true);
+      return;
+    }
     _started = true;
+    await _translateUnfinished(_generation);
+  }
+
+  Future<void> _translateUnfinished(int generation) async {
     final List<int> queue = <int>[
       for (int i = 0; i < _units.length; i++)
         if (!_units[i].done && !_units[i].loading) i,
     ];
     if (queue.isEmpty) {
-      notifyListeners();
+      if (!_disposed) notifyListeners();
       return;
     }
     _cursor = 0;
 
     Future<void> worker() async {
-      while (!_disposed) {
-        final int index;
+      while (!_disposed && _enabled && generation == _generation) {
         if (_cursor >= queue.length) return;
-        index = queue[_cursor++];
-        await _translate(index);
+        final int index = queue[_cursor++];
+        await _translate(index, generation);
       }
     }
 
-    notifyListeners();
     await Future.wait<void>(<Future<void>>[
       for (int i = 0; i < _concurrency; i++) worker(),
     ]);
   }
 
-  /// Retries one paragraph — the reader offers this per paragraph so a single
-  /// rate-limited request does not force the whole page to reload.
+  /// Retries one paragraph only while translation is ON.
   Future<void> retry(int index) async {
-    if (_disposed) return;
+    if (_disposed || !_enabled) return;
     _setUnit(index, const ParagraphTranslation(loading: true));
-    await _translate(index);
+    await _translate(index, _generation);
   }
 
-  Future<void> _translate(int index) async {
+  Future<void> _translate(int index, int generation) async {
+    if (!_current(generation)) return;
     final String source = _paragraphs[index].trim();
     if (source.isEmpty) {
       _setUnit(index, const ParagraphTranslation(text: ''));
       return;
     }
-    _setUnit(index, ParagraphTranslation(loading: true, text: _units[index].text));
+    _setUnit(
+      index,
+      ParagraphTranslation(loading: true, text: _units[index].text),
+    );
 
     try {
       final Future<String> request =
           _inFlight[source] ??= _translator.translate(source);
       final String translated = await request;
-      if (_disposed) return;
+      if (!_current(generation)) return;
       _setUnit(index, ParagraphTranslation(text: translated));
     } on TranslationException catch (error) {
-      if (_disposed) return;
+      if (!_current(generation)) return;
       _setUnit(index, ParagraphTranslation(error: error.message));
     } catch (_) {
-      if (_disposed) return;
-      _setUnit(index, const ParagraphTranslation(
-        error: 'This paragraph could not be translated.',
-      ));
+      if (!_current(generation)) return;
+      _setUnit(
+        index,
+        const ParagraphTranslation(
+          error: 'This paragraph could not be translated.',
+        ),
+      );
     } finally {
-      // A failed request must not stay deduped, or a retry would simply await
-      // the same rejected future. A successful one stays, so a paragraph
-      // repeated later in the article costs nothing.
-      if (!_units[index].done) {
-        // The rejection was already handled above; dropping the entry is what
-        // matters, and `ignore` keeps the discarded future from being reported
-        // as unhandled.
+      if (!_disposed && !_units[index].done) {
         _inFlight.remove(source)?.ignore();
       }
     }
   }
 
+  bool _current(int generation) =>
+      !_disposed && _enabled && generation == _generation;
+
   void _setUnit(int index, ParagraphTranslation unit) {
     if (_disposed || index < 0 || index >= _units.length) return;
-    final List<ParagraphTranslation> next = List<ParagraphTranslation>.of(_units);
+    final List<ParagraphTranslation> next =
+        List<ParagraphTranslation>.of(_units);
     next[index] = unit;
     _units = next;
     notifyListeners();

@@ -16,6 +16,21 @@ enum ArticleTopic {
   technology,
   health,
   lifestyle,
+
+  /// Government and private recruitment: circulars, exam schedules, admit
+  /// cards, results.
+  jobs,
+
+  /// Explanatory and educational writing: science, history, literature,
+  /// knowledge pieces rather than institutional education news.
+  learning,
+
+  /// Official announcements, gazette notices, citizen services and deadlines.
+  government,
+
+  /// Local and international scholarships, grants and fellowships.
+  scholarships,
+
   other,
 }
 
