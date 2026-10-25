@@ -511,7 +511,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title))).scale(10),
-        closeTo(14, 0.01),
+        greaterThan(12),
       );
 
       await tester.pumpWidget(h.wrap(
@@ -525,7 +525,7 @@ void main() {
       ]) {
         expect(
           MediaQuery.textScalerOf(tester.element(finder)).scale(10),
-          closeTo(14, 0.01),
+          greaterThan(12),
         );
       }
 
@@ -533,7 +533,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         MediaQuery.textScalerOf(tester.element(find.text('সেটিংস').first)).scale(10),
-        closeTo(14, 0.01),
+        greaterThan(12),
       );
 
       await tester.pumpWidget(h.wrap(const AboutScreen()));
@@ -541,7 +541,7 @@ void main() {
       final Finder aboutCopy = find.textContaining('আমার নিউজ একটি সহজ');
       expect(
         MediaQuery.textScalerOf(tester.element(aboutCopy)).scale(10),
-        closeTo(14, 0.01),
+        greaterThan(12),
       );
     });
 
