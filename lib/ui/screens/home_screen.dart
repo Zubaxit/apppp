@@ -570,7 +570,7 @@ class _LoadingState extends StatelessWidget {
             const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -582,8 +582,8 @@ class _LoadingState extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                const ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
+                SizedBox(width: 12),
+                ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
               ],
             ),
             const SizedBox(height: 16),
