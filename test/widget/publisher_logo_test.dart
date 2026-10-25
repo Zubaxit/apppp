@@ -85,12 +85,12 @@ void main() {
         (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       await tester.pumpWidget(h.wrap(
-        Row(
+        const Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const PublisherLogo(source: _ProthomAlo(), size: 40),
-            const SizedBox(width: 8),
-            const PublisherLogo(source: _DailyStar(), size: 40),
+            PublisherLogo(source: _ProthomAlo(), size: 40),
+            SizedBox(width: 8),
+            PublisherLogo(source: _DailyStar(), size: 40),
           ],
         ),
       ));

@@ -177,7 +177,10 @@ class _FeaturedCard extends StatelessWidget {
               child: RepaintBoundary(
                 child: RemoteImage(
                   url: article.imageUrl!,
-                  decodeWidth: width,
+                  // The card is full-bleed inside the gutter; decode for that,
+                  // not for the 1600 px the publisher uploaded.
+                  decodeWidth:
+                      MediaQuery.sizeOf(context).width - Tokens.gutter * 1.2,
                 ),
               ),
             ),

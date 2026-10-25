@@ -28,7 +28,7 @@ class PublisherLogo extends StatefulWidget {
     required this.source,
     this.size = 44,
     this.tile = true,
-    this.solid = null,
+    this.solid,
   });
 
   final NewsSource source;
