@@ -199,9 +199,11 @@ class ShareAction extends StatelessWidget {
             article.sourceId,
             bengali: context.isBengali,
           );
-          return LinkLauncher.share(
-            '${article.title}\n\n$sourceName\n${article.link}',
-            subject: article.title,
+          unawaited(
+            LinkLauncher.share(
+              '${article.title}\n\n$sourceName\n${article.link}',
+              subject: article.title,
+            ),
           );
         },
         scale: 0.9,
