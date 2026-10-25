@@ -41,15 +41,18 @@ void main() {
     );
   }
 
+  /// The smallest scale on any transform the surface builds — the translate
+  /// wrapper stays at 1, so this reads the compression itself.
   double scaleOf(WidgetTester tester) {
-    final Iterable<Transform> transforms = tester
+    final List<double> scales = tester
         .widgetList<Transform>(find.descendant(
           of: find.byType(JellySurface),
           matching: find.byType(Transform),
         ))
+        .map((Transform t) => t.transform.getMaxScaleOnAxis())
         .toList();
-    expect(transforms, isNotEmpty, reason: 'jelly surface must build a transform');
-    return transforms.last.transform.getMaxScaleOnAxis();
+    expect(scales, isNotEmpty, reason: 'jelly surface must build a transform');
+    return scales.reduce((double a, double b) => a < b ? a : b);
   }
 
   group('JellySurface', () {
@@ -72,6 +75,7 @@ void main() {
 
       final TestGesture gesture =
           await tester.startGesture(tester.getCenter(find.byType(JellySurface)));
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 40));
       // Touch-down already registers; the reader never waits for the release.
       expect(scaleOf(tester), lessThan(0.99));
@@ -100,6 +104,7 @@ void main() {
 
       final TestGesture gesture =
           await tester.startGesture(tester.getCenter(find.byType(JellySurface)));
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 40));
       // Reduced motion is a static state change, not a spring animation.
       expect(scaleOf(tester), moreOrLessEquals(0.9, epsilon: 0.001));

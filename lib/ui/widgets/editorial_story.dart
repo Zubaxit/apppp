@@ -33,7 +33,11 @@ class LeadStory extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? image = article.imageUrl;
     final double width = MediaQuery.sizeOf(context).width - Tokens.gutter * 2;
-    final double height = (image != null ? width * 0.94 : width * 0.62).clamp(240.0, 440.0);
+    final double height =
+        (image != null ? width * 0.94 : width * 0.62).clamp(240.0, 440.0);
+    // On a 320 dp phone the card has room for the headline or the excerpt, not
+    // both; the headline wins and the excerpt is dropped rather than clipped.
+    final bool roomy = height >= 300;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 6, Tokens.gutter, 0),
@@ -141,7 +145,7 @@ class LeadStory extends StatelessWidget {
                       const Spacer(),
                       Text(
                         article.title,
-                        maxLines: 4,
+                        maxLines: roomy ? 4 : 3,
                         overflow: TextOverflow.ellipsis,
                         style: context.texts.displaySmall?.copyWith(
                           fontFamily: Tokens.serif,
@@ -155,7 +159,7 @@ class LeadStory extends StatelessWidget {
                           ],
                         ),
                       ),
-                      if ((article.excerpt ?? '').isNotEmpty) ...<Widget>[
+                      if (roomy && (article.excerpt ?? '').isNotEmpty) ...<Widget>[
                         const SizedBox(height: 8),
                         Text(
                           article.excerpt!,
