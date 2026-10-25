@@ -56,6 +56,8 @@ TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.S | re.I)
 LINK_RE = re.compile(r"<link[^>]*>(.*?)</link>", re.S | re.I)
 HREF_RE = re.compile(r"<link[^>]*href\s*=\s*[\"']([^\"']+)[\"']", re.I)
 DATE_RE = re.compile(r"<(pubDate|published|updated|dc:date)[^>]*>(.*?)</\1>", re.S | re.I)
+LINK_TAG_RE = re.compile(r"<link\b[^>]*>", re.I)
+REL_NEXT_RE = re.compile(r"\brel\s*=\s*[\"']next[\"']", re.I)
 
 
 def fetch(url: str, method: str = "GET") -> Tuple[Optional[int], Optional[str], str]:
@@ -149,6 +151,15 @@ def analyse_feed(body: str) -> Dict[str, Any]:
         if title_match and BENGALI_RE.search(title_match.group(1)):
             bengali_items += 1
 
+    continuation = ""
+    for tag in LINK_TAG_RE.findall(body):
+        if not REL_NEXT_RE.search(tag):
+            continue
+        match = HREF_RE.search(tag)
+        if match:
+            continuation = match.group(1).strip()
+            break
+
     total = len(items)
     return {
         "format": format_name,
@@ -161,6 +172,12 @@ def analyse_feed(body: str) -> Dict[str, Any]:
         "hasLink": bool(LINK_RE.search(first_item) or HREF_RE.search(first_item)),
         "looksLikeHtml": "<html" in body[:400].lower(),
         "wellFormedXml": _looks_like_wellformed_xml(body),
+        "hasContinuation": bool(continuation),
+        "continuationUrl": continuation,
+        "coverageNote": (
+            "publisher advertises pagination" if continuation
+            else "first exposed feed page only; no rel=next advertised"
+        ),
         "usable": total > 0 and bool(LINK_RE.search(first_item) or HREF_RE.search(first_item)),
     }
 
@@ -306,7 +323,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print(
                     f"  + {source['id']:<24} feed ok: {feed_result['itemCount']} items, "
                     f"{feed_result['datedItems']} dated, {feed_result['onDomainLinks']} on-domain, "
-                    f"{feed_result['bengaliItems']} bn, xml={feed_result['wellFormedXml']}"
+                    f"{feed_result['bengaliItems']} bn, xml={feed_result['wellFormedXml']}, "
+                    f"next={feed_result.get('hasContinuation', False)}"
                 )
             else:
                 counts["feedFail"] += 1
