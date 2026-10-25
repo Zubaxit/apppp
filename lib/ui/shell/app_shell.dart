@@ -66,6 +66,7 @@ class _AppShellState extends State<AppShell>
     final SettingsController settings = context.read<SettingsController>();
     await saved.load();
     await feed.start();
+    feed.setPollingActive(_index == 0);
     if (settings.defaultFeed == DefaultFeed.following &&
         settings.followedSourceIds.isNotEmpty) {
       await feed.setFollowedOnly(true);
@@ -82,8 +83,12 @@ class _AppShellState extends State<AppShell>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed && mounted) {
-      unawaited(context.read<FeedController>().refreshIfStale());
+    if (!mounted) return;
+    final FeedController feed = context.read<FeedController>();
+    final bool resumed = state == AppLifecycleState.resumed;
+    feed.setPollingActive(resumed && _index == 0);
+    if (resumed) {
+      unawaited(feed.refreshIfStale());
       unawaited(context.read<SavedController>().refreshHistory());
     }
   }
@@ -92,6 +97,7 @@ class _AppShellState extends State<AppShell>
     if (index == _index) return;
     unawaited(Haptics.tick());
     setState(() => _index = index);
+    context.read<FeedController>().setPollingActive(index == 0);
     _tabFade
       ..value = 0
       ..forward();

@@ -9,7 +9,8 @@ import 'text_utils.dart';
 class StoryMatcher {
   const StoryMatcher._();
 
-  static const Duration window = Duration(hours: 36);
+  static const Duration window = Duration(hours: 72);
+  static const Duration followUpWindow = Duration(days: 7);
   static const double threshold = 0.56;
 
   static const Set<String> _stop = <String>{
@@ -60,6 +61,22 @@ class StoryMatcher {
     'job': 'চাকরি',
     'recruitment': 'নিয়োগ',
     'scholarship': 'বৃত্তি',
+    'blaze': 'আগুন',
+    'cox': 'কক্সবাজার',
+    'coxs': 'কক্সবাজার',
+    'chattogram': 'চট্টগ্রাম',
+    'chittagong': 'চট্টগ্রাম',
+    'dhaka': 'ঢাকা',
+    'sylhet': 'সিলেট',
+    'khulna': 'খুলনা',
+    'investigation': 'তদন্ত',
+    'investigates': 'তদন্ত',
+    'update': 'আপডেট',
+    'followup': 'আপডেট',
+  };
+
+  static const Set<String> _followUpTerms = <String>{
+    'তদন্ত', 'আপডেট', 'গ্রেপ্তার', 'আদালত', 'নিহত', 'হাসপাতাল',
   };
 
   static List<String> _tokens(Article article) {
@@ -104,7 +121,6 @@ class StoryMatcher {
     if (canonicalUrl(first.link) == canonicalUrl(second.link)) return false;
     final DateTime? a = first.publishedAt;
     final DateTime? b = second.publishedAt;
-    if (a != null && b != null && a.difference(b).inSeconds.abs() > window.inSeconds) return false;
 
     final Set<String> left = _tokens(first).toSet();
     final Set<String> right = _tokens(second).toSet();
@@ -114,7 +130,16 @@ class StoryMatcher {
     final int denominator = left.length < right.length ? left.length : right.length;
     final double containment = common.length / denominator;
     final double jaccard = common.length / left.union(right).length;
-    return containment >= threshold && jaccard >= 0.34;
+    if (containment < threshold || jaccard < 0.34) return false;
+    if (a != null && b != null) {
+      final int seconds = a.difference(b).inSeconds.abs();
+      if (seconds > followUpWindow.inSeconds) return false;
+      if (seconds > window.inSeconds &&
+          left.union(right).intersection(_followUpTerms).isEmpty) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Builds once after repository load/refresh — never from a widget build.
@@ -134,8 +159,19 @@ class StoryMatcher {
         (out[b.id] ??= <Article>[]).add(a);
       }
     }
-    for (final List<Article> values in out.values) {
-      values.sort((Article a, Article b) => b.sortKey.compareTo(a.sortKey));
+    for (final MapEntry<String, List<Article>> entry in out.entries) {
+      final Map<String, Article> byPublisher = <String, Article>{};
+      for (final Article article in entry.value) {
+        final Article? existing = byPublisher[article.sourceId];
+        if (existing == null || article.sortKey.isAfter(existing.sortKey)) {
+          byPublisher[article.sourceId] = article;
+        }
+      }
+      final List<Article> distinct = byPublisher.values.toList()
+        ..sort((Article a, Article b) => b.sortKey.compareTo(a.sortKey));
+      entry.value
+        ..clear()
+        ..addAll(distinct);
     }
     return out;
   }

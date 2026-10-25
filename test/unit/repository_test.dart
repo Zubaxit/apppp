@@ -206,7 +206,7 @@ void main() {
     );
   });
 
-  test('articles are sorted by publication time, not retrieval time', () async {
+  test('live feed sorts publisher times and excludes undated records', () async {
     final DateTime now = DateTime.utc(2026, 10, 24, 12);
     final Article newer = sampleArticle(
       title: 'নতুন খবর',
@@ -227,12 +227,14 @@ void main() {
       registry: registry,
       stores: stores,
       feedService: FakeFeedGateway(),
+      clock: () => now,
     );
 
     final List<Article> feed = await repository.loadFeed(queryOf());
-    expect(feed.first.title, 'তারিখহীন খবর', reason: 'undated items sort by fetch time');
-    expect(feed[1].title, 'নতুন খবর');
-    expect(feed.last.title, 'পুরোনো খবর');
+    expect(feed.map((Article article) => article.title),
+        <String>['নতুন খবর', 'পুরোনো খবর']);
+    expect(feed, isNot(contains(undated)),
+        reason: 'fetch time must not be presented as publication freshness');
   });
 
   test('bookmarks persist and survive the article leaving the feed', () async {
@@ -291,8 +293,12 @@ void main() {
       publishedAt: at,
     );
     final AppStores stores = fakeStores(seed: <Article>[a, b, c]);
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: stores, feedService: FakeFeedGateway());
+    final ArticleRepository repository = ArticleRepository(
+      registry: registry,
+      stores: stores,
+      feedService: FakeFeedGateway(),
+      clock: () => at.add(const Duration(hours: 1)),
+    );
 
     final List<Article> related = await repository.relatedCoverage(a);
     expect(related.map((Article x) => x.id), <String>[b.id]);

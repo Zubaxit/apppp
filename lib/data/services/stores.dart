@@ -44,9 +44,9 @@ abstract class ArticleStore {
   Future<int> count();
   Future<DateTime?> newestFetchAt();
   Future<void> prune({
-    int keepPerSource = 80,
-    int keepTotal = 2500,
-    Duration maxAge = const Duration(days: 45),
+    int keepPerSource = 250,
+    int keepTotal = 5000,
+    Duration maxAge = const Duration(days: 180),
   });
   Future<void> clear();
 }
@@ -196,9 +196,9 @@ class SqliteArticleStore implements ArticleStore {
 
   @override
   Future<void> prune({
-    int keepPerSource = 80,
-    int keepTotal = 2500,
-    Duration maxAge = const Duration(days: 45),
+    int keepPerSource = 250,
+    int keepTotal = 5000,
+    Duration maxAge = const Duration(days: 180),
   }) async {
     final int cutoff = DateTime.now()
         .toUtc()

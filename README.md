@@ -119,7 +119,7 @@ publication time, and sends readers to the original article on the publisher's s
 - Per-source health record (last success, last error, HTTP status, item count, latency) in
   *Settings → Source health*, with per-source retry.
 - Polite networking: descriptive user agent, 12 s timeout, at most two attempts, 3 MB response cap,
-  a minimum gap between requests to the same host, and an 8-minute per-source refresh floor.
+  a minimum gap between requests to the same host, and a two-minute per-source refresh floor.
 - ETag / `If-Modified-Since` caching so unchanged feeds are not re-downloaded.
 - Tolerant parser: RSS 2.0, RDF and Atom; broken XML is recovered; items with unsafe links, missing
   headlines or implausible dates are dropped rather than guessed at.
@@ -220,12 +220,12 @@ some parser-created/native subresources before injection, so this is real but de
 described as complete ad blocking. Exact mechanism, licenses, cache rules and compatibility limits:
 [`docs/NEWS_SHIELD.md`](docs/NEWS_SHIELD.md).
 
-## Topics, Same Story, and shared cards
+## Topics, Source Comparison, and shared cards
 
 - The ten existing topics remain. Jobs & Careers, Learning & Knowledge, Government Notices, and
   Scholarships & Fellowships add transparent weighted Bangla/English rules; Education remains the
   sole admissions/exams/results/university category. Counts come only from cached matching articles.
-- Same Story is computed once after feed load/refresh, not in widget builds. It canonicalises URLs,
+- Source Comparison is computed once after feed load/refresh, not in widget builds. It canonicalises URLs,
   requires distinct publishers, a 36-hour window, at least three informative overlapping tokens and
   conservative containment/Jaccard thresholds. A small bilingual event-word bridge helps obvious
   Bangla/English equivalents. Uncertain stories stay separate; this is comparison, not a verdict.
@@ -459,7 +459,7 @@ still produce an installable artifact. **APKs are build artifacts, not committed
    confidence are listed. Remaining divisions are parked in `assets/data/source_candidates.json`.
 5. Only 6 e-paper destinations are listed, all on the publisher's own domain; access terms are the
    publisher's and are not asserted by the app.
-6. Automatic refresh runs in the foreground at the configured interval (15–240 min) and on resume.
+6. One serialized conditional refresh checks every 120 seconds only while Home is visible and the app is resumed. The 15–240 minute preference is the stale-cache threshold used on resume.
    Android does not guarantee exact background refresh timing, and the app does not claim to.
 7. Deduplication is heuristic: identical URLs are collapsed; cross-publisher coverage is grouped for
    display only.

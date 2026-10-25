@@ -59,9 +59,10 @@ class FeedService implements FeedGateway {
       );
     }
 
+    final String feedUrl = source.feedUrl!;
     final FeedMeta? meta = await _meta.get(source.id);
     final HttpFetchResult result = await _http.get(
-      source.feedUrl!,
+      feedUrl,
       etag: meta?.etag,
       lastModified: meta?.lastModified,
     );
@@ -169,6 +170,50 @@ class FeedService implements FeedGateway {
       );
     }
 
+    final List<Article> articles = <Article>[...parsed.articles];
+    final List<String> warnings = <String>[...parsed.warnings];
+    final Set<String> seenPages = <String>{feedUrl};
+    final Map<String, Article> byId = <String, Article>{
+      for (final Article article in articles) article.id: article,
+    };
+    String? continuation = parsed.nextPageUrl;
+    var page = 1;
+    while (continuation != null && page < 3) {
+      final Uri base = Uri.parse(seenPages.last);
+      final Uri? next = Uri.tryParse(continuation);
+      final Uri resolved = next == null ? base : base.resolveUri(next);
+      // Follow only an explicit same-host HTTPS continuation. Cross-host
+      // pagination can be added per publisher after authorization is audited.
+      if (resolved.scheme != 'https' ||
+          resolved.host.toLowerCase() !=
+              Uri.parse(feedUrl).host.toLowerCase() ||
+          !seenPages.add(resolved.toString())) {
+        warnings.add('Ignored unsafe or cross-host feed continuation');
+        break;
+      }
+      final HttpFetchResult more =
+          await _http.get(resolved.toString(), attempts: 1);
+      if (!more.isSuccess) {
+        warnings.add('A publisher continuation page was unavailable');
+        break;
+      }
+      final FeedParseResult moreParsed = _parser.parse(
+        more.body ?? '',
+        source: source,
+        fetchedAt: startedAt,
+      );
+      for (final Article article in moreParsed.articles) {
+        byId.putIfAbsent(article.id, () => article);
+      }
+      warnings.addAll(moreParsed.warnings);
+      continuation = moreParsed.nextPageUrl;
+      page++;
+    }
+    articles
+      ..clear()
+      ..addAll(byId.values)
+      ..sort((Article a, Article b) => b.sortKey.compareTo(a.sortKey));
+
     final SourceHealth health = SourceHealth(
       sourceId: source.id,
       status: SourceHealthStatus.ok,
@@ -176,7 +221,7 @@ class FeedService implements FeedGateway {
       lastSuccessAt: startedAt,
       lastError: parsed.recovered ? 'Feed XML was malformed; recovered' : null,
       httpStatus: result.statusCode,
-      itemCount: parsed.articles.length,
+      itemCount: articles.length,
       latencyMs: result.latencyMs,
     );
     await _meta.save(
@@ -186,14 +231,14 @@ class FeedService implements FeedGateway {
         lastModified: result.lastModified,
         lastFetchAt: startedAt,
         lastSuccessAt: startedAt,
-        itemCount: parsed.articles.length,
+        itemCount: articles.length,
       ),
     );
     return FeedFetchOutcome(
       sourceId: source.id,
       health: health,
-      articles: parsed.articles,
-      warnings: parsed.warnings,
+      articles: articles,
+      warnings: warnings,
     );
   }
 }

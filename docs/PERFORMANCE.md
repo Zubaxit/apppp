@@ -126,8 +126,8 @@ chrome and nothing else.
 
 ### A10. Repeated identity lookups and network work
 
-Checked and left alone deliberately: background refresh is a single `Timer` on a user-chosen
-interval (`settings.refreshMinutes`, floored at 15), the feed query is not re-issued on rebuild, and
+Checked and left alone deliberately: foreground Home polling is one lifecycle/tab-gated `Timer` at 120 seconds; the user's
+`settings.refreshMinutes` remains the resume stale-cache threshold, the feed query is not re-issued on rebuild, and
 publisher icons go through the image disk cache rather than being refetched per build. No operation
 in the app performs synchronous I/O on the UI isolate.
 

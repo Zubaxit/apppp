@@ -39,6 +39,37 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   /// Stories built with the header rather than on demand.
   static const int _eagerRiver = 2;
+  final ScrollController _scroll = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_reportViewport);
+  }
+
+  void _reportViewport() {
+    if (!_scroll.hasClients) return;
+    context.read<FeedController>().setFeedViewportAtTop(_scroll.offset < 40);
+  }
+
+  @override
+  void dispose() {
+    _scroll.removeListener(_reportViewport);
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  Future<void> _showPending() async {
+    if (_scroll.hasClients) {
+      await _scroll.animateTo(
+        0,
+        duration: Motion.of(context).standard,
+        curve: Motion.of(context).curve,
+      );
+    }
+    if (!mounted) return;
+    await context.read<FeedController>().applyPendingUpdates();
+  }
 
   Future<void> _refresh() => context.read<FeedController>().refresh(force: true);
 
@@ -88,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: context.colors.primary,
           backgroundColor: context.theme.colorScheme.surface,
           child: CustomScrollView(
+            controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
@@ -193,6 +225,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         refreshing: feed.isRefreshing,
                       ),
                     ),
+                    if (feed.updatesPending)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          Tokens.gutter,
+                          10,
+                          Tokens.gutter,
+                          0,
+                        ),
+                        child: Center(
+                          child: GlassChip(
+                            label: context.isBengali
+                                ? 'নতুন খবর দেখুন'
+                                : 'Show new stories',
+                            icon: Icons.arrow_upward_rounded,
+                            selected: true,
+                            onTap: _showPending,
+                          ),
+                        ),
+                      ),
                     if (river.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(

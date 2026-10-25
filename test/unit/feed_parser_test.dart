@@ -327,6 +327,19 @@ void main() {
       expect(result.isEmpty, isTrue);
     });
 
+    test('reports an explicit publisher pagination link', () {
+      final FeedParseResult result = parser.parse(
+        '<feed xmlns="http://www.w3.org/2005/Atom">'
+        '<link rel="next" href="https://www.prothomalo.com/feed?page=2"/>'
+        '<entry><title>শিরোনাম</title>'
+        '<link href="https://www.prothomalo.com/story"/>'
+        '<published>2026-10-25T10:00:00Z</published></entry></feed>',
+        source: bnSource,
+        fetchedAt: fetchedAt,
+      );
+      expect(result.nextPageUrl, 'https://www.prothomalo.com/feed?page=2');
+    });
+
     test('never throws on empty input', () {
       expect(
         () => parser.parse('', source: bnSource, fetchedAt: fetchedAt),

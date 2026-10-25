@@ -148,8 +148,8 @@ class SettingsScreen extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 10),
                         child: Text(
                           bengali
-                              ? 'অ্যাপ চালু থাকলে এই বিরতিতে ফিড আনা হয়। অ্যান্ড্রয়েড ব্যাকগ্রাউন্ডে সময় নির্দিষ্ট নয়।'
-                              : 'Feeds refresh at this interval while the app is open. Android does not guarantee exact background timing.',
+                              ? 'হোম ফিড সামনে থাকলে প্রতি ১২০ সেকেন্ডে হালনাগাদ হয়। এই পছন্দটি অ্যাপে ফিরে এলে ক্যাশ কত পুরোনো হলে সঙ্গে সঙ্গে যাচাই হবে তা ঠিক করে।'
+                              : 'The visible Home feed checks every 120 seconds. This preference controls how stale the cache may be before an immediate check on app resume.',
                           style: context.texts.labelSmall?.copyWith(
                             fontSize: 10,
                             height: 1.55,

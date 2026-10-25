@@ -171,3 +171,24 @@ gh run list --workflow=verify-sources.yml   # pick the newest run
 # the run's check annotations carry the per-publisher summary
 python3 scripts/probe_feeds.py --only prothomalo --delay 1.0
 ```
+
+## Live retention and archive search
+
+The live feed is intentionally narrower than the SQLite discovery cache. Standard topics require a
+real publisher publication time no older than 12 hours. Jobs, Learning & Knowledge, Government,
+Scholarships/Fellowships, and Education use a seven-day discovery window. Missing, malformed, or
+more-than-ten-minutes-future publisher times are not replaced with the fetch time and are excluded
+from live surfaces. Older rows may remain for up to 180 days/250 items per publisher (5,000 total)
+to support bookmarks and the explicitly separate Archive Search.
+
+Archive Search currently has one provider: retained metadata from the publisher feeds already
+fetched by the app. It is not a complete newspaper archive, does not scrape article pages, and does
+not claim that every publisher was searched. The provider interface supports adding documented,
+permitted publisher/archive APIs later. Results keep the publisher's headline, publication time,
+URL, and source attribution; they never enter live ordering or category counts.
+
+The feed gateway accepts up to 200 entries per page and follows at most two publisher-advertised
+`rel="next"` continuation pages. Continuations must be HTTPS and remain on the exact feed host.
+This improves coverage only where a publisher explicitly exposes pagination; the app does not guess
+URLs or bypass access controls. Source Diagnostics and the `verify-sources` Actions artifact remain
+the evidence for actual response status, detected format, usable item count, and observed caveats.

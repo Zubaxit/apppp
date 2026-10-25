@@ -12,7 +12,7 @@ class FeedParserConfig {
   const FeedParserConfig({
     this.assumeUtcOffsetMinutes = 360,
     this.stripBreakingPrefix = true,
-    this.maxItems = 60,
+    this.maxItems = 200,
   });
 
   /// Offset applied when a feed date has no timezone (Bangladesh, UTC+6).
@@ -29,6 +29,7 @@ class FeedParseResult {
     required this.format,
     this.warnings = const <String>[],
     this.recovered = false,
+    this.nextPageUrl,
   });
 
   final List<Article> articles;
@@ -38,6 +39,10 @@ class FeedParseResult {
   /// True when the document was not valid XML and was recovered with the
   /// tolerant regex path.
   final bool recovered;
+
+  /// Explicit Atom/RSS continuation supplied by the publisher. Fetching is a
+  /// gateway policy; the parser only reports it.
+  final String? nextPageUrl;
 
   bool get isEmpty => articles.isEmpty;
 }
@@ -124,6 +129,7 @@ class FeedParser {
             format: format,
             warnings: warnings,
             recovered: true,
+            nextPageUrl: _nextPage(document),
           );
         }
       }
@@ -132,6 +138,7 @@ class FeedParser {
         format: format,
         warnings: warnings,
         recovered: repaired,
+        nextPageUrl: _nextPage(document),
       );
     }
 
@@ -148,6 +155,16 @@ class FeedParser {
       warnings: warnings,
       recovered: true,
     );
+  }
+
+  String? _nextPage(XmlDocument document) {
+    for (final XmlElement link in document.descendants.whereType<XmlElement>()) {
+      if (link.name.local.toLowerCase() != 'link') continue;
+      if ((link.getAttribute('rel') ?? '').toLowerCase() != 'next') continue;
+      final String value = (link.getAttribute('href') ?? link.innerText).trim();
+      if (value.isNotEmpty) return value;
+    }
+    return null;
   }
 
   FeedFormatDetected _detectFormat(XmlDocument document) {

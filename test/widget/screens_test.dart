@@ -276,6 +276,25 @@ void main() {
       expect(find.text(enArticle.title), findsOneWidget);
     });
 
+    testWidgets('archive mode stays visibly separate and returns retained metadata',
+        (WidgetTester tester) async {
+      final Article retained = sampleArticle(
+        title: 'বিশেষ পুরোনো প্রতিবেদন',
+        publishedAt: DateTime.now().toUtc().subtract(const Duration(days: 20)),
+      );
+      final TestHarness h = harness(artwork: <Article>[retained]);
+      await tester.pumpWidget(h.wrap(const SearchScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('পুরোনো খবর খুঁজুন'));
+      await tester.enterText(find.byType(TextField), 'বিশেষ পুরোনো');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('লাইভ ফিড থেকে আলাদা'), findsOneWidget);
+      expect(find.text(retained.title), findsOneWidget);
+    });
+
     testWidgets('shows recent searches and empty state', (WidgetTester tester) async {
       final TestHarness h = harness(prefs: const AppPreferences(searchHistory: <String>['প্রথম আলো']));
       await tester.pumpWidget(h.wrap(const SearchScreen()));
@@ -423,7 +442,8 @@ void main() {
   });
 
   group('background refresh timer', () {
-    testWidgets('is armed when enabled and cancelled by dispose', (WidgetTester tester) async {
+    testWidgets('runs only while explicitly visible and cancels on dispose',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       final FeedController feed = FeedController(
         repository: h.repository,
@@ -431,13 +451,21 @@ void main() {
         registry: h.registry,
         connectivity: FakeConnectivity(),
         backgroundRefresh: true,
+        autoRefreshInterval: const Duration(milliseconds: 20),
       );
       await tester.pumpWidget(h.wrap(const SizedBox.shrink()));
       await feed.start();
+      final Object? initial = feed.lastReport;
 
-      // The timing itself is covered in the repository tests; what matters here
-      // is that a running controller owns its timer and releases it on dispose,
-      // otherwise the pending-timer invariant below would fire.
+      feed.setPollingActive(true);
+      await tester.pump(const Duration(milliseconds: 25));
+      expect(feed.lastReport, isNot(same(initial)));
+
+      feed.setPollingActive(false);
+      final Object? paused = feed.lastReport;
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(feed.lastReport, same(paused));
+
       feed.dispose();
       await tester.pumpAndSettle();
     });

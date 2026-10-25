@@ -29,17 +29,22 @@ import 'browser_screen.dart';
 /// excerpt at reading size with generous leading, then the quiet actions. The
 /// only chrome is the floating toolbar and the progress hairline under it.
 class ArticleDetailScreen extends StatefulWidget {
-  const ArticleDetailScreen({super.key, required this.article});
+  const ArticleDetailScreen({
+    super.key,
+    required this.article,
+    this.related,
+  });
 
   final Article article;
+  final List<Article>? related;
 
   @override
   State<ArticleDetailScreen> createState() => _ArticleDetailScreenState();
 }
 
 class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
-  List<Article> _related = const <Article>[];
-  bool _loadingRelated = true;
+  late List<Article> _related;
+  late bool _loadingRelated;
 
   final ScrollController _scroll = ScrollController();
 
@@ -54,6 +59,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _related = widget.related ?? const <Article>[];
+    _loadingRelated = widget.related == null;
     _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _afterFrame());
   }
@@ -83,6 +90,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     final SavedController saved = context.read<SavedController>();
     final ArticleRepository repository = context.read<ArticleRepository>();
     await saved.recordHistory(widget.article);
+    if (widget.related != null) return;
     try {
       final List<Article> related = await repository.relatedCoverage(widget.article);
       if (mounted) {
@@ -109,56 +117,62 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
       body: AuroraBackdrop(
         child: Stack(
           children: <Widget>[
-            CustomScrollView(
+            Scrollbar(
               controller: _scroll,
-              slivers: <Widget>[
-                SliverAppBar(
-                  pinned: true,
-                  toolbarHeight: 58,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  backgroundColor: Colors.transparent,
-                  surfaceTintColor: Colors.transparent,
-                  leadingWidth: Tokens.gutter + 42,
-                  leading: Padding(
-                    padding: const EdgeInsetsDirectional.only(start: Tokens.gutter),
-                    child: Center(
-                      child: GlassIconButton(
-                        icon: Icons.arrow_back_rounded,
-                        tooltip: context.strings.back,
-                        onTap: () => Navigator.of(context).maybePop(),
+              thickness: 3,
+              radius: const Radius.circular(3),
+              scrollbarOrientation: ScrollbarOrientation.right,
+              child: CustomScrollView(
+                controller: _scroll,
+                slivers: <Widget>[
+                  SliverAppBar(
+                    pinned: true,
+                    toolbarHeight: 58,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    backgroundColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    leadingWidth: Tokens.gutter + 42,
+                    leading: Padding(
+                      padding: const EdgeInsetsDirectional.only(start: Tokens.gutter),
+                      child: Center(
+                        child: GlassIconButton(
+                          icon: Icons.arrow_back_rounded,
+                          tooltip: context.strings.back,
+                          onTap: () => Navigator.of(context).maybePop(),
+                        ),
                       ),
                     ),
-                  ),
-                  actions: <Widget>[
-                    BookmarkAction(article: article, dense: true),
-                    const SizedBox(width: 4),
-                    ShareAction(article: article, dense: true),
-                    const SizedBox(width: 4),
-                    GlassIconButton(
-                      icon: Icons.translate_rounded,
-                      tooltip: context.strings.translateAction,
-                      onTap: () => showTranslationSheet(
-                        context,
-                        text: <String>[
-                          article.title,
-                          if ((article.excerpt ?? '').isNotEmpty) article.excerpt!,
-                        ].join(' '),
+                    actions: <Widget>[
+                      BookmarkAction(article: article, dense: true),
+                      const SizedBox(width: 4),
+                      ShareAction(article: article, dense: true),
+                      const SizedBox(width: 4),
+                      GlassIconButton(
+                        icon: Icons.translate_rounded,
+                        tooltip: context.strings.translateAction,
+                        onTap: () => showTranslationSheet(
+                          context,
+                          text: <String>[
+                            article.title,
+                            if ((article.excerpt ?? '').isNotEmpty) article.excerpt!,
+                          ].join(' '),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: Tokens.gutter),
-                  ],
-                ),
-                SliverToBoxAdapter(
-                  child: _ArticleBody(
-                    article: article,
-                    source: source,
-                    scale: scale,
-                    related: _related,
-                    loadingRelated: _loadingRelated,
+                      const SizedBox(width: Tokens.gutter),
+                    ],
                   ),
-                ),
-              ],
+                  SliverToBoxAdapter(
+                    child: _ArticleBody(
+                      article: article,
+                      source: source,
+                      scale: scale,
+                      related: _related,
+                      loadingRelated: _loadingRelated,
+                    ),
+                  ),
+                ],
+              ),
             ),
             // Progress is drawn over the page rather than inside the app bar so
             // it stays a hairline instead of a coloured band.
@@ -217,7 +231,12 @@ class _ArticleBody extends StatelessWidget {
             ),
           ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            Tokens.gutter,
+            0,
+            Tokens.gutter + 12,
+            0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -335,6 +354,16 @@ class _ArticleBody extends StatelessWidget {
                 const SkeletonBox(height: 64, radius: Tokens.radiusMd)
               else if (related.isNotEmpty) ...<Widget>[
                 Kicker(context.strings.relatedCoverage),
+                const SizedBox(height: 5),
+                Text(
+                  context.isBengali
+                      ? 'শিরোনামের মিল; স্বাধীন সত্যতা যাচাই নয়। উপলভ্য উৎসেই সীমিত।'
+                      : 'Headline match, not independent verification. Limited to available sources.',
+                  style: context.texts.labelSmall?.copyWith(
+                    fontSize: 9.5,
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
                 const SizedBox(height: 10),
                 for (final Article other in related)
                   Padding(
@@ -557,6 +586,16 @@ class _RelatedRow extends StatelessWidget {
                     '${source?.localizedName(bengali: bengali) ?? article.sourceId} · '
                     '${BengaliText.relative(article.publishedAt, bengali: bengali) ?? ''}',
                     style: context.texts.labelSmall?.copyWith(fontSize: 10),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    article.link,
+                    style: context.texts.labelSmall?.copyWith(
+                      fontSize: 8.8,
+                      color: context.colors.onSurfaceVariant,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

@@ -40,9 +40,13 @@ Route<T> editorialRoute<T>(Widget page, {String? name}) {
   );
 }
 
-void openArticle(BuildContext context, Article article) {
+void openArticle(
+  BuildContext context,
+  Article article, {
+  List<Article>? related,
+}) {
   Navigator.of(context).push<void>(
-    editorialRoute<void>(ArticleDetailScreen(article: article), name: 'article'),
+    editorialRoute<void>(ArticleDetailScreen(article: article, related: related), name: 'article'),
   );
 }
 

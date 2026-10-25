@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
 import '../../core/utils/bengali_text.dart';
+import '../../core/utils/story_matcher.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../data/services/article_repository.dart';
+import '../../services/archive_search.dart';
 import '../../state/feed_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../theme/materials.dart';
@@ -26,8 +28,13 @@ import '../widgets/feed_widgets.dart';
 ///
 /// The field sits in a glass capsule at the top and stays the only bright
 /// element on the screen: results are paper, chrome is glass.
+enum SearchMode { app, archive }
+
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, this.archiveService});
+
+  /// Tests and future official publisher providers can inject the same service.
+  final ArchiveSearchService? archiveService;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -42,6 +49,12 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Article> _articles = const <Article>[];
   bool _busy = false;
   bool _searched = false;
+  SearchMode _mode = SearchMode.app;
+  ArchiveSearchService? _archive;
+  List<String> _archiveWarnings = const <String>[];
+  Map<String, List<Article>> _archiveRelated =
+      const <String, List<Article>>{};
+  int _requestGeneration = 0;
 
   @override
   void initState() {
@@ -49,6 +62,17 @@ class _SearchScreenState extends State<SearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focus.requestFocus();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _archive ??= widget.archiveService ??
+        ArchiveSearchService(
+          providers: <ArchiveSearchProvider>[
+            CachedArticleArchiveProvider(context.read<ArticleRepository>()),
+          ],
+        );
   }
 
   @override
@@ -67,10 +91,13 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _run(String raw) async {
     final String query = raw.trim();
+    final int generation = ++_requestGeneration;
     if (query.isEmpty) {
       setState(() {
         _sources = const <NewsSource>[];
         _articles = const <Article>[];
+        _archiveWarnings = const <String>[];
+        _archiveRelated = const <String, List<Article>>{};
         _searched = false;
         _busy = false;
       });
@@ -78,22 +105,51 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     setState(() => _busy = true);
     final SourceRegistry registry = context.registry;
-    final List<NewsSource> sources = registry.search(query, limit: 10);
+    List<NewsSource> sources = const <NewsSource>[];
     List<Article> articles = const <Article>[];
+    List<String> warnings = const <String>[];
     try {
-      articles = await context
-          .read<ArticleRepository>()
-          .searchArticles(query, limit: 30);
+      if (_mode == SearchMode.archive) {
+        final ArchiveSearchResponse response = await _archive!.search(
+          ArchiveSearchQuery(text: query),
+        );
+        articles = response.articles;
+        warnings = response.warnings;
+      } else {
+        sources = registry.search(query, limit: 10);
+        articles = await context
+            .read<ArticleRepository>()
+            .searchArticles(query, limit: 30);
+      }
     } catch (_) {
-      articles = const <Article>[];
+      warnings = <String>[
+        context.isBengali
+            ? 'উপলভ্য আর্কাইভে এখন খোঁজা যায়নি।'
+            : 'The available archive could not be searched.',
+      ];
     }
-    if (!mounted) return;
+    if (!mounted || generation != _requestGeneration) return;
     setState(() {
       _sources = sources;
       _articles = articles;
+      _archiveWarnings = warnings;
+      _archiveRelated = _mode == SearchMode.archive
+          ? StoryMatcher.index(articles)
+          : const <String, List<Article>>{};
       _busy = false;
       _searched = true;
     });
+  }
+
+  void _setMode(SearchMode mode) {
+    if (_mode == mode) return;
+    setState(() {
+      _mode = mode;
+      _sources = const <NewsSource>[];
+      _articles = const <Article>[];
+      _searched = false;
+    });
+    if (_query.trim().isNotEmpty) unawaited(_run(_query));
   }
 
   Future<void> _submit(String value) async {
@@ -127,6 +183,37 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                     const SizedBox(width: 10),
                     Expanded(child: _field(context)),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Tokens.gutter,
+                  2,
+                  Tokens.gutter,
+                  8,
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GlassChip(
+                        label: bengali ? 'অ্যাপের খবর' : 'App news',
+                        icon: Icons.dynamic_feed_outlined,
+                        selected: _mode == SearchMode.app,
+                        onTap: () => _setMode(SearchMode.app),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: GlassChip(
+                        label: bengali
+                            ? 'পুরোনো খবর খুঁজুন'
+                            : 'Archive search',
+                        icon: Icons.manage_search_rounded,
+                        selected: _mode == SearchMode.archive,
+                        onTap: () => _setMode(SearchMode.archive),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -280,7 +367,11 @@ class _SearchScreenState extends State<SearchScreen> {
           EmptyState(
             icon: Icons.search_off_rounded,
             title: context.strings.noResultsTitle,
-            body: context.strings.noResultsBody,
+            body: _mode == SearchMode.archive
+                ? (context.isBengali
+                    ? 'উপলভ্য প্রকাশক-ফিড ক্যাশে খবরটি পাওয়া যায়নি। শব্দ বা বানান বদলে চেষ্টা করুন। সব প্রকাশকের পূর্ণ আর্কাইভ উন্মুক্ত নয়।'
+                    : 'No match was exposed by the available retained publisher feeds. Refine the query; not every publisher exposes a full archive.')
+                : context.strings.noResultsBody,
           ),
         ],
       );
@@ -289,6 +380,28 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.only(top: 6, bottom: 130),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: <Widget>[
+        if (_mode == SearchMode.archive) ...<Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Tokens.gutter,
+              8,
+              Tokens.gutter,
+              10,
+            ),
+            child: Text(
+              <String>[
+                context.isBengali
+                    ? 'পুরোনো খবর · লাইভ ফিড থেকে আলাদা'
+                    : 'Archive results · separate from the live feed',
+                ..._archiveWarnings,
+              ].join('\n'),
+              style: context.texts.labelSmall?.copyWith(
+                height: 1.5,
+                color: context.colors.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
         if (_sources.isNotEmpty) ...<Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
@@ -309,7 +422,9 @@ class _SearchScreenState extends State<SearchScreen> {
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 8),
-            child: Eyebrow(context.strings.searchInArticles),
+            child: Eyebrow(_mode == SearchMode.archive
+                ? (context.isBengali ? 'আর্কাইভ ফলাফল' : 'Archive results')
+                : context.strings.searchInArticles),
           ),
           for (int i = 0; i < _articles.length; i++)
             RiseIn(
@@ -317,7 +432,16 @@ class _SearchScreenState extends State<SearchScreen> {
               child: NewsCard(
                 article: _articles[i],
                 source: registry.byId(_articles[i].sourceId),
-                onTap: () => openArticle(context, _articles[i]),
+                related: _mode == SearchMode.archive
+                    ? (_archiveRelated[_articles[i].id] ?? const <Article>[])
+                    : null,
+                onTap: () => openArticle(
+                  context,
+                  _articles[i],
+                  related: _mode == SearchMode.archive
+                      ? (_archiveRelated[_articles[i].id] ?? const <Article>[])
+                      : null,
+                ),
               ),
             ),
         ],

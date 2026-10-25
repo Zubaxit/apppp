@@ -20,6 +20,7 @@ class FeedController extends ChangeNotifier {
     required this.registry,
     required this.connectivity,
     this.backgroundRefresh = true,
+    this.autoRefreshInterval = const Duration(seconds: 120),
   });
 
   final ArticleRepository repository;
@@ -31,6 +32,10 @@ class FeedController extends ChangeNotifier {
   /// on; tests that do not exercise scheduling turn it off so no timer outlives
   /// the widget tree.
   final bool backgroundRefresh;
+
+  /// Injected at a shorter duration in timer tests; production is exactly two
+  /// minutes while Home is visible and the app is resumed.
+  final Duration autoRefreshInterval;
 
   static const int pageSize = 80;
 
@@ -51,6 +56,9 @@ class FeedController extends ChangeNotifier {
   int _progressTotal = 0;
   Timer? _timer;
   bool _disposed = false;
+  bool _pollingActive = false;
+  bool _viewportAtTop = true;
+  bool _updatesPending = false;
 
   FeedQuery get query => _query;
   List<Article> get articles => _articles;
@@ -66,6 +74,7 @@ class FeedController extends ChangeNotifier {
   int get progressDone => _progressDone;
   int get progressTotal => _progressTotal;
   double get progress => _progressTotal == 0 ? 0 : _progressDone / _progressTotal;
+  bool get updatesPending => _updatesPending;
 
   /// True when the newest cached article was fetched before the last update.
   bool get isShowingCached {
@@ -167,13 +176,17 @@ class FeedController extends ChangeNotifier {
     await refresh();
   }
 
-  Future<void> refresh({bool force = false, Set<String>? onlySourceIds}) async {
+  Future<void> refresh({
+    bool force = false,
+    Set<String>? onlySourceIds,
+    bool silent = false,
+  }) async {
     if (_busy) return;
     _busy = true;
     _progressDone = 0;
     _progressTotal = 0;
     _error = null;
-    _notify();
+    if (!silent) _notify();
 
     final bool online = await connectivity.isOnline();
     if (!online) {
@@ -191,7 +204,7 @@ class FeedController extends ChangeNotifier {
         onProgress: (int done, int total) {
           _progressDone = done;
           _progressTotal = total;
-          _notify();
+          if (!silent) _notify();
         },
       );
       _lastReport = report;
@@ -204,7 +217,15 @@ class FeedController extends ChangeNotifier {
         // connectivity loss is reported as "offline".
         _offline = !(await connectivity.isOnline());
       }
-      await _reload(notify: false);
+      if (silent && _pollingActive && !_viewportAtTop) {
+        // Keep the visible list immutable while the reader is part-way down it.
+        // The cache is current; Home applies it when the reader returns to the
+        // top or taps the pending-update chip.
+        _updatesPending = true;
+      } else {
+        await _reload(notify: false);
+        _updatesPending = false;
+      }
     } catch (error, stack) {
       // Keep the real cause for the diagnostics sheet; the headline message
       // stays human and localized.
@@ -239,19 +260,37 @@ class FeedController extends ChangeNotifier {
     _notify();
   }
 
+  void setFeedViewportAtTop(bool value) {
+    _viewportAtTop = value;
+  }
+
+  Future<void> applyPendingUpdates() async {
+    if (!_updatesPending) return;
+    await _reload(notify: false);
+    _updatesPending = false;
+    _notify();
+  }
+
+  /// Called by AppShell. IndexedStack keeps Home mounted, so tab visibility
+  /// must be explicit rather than inferred from widget disposal.
+  void setPollingActive(bool active) {
+    if (_disposed || _pollingActive == active) return;
+    _pollingActive = active;
+    _restartTimer();
+  }
+
   void _restartTimer() {
     _timer?.cancel();
-    if (!backgroundRefresh) return;
-    final int minutes = settings.refreshMinutes.clamp(15, 240);
-    _timer = Timer.periodic(Duration(minutes: minutes), (Timer timer) {
-      // Best-effort foreground refresh; Android may throttle or kill the app,
-      // so this is not presented to the user as guaranteed background refresh.
-      unawaited(refreshIfStale());
+    _timer = null;
+    if (!backgroundRefresh || !_pollingActive || _disposed) return;
+    _timer = Timer.periodic(autoRefreshInterval, (Timer timer) {
+      // Conditional HTTP validators and the repository's source gap prevent
+      // repeated downloads. `refresh` itself is single-flight.
+      unawaited(refresh(silent: true));
     });
   }
 
   Future<void> onSettingsChanged() async {
-    _restartTimer();
     await _reload();
   }
 

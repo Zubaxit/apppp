@@ -101,8 +101,8 @@ presented as a publication timestamp; `FeedController.isShowingCached` compares 
 
 | Trigger | Behaviour |
 | --- | --- |
-| App start | Load cache immediately, then refresh if the cache is older than the configured interval |
-| Resume from background | `refreshIfStale()` (also re-reads reading history) |
+| App start | Load eligible cache immediately, then refresh if the cache is older than the configured resume threshold |
+| Resume from background | `refreshIfStale()` and restart the 120-second timer only when Home is visible (also re-reads reading history) |
 | Timer | Foreground periodic timer at the configured interval (15/30/60/120/240 min) |
 | Pull-to-refresh / refresh button | Forced refresh |
 | Per source | Minimum 8 minutes between fetches, enforced in the repository |
@@ -147,3 +147,22 @@ Pruning keeps the newest 80 items per source, a 2 500-item overall cap and 45 da
 - **Add a language:** add an `AppStrings` subclass and register it in `AppStrings.forLanguage`.
 - **Add cloud sync:** implement `SavedStore`/`HistoryStore` against a remote backend and swap it in
   `AppDatabase.stores` — the rest of the app is unchanged.
+
+### Foreground polling and stable reading position
+
+`AppShell` is the sole owner of lifecycle/tab visibility and calls `FeedController.setPollingActive`.
+The controller owns one 120-second timer and its existing single-flight refresh path; repository
+ETag/Last-Modified validators and the two-minute per-source floor remain in force. Hiding Home or
+backgrounding/disposal cancels the timer, and offline checks make no publisher request. A successful
+poll updates the cache immediately. If the reader is down the list, the rendered list is held stable
+and a “Show new stories” chip applies the pending snapshot at the top, avoiding a scroll jump.
+
+### Source Comparison
+
+The former Same Story feature remains the same precomputed matching/indexing system, renamed and
+extended as Source Comparison. It canonicalises URLs, deduplicates to one report per distinct
+publisher, applies conservative bilingual headline overlap and time windows, and allows a longer
+window only for explicit follow-up vocabulary. It displays original publisher metadata/URLs and is
+hidden when no reliable distinct-publisher match exists. A match is context, not independent
+verification, and does not imply all publishers were searched. Archive result sets use the same
+matcher locally without inserting those records into the live feed.

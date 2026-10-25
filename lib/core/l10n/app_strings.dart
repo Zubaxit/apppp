@@ -345,7 +345,7 @@ class BanglaStrings extends AppStrings {
   @override
   String get readOriginal => 'মূল প্রতিবেদন পড়ুন';
   @override
-  String get relatedCoverage => 'একই খবরে অন্য পত্রিকা';
+  String get relatedCoverage => 'একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে';
   @override
   String get topicRailTitle => 'বিভাগ';
 
@@ -473,7 +473,7 @@ class BanglaStrings extends AppStrings {
   @override
   String get followingFeed => 'অনুসরণ করা পত্রিকা';
   @override
-  String get autoRefresh => 'স্বয়ংক্রিয় রিফ্রেশের বিরতি';
+  String get autoRefresh => 'রিজিউমে ক্যাশ যাচাই';
   @override
   String get everyMinutes => 'মিনিট পর পর';
   @override
@@ -799,7 +799,7 @@ class EnglishStrings extends AppStrings {
   @override
   String get readOriginal => 'Read the original story';
   @override
-  String get relatedCoverage => 'Also covered by';
+  String get relatedCoverage => 'Source comparison';
   @override
   String get topicRailTitle => 'Sections';
 
@@ -927,7 +927,7 @@ class EnglishStrings extends AppStrings {
   @override
   String get followingFeed => 'Followed publications';
   @override
-  String get autoRefresh => 'Automatic refresh interval';
+  String get autoRefresh => 'Cache check on resume';
   @override
   String get everyMinutes => 'minutes';
   @override

@@ -553,14 +553,28 @@ class _NewsCardState extends State<NewsCard> {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              context.isBengali
-                                  ? 'আরও ${related.length}টি সংবাদমাধ্যমে'
-                                  : 'Also from ${related.length} other ${related.length == 1 ? 'source' : 'sources'}',
-                              style: context.texts.labelSmall?.copyWith(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  context.isBengali
+                                      ? 'একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'
+                                      : 'One event, different sources',
+                                  style: context.texts.labelSmall?.copyWith(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                Text(
+                                  context.isBengali
+                                      ? 'আরও ${related.length}টি সংবাদমাধ্যমে'
+                                      : 'Also from ${related.length} other ${related.length == 1 ? 'source' : 'sources'}',
+                                  style: context.texts.labelSmall?.copyWith(
+                                    fontSize: 10,
+                                    color: context.colors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           Icon(
@@ -641,6 +655,16 @@ class _CoverageReport extends StatelessWidget {
                         fontSize: 12.2,
                         height: 1.45,
                         fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      article.link,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.texts.labelSmall?.copyWith(
+                        fontSize: 8.8,
+                        color: context.colors.onSurfaceVariant,
                       ),
                     ),
                   ],

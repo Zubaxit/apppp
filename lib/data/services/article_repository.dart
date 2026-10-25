@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/utils/article_freshness.dart';
+
 import '../feeds/feed_service.dart';
 import '../models/article.dart';
 import '../models/feed_query.dart';
@@ -29,7 +31,7 @@ class ArticleRepository {
 
   static const String lastRefreshKey = 'last_refresh_at';
   static const String lastAttemptKey = 'last_attempt_at';
-  static const Duration minimumSourceGap = Duration(minutes: 8);
+  static const Duration minimumSourceGap = Duration(minutes: 2);
   static const int concurrency = 4;
 
   Future<DateTime?> lastRefreshAt() async {
@@ -60,24 +62,41 @@ class ArticleRepository {
         if (sources.isEmpty) return const <Article>[];
       }
     }
-    return stores.articles.latest(
-      limit: query.limit,
+    // Read beyond the visible limit because stale and undated cache rows are
+    // deliberately retained for Archive Search but may never re-enter live UI.
+    final List<Article> cached = await stores.articles.latest(
+      limit: 5000,
       sourceIds: sources,
       topics: query.topics,
       languages: query.languages,
       text: query.text,
     );
+    return ArticleFreshness.eligible(
+      cached,
+      now: _clock(),
+      limit: query.limit,
+    );
   }
 
-  Future<List<Article>> articlesForSource(String sourceId, {int limit = 40}) =>
-      stores.articles.bySource(sourceId, limit: limit);
+  Future<List<Article>> articlesForSource(String sourceId, {int limit = 40}) async {
+    final List<Article> cached =
+        await stores.articles.bySource(sourceId, limit: 250);
+    return ArticleFreshness.eligible(cached, now: _clock(), limit: limit);
+  }
 
   Future<Article?> articleById(String id) => stores.articles.byId(id);
 
   Future<List<Article>> searchArticles(String text, {int limit = 40}) async {
     if (text.trim().isEmpty) return const <Article>[];
-    return stores.articles.latest(limit: limit, text: text);
+    final List<Article> cached =
+        await stores.articles.latest(limit: 5000, text: text);
+    return ArticleFreshness.eligible(cached, now: _clock(), limit: limit);
   }
+
+  /// Retained cache search used only by Archive Search. It intentionally does
+  /// not apply the live-feed freshness policy and never writes into the feed.
+  Future<List<Article>> searchArchiveCandidates({int limit = 5000}) =>
+      stores.articles.latest(limit: limit);
 
   Future<Map<String, SourceHealth>> healthMap() async {
     final List<SourceHealth> health = await stores.health.all();
@@ -90,7 +109,10 @@ class ArticleRepository {
   Future<List<Article>> relatedCoverage(Article article, {int limit = 6}) async {
     final String? key = article.clusterKey;
     if (key == null) return const <Article>[];
-    final List<Article> same = await stores.articles.byClusterKey(key, limit: limit + 4);
+    final List<Article> cached =
+        await stores.articles.byClusterKey(key, limit: limit + 12);
+    final List<Article> same =
+        ArticleFreshness.eligible(cached, now: _clock());
     final Map<String, Article> byPublisher = <String, Article>{};
     for (final Article candidate in same) {
       if (candidate.id == article.id) continue;
