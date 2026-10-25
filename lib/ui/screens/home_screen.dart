@@ -559,10 +559,10 @@ class _LoadingState extends StatelessWidget {
           const FadingRule(),
           for (int i = 0; i < 4; i++) ...<Widget>[
             const SizedBox(height: 18),
-            Row(
+            const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -576,8 +576,8 @@ class _LoadingState extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 14),
-                const SkeletonBlock(height: 66, width: 66, radius: 3),
+                SizedBox(width: 14),
+                SkeletonBlock(height: 66, width: 66, radius: 3),
               ],
             ),
             const SizedBox(height: 18),

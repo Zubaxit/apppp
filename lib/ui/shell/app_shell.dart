@@ -8,7 +8,6 @@ import '../../data/models/app_preferences.dart';
 import '../../state/feed_controller.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
-import '../../theme/app_theme.dart';
 import '../../theme/motion.dart';
 import '../screens/categories_screen.dart';
 import '../screens/home_screen.dart';

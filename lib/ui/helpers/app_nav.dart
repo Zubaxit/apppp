@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/extensions.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
-import '../../theme/app_theme.dart';
 import '../../theme/motion.dart';
 import '../screens/article_detail_screen.dart';
 import '../screens/article_list_screen.dart';
