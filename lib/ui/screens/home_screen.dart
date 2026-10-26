@@ -145,6 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
         settings.followedSourceIds.isEmpty;
     final List<Article> articles = feed.articles;
     final bool hasArticles = articles.isNotEmpty;
+    final bool firstLaunch = !settings.prefs.onboardingComplete;
+    if (firstLaunch && hasArticles) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !settings.prefs.onboardingComplete) {
+          unawaited(settings.completeOnboarding());
+        }
+      });
+    }
 
     final List<Article> carouselItems =
         articles.where((Article a) => a.imageUrl != null).take(6).toList(growable: false);
@@ -223,7 +231,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     articles: feed.breakingArticles,
                     onOpen: (Article article) => openArticle(context, article),
                   ),
-                  if (!hasArticles && feed.isLoading)
+                  if (!hasArticles && firstLaunch &&
+                      (feed.isLoading || feed.isRefreshing))
+                    const _WelcomeLoadingState()
+                  else if (!hasArticles && feed.isLoading)
                     const _LoadingState()
                   else if (!hasArticles)
                     _EmptyState(
@@ -234,6 +245,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   else ...<Widget>[
                     const SizedBox(height: 6),
+                    if (feed.isRefreshing)
+                      _RefreshActivity(
+                        done: feed.progressDone,
+                        total: feed.progressTotal,
+                      ),
                     if (showCarousel)
                       RiseIn(
                         child: FeaturedCarousel(
@@ -689,6 +705,135 @@ class _ErrorNote extends StatelessWidget {
 }
 
 /// Placeholders shaped like the page: a hero block, a control card and rows.
+class _RefreshActivity extends StatelessWidget {
+  const _RefreshActivity({required this.done, required this.total});
+
+  final int done;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final double? value = total > 0 ? (done / total).clamp(0, 1) : null;
+    final String progress = total > 0
+        ? (context.isBengali
+            ? '${BengaliText.toBengaliDigits(done)}/${BengaliText.toBengaliDigits(total)} উৎস'
+            : '$done of $total sources')
+        : (context.isBengali ? 'খবর খোঁজা হচ্ছে' : 'Finding the latest news');
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 12),
+      child: Semantics(
+        liveRegion: true,
+        label: progress,
+        child: GlassPanel(
+          blur: 0,
+          shadow: false,
+          radius: Tokens.radiusMd,
+          padding: const EdgeInsets.fromLTRB(13, 11, 13, 10),
+          child: Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      value: value,
+                      strokeWidth: 2.8,
+                      strokeCap: StrokeCap.round,
+                      color: context.colors.primary,
+                      backgroundColor:
+                          context.colors.primary.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          context.isBengali
+                              ? 'নতুন খবর আসছে'
+                              : 'New stories are on the way',
+                          style: context.texts.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(progress, style: context.texts.labelSmall),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 9),
+              LinearProgressIndicator(
+                value: value,
+                minHeight: 3,
+                borderRadius: BorderRadius.circular(3),
+                color: context.colors.primary,
+                backgroundColor:
+                    context.colors.primary.withValues(alpha: 0.1),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeLoadingState extends StatelessWidget {
+  const _WelcomeLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 20, Tokens.gutter, 0),
+      child: Column(
+        children: <Widget>[
+          GlassPanel(
+            blur: 0,
+            radius: Tokens.radiusLg,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: <Widget>[
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3.5,
+                    strokeCap: StrokeCap.round,
+                    color: context.colors.primary,
+                    backgroundColor:
+                        context.colors.primary.withValues(alpha: 0.12),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'আমার নিউজে স্বাগতম',
+                  textAlign: TextAlign.center,
+                  style: context.texts.headlineSmall?.copyWith(
+                    fontFamily: Tokens.serif,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'আপনার জন্য সর্বশেষ খবর আনা হচ্ছে। অনুগ্রহ করে একটু অপেক্ষা করুন। এই স্বাগত বার্তাটি শুধু প্রথমবার দেখানো হবে।',
+                  textAlign: TextAlign.center,
+                  style: context.texts.bodyMedium?.copyWith(height: 1.6),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          const _LoadingState(),
+        ],
+      ),
+    );
+  }
+}
+
 class _LoadingState extends StatelessWidget {
   const _LoadingState();
 

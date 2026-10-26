@@ -34,6 +34,8 @@ dependencies:
 
   # Media + formatting.
   cached_network_image: ^3.4.1
+  # Direct access to the image cache for the user-controlled safe cleanup.
+  flutter_cache_manager: ^3.4.1
 
   # In-app browser for reading the publisher's own page without leaving the app.
   webview_flutter: ^4.10.0

@@ -15,6 +15,7 @@ import 'editorial.dart';
 IconData topicIcon(ArticleTopic topic) {
   return <ArticleTopic, IconData>{
     ArticleTopic.bangladesh: Icons.public_rounded,
+    ArticleTopic.editorial: Icons.edit_note_rounded,
     ArticleTopic.politics: Icons.account_balance_rounded,
     ArticleTopic.economy: Icons.trending_up_rounded,
     ArticleTopic.international: Icons.language_rounded,
@@ -51,6 +52,7 @@ class TopicRail extends StatelessWidget {
   /// familiar first screen.
   static const List<ArticleTopic> topics = <ArticleTopic>[
     ArticleTopic.bangladesh,
+    ArticleTopic.editorial,
     ArticleTopic.politics,
     ArticleTopic.economy,
     ArticleTopic.international,

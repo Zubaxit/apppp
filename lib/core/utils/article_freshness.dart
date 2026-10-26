@@ -15,6 +15,7 @@ class ArticleFreshness {
   static const Duration futureTolerance = Duration(minutes: 10);
 
   static const Set<ArticleTopic> extendedTopics = <ArticleTopic>{
+    ArticleTopic.editorial,
     ArticleTopic.education,
     ArticleTopic.jobs,
     ArticleTopic.learning,
@@ -26,10 +27,17 @@ class ArticleFreshness {
       extendedTopics.contains(topic) ? extended : standard;
 
   static bool isEligible(Article article, {DateTime? now}) {
-    final DateTime? published = article.publishedAt?.toUtc();
-    if (published == null) return false;
+    // A publisher timestamp is authoritative. For an editorial only, the
+    // discovery time is a conservative fallback: it prevents a newly found,
+    // undated editorial from being discarded immediately without presenting
+    // that retrieval time to the reader as a publication date.
+    final DateTime? eligibleAt = article.publishedAt?.toUtc() ??
+        (article.topic == ArticleTopic.editorial
+            ? article.fetchedAt.toUtc()
+            : null);
+    if (eligibleAt == null) return false;
     final DateTime clock = (now ?? DateTime.now()).toUtc();
-    final Duration age = clock.difference(published);
+    final Duration age = clock.difference(eligibleAt);
     if (age < -futureTolerance) return false;
     return age <= retentionFor(article.topic);
   }

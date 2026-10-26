@@ -29,6 +29,7 @@ class CategoriesScreen extends StatelessWidget {
   /// career and knowledge sections are additions, not replacements.
   static const List<ArticleTopic> _topics = <ArticleTopic>[
     ArticleTopic.bangladesh,
+    ArticleTopic.editorial,
     ArticleTopic.politics,
     ArticleTopic.economy,
     ArticleTopic.international,

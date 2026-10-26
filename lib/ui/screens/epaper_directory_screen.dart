@@ -7,6 +7,7 @@ import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../widgets/actions.dart';
+import 'browser_screen.dart';
 import '../widgets/common.dart';
 
 /// Directory of publisher-hosted e-paper editions.
@@ -127,7 +128,12 @@ class _EditionRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 10),
       child: JellySurface(
-        onTap: () => openUrlFeedback(context, edition.url),
+        onTap: () => openInBrowser(
+          context,
+          url: edition.url,
+          title: edition.localizedName(bengali: bengali),
+          source: source,
+        ),
         scale: 0.985,
         child: GlassPanel(
           radius: Tokens.radiusMd,

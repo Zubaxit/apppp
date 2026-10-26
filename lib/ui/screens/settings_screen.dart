@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
@@ -16,15 +17,26 @@ import 'about_screen.dart';
 
 Future<void> _prepareOfflineTranslation(BuildContext context) async {
   final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-  messenger.showSnackBar(const SnackBar(content: Text('Preparing offline translation…')));
+  final bool bengali = context.isBengali;
+  messenger.showSnackBar(SnackBar(
+    content: Text(bengali
+        ? 'অফলাইন অনুবাদ প্রস্তুত করা হচ্ছে…'
+        : 'Preparing offline translation…'),
+  ));
   final MlKitOnDeviceTranslationEngine engine = MlKitOnDeviceTranslationEngine();
   try {
     await engine.prepare();
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Offline English and Bengali translation is ready.')),
-    );
-  } on TranslationException catch (error) {
-    messenger.showSnackBar(SnackBar(content: Text(error.message)));
+    messenger.showSnackBar(SnackBar(
+      content: Text(bengali
+          ? 'ইংরেজি ও বাংলা অফলাইন অনুবাদ প্রস্তুত।'
+          : 'Offline English and Bengali translation is ready.'),
+    ));
+  } on TranslationException catch (_) {
+    messenger.showSnackBar(SnackBar(
+      content: Text(bengali
+          ? 'অনুবাদের ভাষা ফাইল ডাউনলোড করা যায়নি। সংযোগ দেখে আবার চেষ্টা করুন।'
+          : 'Translation files could not be downloaded. Check your connection and try again.'),
+    ));
   } finally {
     await engine.close();
   }
@@ -168,8 +180,8 @@ class SettingsScreen extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 10),
                         child: Text(
                           bengali
-                              ? 'হোম ফিড সামনে থাকলে প্রতি ১২০ সেকেন্ডে হালনাগাদ হয়। এই পছন্দটি অ্যাপে ফিরে এলে ক্যাশ কত পুরোনো হলে সঙ্গে সঙ্গে যাচাই হবে তা ঠিক করে।'
-                              : 'The visible Home feed checks every 120 seconds. This preference controls how stale the cache may be before an immediate check on app resume.',
+                              ? 'অ্যাপে ফিরে এলে কতক্ষণ পর নতুন খবর খোঁজা হবে তা বেছে নিন।'
+                              : 'Choose how soon the app checks for new stories when you return.',
                           style: context.texts.labelSmall?.copyWith(
                             fontSize: 10,
                             height: 1.55,
@@ -206,8 +218,8 @@ class SettingsScreen extends StatelessWidget {
                             ? 'অফলাইন অনুবাদ প্রস্তুত করুন'
                             : 'Prepare offline translation',
                         subtitle: bengali
-                            ? 'Google ML Kit-এর ইংরেজি ও বাংলা মডেল ডাউনলোড করুন'
-                            : 'Download Google ML Kit English and Bengali models',
+                            ? 'ইংরেজি ও বাংলা ভাষার ফাইল ডাউনলোড করুন'
+                            : 'Download English and Bengali language files',
                         onTap: () => _prepareOfflineTranslation(context),
                       ),
                       const _PanelDivider(),
@@ -307,9 +319,22 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await context.read<FeedController>().clearCache();
-    if (!context.mounted) return;
-    context.showSnack(context.strings.cacheCleared);
+    try {
+      await context.read<FeedController>().clearCache();
+      await DefaultCacheManager().emptyCache();
+      PaintingBinding.instance.imageCache
+        ..clear()
+        ..clearLiveImages();
+      if (!context.mounted) return;
+      context.showSnack(context.strings.cacheCleared);
+    } catch (_) {
+      if (!context.mounted) return;
+      context.showSnack(
+        context.isBengali
+            ? 'সব অস্থায়ী ফাইল পরিষ্কার করা যায়নি। পরে আবার চেষ্টা করুন।'
+            : 'Some temporary files could not be cleared. Try again later.',
+      );
+    }
   }
 
   static String _bnNumber(int value) {

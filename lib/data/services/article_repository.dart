@@ -66,8 +66,16 @@ class ArticleRepository {
     }
     // Read beyond the visible limit because stale and undated cache rows are
     // deliberately retained for Archive Search but may never re-enter live UI.
+    // SQLite already sorts newest first. Decoding all 5,000 retained rows on
+    // every filter or Home rebuild caused visible main-isolate stalls; a bounded
+    // overscan is enough to discard stale rows while preserving pagination.
+    final int scanLimit = query.limit * 4 < 400
+        ? 400
+        : query.limit * 4 > 1200
+            ? 1200
+            : query.limit * 4;
     final List<Article> cached = await stores.articles.latest(
-      limit: 5000,
+      limit: scanLimit,
       sourceIds: sources,
       topics: query.topics,
       languages: query.languages,

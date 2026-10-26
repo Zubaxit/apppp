@@ -85,6 +85,17 @@ void main() {
         TopicClassifier.classify(title: 'বিশ্ববিদ্যালয় ভর্তি পরীক্ষার ফলাফল প্রকাশ'),
         ArticleTopic.education,
       );
+      expect(
+        TopicClassifier.classify(
+          title: 'আজকের বিশ্লেষণ',
+          categories: <String>['Editorial'],
+        ),
+        ArticleTopic.editorial,
+      );
+      expect(
+        TopicClassifier.classify(title: 'সম্পাদকীয়: নগর পরিকল্পনায় নতুন ভাবনা'),
+        ArticleTopic.editorial,
+      );
     });
   });
 

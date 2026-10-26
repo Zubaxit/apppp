@@ -30,6 +30,8 @@ class Labels {
       switch (topic) {
         case ArticleTopic.bangladesh:
           return 'Bangladesh';
+        case ArticleTopic.editorial:
+          return 'Editorial';
         case ArticleTopic.politics:
           return 'Politics';
         case ArticleTopic.economy:
@@ -63,6 +65,8 @@ class Labels {
     switch (topic) {
       case ArticleTopic.bangladesh:
         return 'বাংলাদেশ';
+      case ArticleTopic.editorial:
+        return 'সম্পাদকীয়';
       case ArticleTopic.politics:
         return 'রাজনীতি';
       case ArticleTopic.economy:
@@ -98,6 +102,8 @@ class Labels {
     switch (topic) {
       case ArticleTopic.bangladesh:
         return Icons.location_city_outlined;
+      case ArticleTopic.editorial:
+        return Icons.edit_note_rounded;
       case ArticleTopic.politics:
         return Icons.account_balance_outlined;
       case ArticleTopic.economy:
@@ -134,6 +140,7 @@ class Labels {
     if (!bengali) {
       return switch (topic) {
         ArticleTopic.bangladesh => 'Bangladesh',
+        ArticleTopic.editorial => 'Editorial',
         ArticleTopic.politics => 'Politics',
         ArticleTopic.economy => 'Economy',
         ArticleTopic.international => 'World',
@@ -152,6 +159,7 @@ class Labels {
     }
     return switch (topic) {
       ArticleTopic.bangladesh => 'বাংলাদেশ',
+      ArticleTopic.editorial => 'সম্পাদকীয়',
       ArticleTopic.politics => 'রাজনীতি',
       ArticleTopic.economy => 'অর্থনীতি',
       ArticleTopic.international => 'বিশ্ব',

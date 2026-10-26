@@ -3,6 +3,7 @@ import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/feed_query.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
 import 'package:bangladesh_newspaper_hub/data/models/source_health.dart';
+import 'package:bangladesh_newspaper_hub/data/models/vocabulary_entry.dart';
 import 'package:bangladesh_newspaper_hub/data/services/article_repository.dart';
 import 'package:bangladesh_newspaper_hub/data/services/stores.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -310,10 +311,19 @@ void main() {
         ArticleRepository(registry: registry, stores: stores, feedService: FakeFeedGateway());
     final Article article = (await repository.loadFeed(queryOf())).single;
     await repository.saveArticle(article);
+    await repository.recordOpen(article);
+    await repository.saveVocabulary(VocabularyEntry(
+      word: 'policy',
+      meaningBn: 'নীতি',
+      savedAt: DateTime.utc(2026, 10, 26),
+    ));
 
     await repository.clearCache();
     expect(await stores.articles.count(), 0);
     expect(await repository.savedArticles(), hasLength(1));
+    expect(await repository.history(), hasLength(1));
+    expect(await repository.vocabulary(), hasLength(1));
+    expect((await repository.vocabulary()).single.meaningBn, 'নীতি');
     expect(await repository.lastRefreshAt(), isNull);
   });
 }

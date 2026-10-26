@@ -22,8 +22,17 @@ class TopicClassifier {
 
   static const Map<ArticleTopic, Map<String, int>> _keywords =
       <ArticleTopic, Map<String, int>>{
-    // Most specific first: the first section to reach the best score keeps it,
-    // so a scholarship story is never filed under Education on a tie.
+    // Most specific first: publisher-labelled editorials and opinion pieces
+    // remain a dedicated seven-day collection.
+    ArticleTopic.editorial: <String, int>{
+      'সম্পাদকীয়': _strong,
+      'সম্পাদকীয়': _strong,
+      'মতামত': _strong,
+      'উপসম্পাদকীয়': _strong,
+      'editorial': _strong,
+      'op-ed': _strong,
+    },
+    // A scholarship story is never filed under Education on a tie.
     ArticleTopic.scholarships: <String, int>{
       'বৃত্তি': _strong,
       'বৃত্তিতে': _strong,
@@ -401,6 +410,12 @@ class TopicClassifier {
 
   /// Publisher category strings that should win over keyword guessing.
   static const Map<String, ArticleTopic> _categoryHints = <String, ArticleTopic>{
+    'editorial': ArticleTopic.editorial,
+    'opinion': ArticleTopic.editorial,
+    'op-ed': ArticleTopic.editorial,
+    'মতামত': ArticleTopic.editorial,
+    'সম্পাদকীয়': ArticleTopic.editorial,
+    'সম্পাদকীয়': ArticleTopic.editorial,
     'sports': ArticleTopic.sports,
     'খেলা': ArticleTopic.sports,
     'ক্রীড়া': ArticleTopic.sports,

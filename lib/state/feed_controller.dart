@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 
@@ -60,6 +61,9 @@ class FeedController extends ChangeNotifier {
   bool _pollingActive = false;
   bool _viewportAtTop = true;
   bool _updatesPending = false;
+  Future<void>? _refreshInFlight;
+  DateTime? _lastManualRefreshStarted;
+  int _comparisonRevision = 0;
 
   FeedQuery get query => _query;
   List<Article> get articles => _articles;
@@ -111,10 +115,12 @@ class FeedController extends ChangeNotifier {
     _lastAttemptAt = await repository.lastAttemptAt();
     _health = await repository.healthMap();
     await _reload(notify: false);
-    _loading = false;
     _notify();
+    await _rebuildComparisonIndex();
     _restartTimer();
     await refreshIfStale();
+    _loading = false;
+    _notify();
   }
 
   Future<void> _reload({bool notify = true}) async {
@@ -123,10 +129,6 @@ class FeedController extends ChangeNotifier {
         _query,
         followedSourceIds: settings.followedSourceIds,
       );
-      final List<Article> comparisonPool =
-          await repository.comparisonCandidates();
-      _related = StoryMatcher.index(comparisonPool);
-      _comparisonIndexReady = true;
       _error = null;
     } catch (error) {
       _articles = const <Article>[];
@@ -136,6 +138,32 @@ class FeedController extends ChangeNotifier {
       if (kDebugMode) debugPrint('Feed cache read failed: $error');
     }
     if (notify) _notify();
+  }
+
+  /// Related Coverage used to rebuild an O(n²) comparison index on the UI
+  /// isolate after every filter, search and pagination change. Rebuild only
+  /// when cached articles change and perform the CPU work off the frame loop.
+  Future<void> _rebuildComparisonIndex() async {
+    final int revision = ++_comparisonRevision;
+    _comparisonIndexReady = false;
+    try {
+      final List<Article> pool = await repository.comparisonCandidates();
+      final Map<String, List<Article>> next =
+          await Isolate.run(() => StoryMatcher.index(pool));
+      if (_disposed || revision != _comparisonRevision) {
+        return;
+      }
+      _related = next;
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('Related Coverage index failed: $error');
+      }
+    } finally {
+      if (!_disposed && revision == _comparisonRevision) {
+        _comparisonIndexReady = true;
+        _notify();
+      }
+    }
   }
 
   void _notify() {
@@ -186,8 +214,38 @@ class FeedController extends ChangeNotifier {
     bool force = false,
     Set<String>? onlySourceIds,
     bool silent = false,
+  }) {
+    final Future<void>? pending = _refreshInFlight;
+    if (pending != null) {
+      return pending;
+    }
+    if (force && onlySourceIds == null) {
+      final DateTime now = DateTime.now().toUtc();
+      final DateTime? previous = _lastManualRefreshStarted;
+      if (previous != null &&
+          now.difference(previous) < const Duration(seconds: 8)) {
+        return Future<void>.value();
+      }
+      _lastManualRefreshStarted = now;
+    }
+    final Future<void> operation = _performRefresh(
+      force: force,
+      onlySourceIds: onlySourceIds,
+      silent: silent,
+    );
+    _refreshInFlight = operation;
+    return operation.whenComplete(() {
+      if (identical(_refreshInFlight, operation)) {
+        _refreshInFlight = null;
+      }
+    });
+  }
+
+  Future<void> _performRefresh({
+    required bool force,
+    required Set<String>? onlySourceIds,
+    required bool silent,
   }) async {
-    if (_busy) return;
     _busy = true;
     _progressDone = 0;
     _progressTotal = 0;
@@ -232,11 +290,14 @@ class FeedController extends ChangeNotifier {
         await _reload(notify: false);
         _updatesPending = false;
       }
+      unawaited(_rebuildComparisonIndex());
     } catch (error, stack) {
       // Keep the real cause for the diagnostics sheet; the headline message
       // stays human and localized.
       _lastFailureDetail = '$error';
-      _error = 'Could not refresh: $error';
+      _error = settings.useBengali
+          ? 'খবর হালনাগাদ করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।'
+          : 'News could not be updated. Check your connection and try again.';
       if (kDebugMode) {
         debugPrint('Refresh failed: $error');
         debugPrintStack(stackTrace: stack);

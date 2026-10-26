@@ -187,7 +187,12 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                         child: GlassChip(
                           label: context.strings.openEpaper,
                           icon: Icons.menu_book_outlined,
-                          onTap: () => openUrlFeedback(context, source.epaperUrl),
+                          onTap: () => openInBrowser(
+                            context,
+                            url: source.epaperUrl!,
+                            title: context.strings.openEpaper,
+                            source: source,
+                          ),
                         ),
                       ),
                     Padding(
@@ -334,7 +339,12 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                             8,
                           ),
                           child: JellySurface(
-                            onTap: () => openUrlFeedback(context, edition.url),
+                            onTap: () => openInBrowser(
+                              context,
+                              url: edition.url,
+                              title: edition.localizedName(bengali: bengali),
+                              source: source,
+                            ),
                             scale: 0.99,
                             child: GlassPanel(
                               radius: Tokens.radiusSm,

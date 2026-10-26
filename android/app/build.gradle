@@ -60,8 +60,11 @@ android {
     buildTypes {
         release {
             signingConfig = keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
-            minifyEnabled = false
-            shrinkResources = false
+            // R8 removes unreachable Java/Kotlin/plugin code and unused Android
+            // resources. Flutter's generated keep rules and plugin consumer
+            // rules preserve platform channels and ML Kit implementations.
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }

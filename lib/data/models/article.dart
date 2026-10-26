@@ -7,6 +7,7 @@ import 'news_source.dart';
 /// Editorial topics used by the category rail and feed filters.
 enum ArticleTopic {
   bangladesh,
+  editorial,
   politics,
   economy,
   international,

@@ -45,6 +45,31 @@ void main() {
   }
 
   group('HomeScreen', () {
+    testWidgets('shows the one-time welcome only during a genuine first load',
+        (WidgetTester tester) async {
+      final FakeFeedGateway gateway = FakeFeedGateway(
+        articlesBySource: <String, List<Article>>{
+          'prothomalo': <Article>[bnArticle],
+        },
+        delay: const Duration(milliseconds: 50),
+      );
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(),
+        gateway: gateway,
+      );
+      await tester.pumpWidget(h.wrap(const HomeScreen()));
+      final Future<void> starting = h.feed.start();
+      await tester.pump(const Duration(milliseconds: 10));
+
+      expect(find.text('আমার নিউজে স্বাগতম'), findsOneWidget);
+      expect(find.text('No headlines yet'), findsNothing);
+
+      await starting;
+      await tester.pumpAndSettle();
+      expect(find.text('আমার নিউজে স্বাগতম'), findsNothing);
+      expect(h.settings.prefs.onboardingComplete, isTrue);
+    });
+
     testWidgets('renders aggregated Bengali headlines with source and time', (WidgetTester tester) async {
       final TestHarness h = harness(artwork: <Article>[bnArticle, enArticle]);
       await tester.pumpWidget(h.wrap(const HomeScreen()));

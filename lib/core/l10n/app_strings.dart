@@ -485,9 +485,10 @@ class BanglaStrings extends AppStrings {
   @override
   String get dataAndStorage => 'ডেটা ও স্টোরেজ';
   @override
-  String get clearCache => 'ক্যাশ করা খবর মুছুন';
+  String get clearCache => 'অস্থায়ী স্টোরেজ পরিষ্কার করুন';
   @override
-  String get clearCacheBody => 'শিরোনামের ক্যাশ মুছে যাবে; সংরক্ষিত খবর ও অনুসরণ থাকবে।';
+  String get clearCacheBody =>
+      'ক্যাশ করা শিরোনাম ও ছবি মুছে যাবে। সংরক্ষিত খবর, শব্দের অর্থ, পড়ার ইতিহাস, অনুসরণ ও সেটিংস অক্ষত থাকবে।';
   @override
   String get cacheCleared => 'ক্যাশ মুছে ফেলা হয়েছে';
   @override
@@ -943,10 +944,10 @@ class EnglishStrings extends AppStrings {
   @override
   String get dataAndStorage => 'Data & storage';
   @override
-  String get clearCache => 'Clear cached headlines';
+  String get clearCache => 'Clear temporary storage';
   @override
   String get clearCacheBody =>
-      'Headline cache will be removed. Saved stories and follows stay.';
+      'Cached headlines and images will be removed. Saved stories, vocabulary meanings, reading history, follows and settings stay.';
   @override
   String get cacheCleared => 'Cache cleared';
   @override

@@ -38,6 +38,38 @@ void main() {
       );
     });
 
+    test('keeps editorials for seven days and safely dates undated discoveries', () {
+      final Article current = sampleArticle(
+        title: 'Editorial current',
+        topic: ArticleTopic.editorial,
+        publishedAt: now.subtract(const Duration(days: 6, hours: 23)),
+      );
+      final Article expired = sampleArticle(
+        title: 'Editorial expired',
+        topic: ArticleTopic.editorial,
+        publishedAt: now.subtract(const Duration(days: 7, seconds: 1)),
+      );
+      final Article seed = sampleArticle(title: 'Undated editorial');
+      final Article undated = Article(
+        id: seed.id,
+        sourceId: seed.sourceId,
+        title: seed.title,
+        link: seed.link,
+        publishedAt: null,
+        fetchedAt: now.subtract(const Duration(hours: 2)),
+        topic: ArticleTopic.editorial,
+        language: seed.language,
+      );
+
+      expect(
+        ArticleFreshness.eligible(
+          <Article>[current, expired, undated],
+          now: now,
+        ),
+        <Article>[current, undated],
+      );
+    });
+
     test('conservatively excludes missing and implausible future times', () {
       final Article base = sampleArticle();
       final Article unknown = Article(

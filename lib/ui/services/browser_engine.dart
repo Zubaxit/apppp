@@ -6,6 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../core/utils/reader_extract.dart';
 import '../../services/news_shield.dart';
+import 'link_launcher.dart';
 import 'reader_scripts.dart';
 
 /// Minimal in-app browser surface.
@@ -110,6 +111,14 @@ class WebViewBrowserEngine extends BrowserEngine {
             notifyListeners();
           },
           onNavigationRequest: (NavigationRequest request) {
+            final Uri? target = Uri.tryParse(request.url);
+            final String scheme = target?.scheme.toLowerCase() ?? '';
+            if (scheme != 'http' && scheme != 'https') {
+              // Downloads, telephone, email and app links belong to a capable
+              // external handler rather than failing inside the WebView.
+              unawaited(LinkLauncher.open(request.url));
+              return NavigationDecision.prevent;
+            }
             if (_shieldEnabled &&
                 NewsShield.blocks(request.url, pageUrl: _url)) {
               return NavigationDecision.prevent;
