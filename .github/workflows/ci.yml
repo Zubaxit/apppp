@@ -6,6 +6,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+# A superseded commit must not keep expensive Flutter tests and three APK
+# builds running. Push and PR refs remain isolated from each other.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze-and-test:
     name: Analyze & test
