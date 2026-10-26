@@ -533,6 +533,10 @@ void main() {
               'text': 'A readable English paragraph for Reading Mode. ' * 4,
               'heading': false,
             },
+            <String, Object?>{
+              'text': 'A second detailed paragraph completes the article. ' * 4,
+              'heading': false,
+            },
           ],
         });
       await tester.pumpWidget(h.wrap(
