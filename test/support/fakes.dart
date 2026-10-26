@@ -5,6 +5,7 @@ import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/feed_query.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
 import 'package:bangladesh_newspaper_hub/data/models/source_health.dart';
+import 'package:bangladesh_newspaper_hub/data/models/vocabulary_entry.dart';
 import 'package:bangladesh_newspaper_hub/data/services/stores.dart';
 import 'package:bangladesh_newspaper_hub/services/machine_translation.dart';
 
@@ -138,6 +139,32 @@ class FakeHistoryStore implements HistoryStore {
   Future<void> clear() async => _items.clear();
 }
 
+class FakeVocabularyStore implements VocabularyStore {
+  final Map<String, VocabularyEntry> _items = <String, VocabularyEntry>{};
+
+  @override
+  Future<void> save(VocabularyEntry entry) async {
+    _items[entry.normalizedWord] = entry;
+  }
+
+  @override
+  Future<List<VocabularyEntry>> all() async {
+    final List<VocabularyEntry> values = _items.values.toList()
+      ..sort((VocabularyEntry a, VocabularyEntry b) =>
+          b.savedAt.compareTo(a.savedAt));
+    return values;
+  }
+
+  @override
+  Future<VocabularyEntry?> byWord(String normalizedWord) async =>
+      _items[VocabularyEntry.normalizeWord(normalizedWord)];
+
+  @override
+  Future<void> remove(String normalizedWord) async {
+    _items.remove(VocabularyEntry.normalizeWord(normalizedWord));
+  }
+}
+
 class FakeHealthStore implements HealthStore {
   final Map<String, SourceHealth> _items = <String, SourceHealth>{};
 
@@ -242,6 +269,7 @@ AppStores fakeStores({
     articles: articles ?? FakeArticleStore(seed),
     saved: FakeSavedStore(),
     history: FakeHistoryStore(),
+    vocabulary: FakeVocabularyStore(),
     health: FakeHealthStore(),
     feedMeta: FakeFeedMetaStore(),
     meta: FakeMetaStore(),

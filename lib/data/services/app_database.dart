@@ -13,7 +13,7 @@ class AppDatabase {
 
   final Database db;
 
-  static const int schemaVersion = 1;
+  static const int schemaVersion = 2;
   static const String fileName = 'bangladesh_newspaper_hub.db';
 
   static Future<AppDatabase> open({String? path, DatabaseFactory? factory}) async {
@@ -31,7 +31,7 @@ class AppDatabase {
           await _createSchema(db);
         },
         onUpgrade: (Database db, int oldVersion, int newVersion) async {
-          // Future migrations go here; the current release is at v1.
+          if (oldVersion < 2) await _createVocabularyTable(db);
         },
       ),
     );
@@ -95,6 +95,8 @@ class AppDatabase {
       )
     ''');
 
+    await _createVocabularyTable(db);
+
     await db.execute('''
       CREATE TABLE source_health (
         source_id TEXT PRIMARY KEY,
@@ -128,10 +130,31 @@ class AppDatabase {
     ''');
   }
 
+  static Future<void> _createVocabularyTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS saved_vocabulary (
+        word TEXT PRIMARY KEY,
+        display_word TEXT NOT NULL,
+        meaning_bn TEXT NOT NULL,
+        definition_en TEXT,
+        part_of_speech TEXT,
+        article_title TEXT,
+        article_url TEXT,
+        source_name TEXT,
+        saved_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_vocabulary_saved_at '
+      'ON saved_vocabulary (saved_at DESC)',
+    );
+  }
+
   AppStores get stores => AppStores(
         articles: SqliteArticleStore(db),
         saved: SqliteSavedStore(db),
         history: SqliteHistoryStore(db),
+        vocabulary: SqliteVocabularyStore(db),
         health: SqliteHealthStore(db),
         feedMeta: SqliteFeedMetaStore(db),
         meta: SqliteMetaStore(db),

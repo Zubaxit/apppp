@@ -8,6 +8,7 @@ import '../models/article.dart';
 import '../models/feed_query.dart';
 import '../models/news_source.dart';
 import '../models/source_health.dart';
+import '../models/vocabulary_entry.dart';
 import 'stores.dart';
 
 /// Orchestrates feed fetching, caching and local persistence.
@@ -303,6 +304,16 @@ class ArticleRepository {
       stores.history.recent(limit: limit);
 
   Future<void> clearHistory() => stores.history.clear();
+
+  Future<List<VocabularyEntry>> vocabulary() => stores.vocabulary.all();
+
+  Future<VocabularyEntry?> vocabularyByWord(String word) =>
+      stores.vocabulary.byWord(word);
+
+  Future<void> saveVocabulary(VocabularyEntry entry) =>
+      stores.vocabulary.save(entry);
+
+  Future<void> removeVocabulary(String word) => stores.vocabulary.remove(word);
 
   Future<void> clearCache() async {
     await stores.articles.clear();

@@ -5,6 +5,8 @@ import '../../core/extensions.dart';
 import '../../core/utils/bengali_text.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
+import '../../services/fallback_translation.dart';
+import '../../services/machine_translation.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../theme/materials.dart';
@@ -14,6 +16,7 @@ import '../helpers/app_nav.dart';
 import '../widgets/actions.dart';
 import '../widgets/common.dart';
 import '../widgets/editorial_story.dart';
+import '../widgets/vocabulary.dart';
 
 /// What the reader kept, and what she read.
 ///
@@ -32,6 +35,10 @@ class SavedScreen extends StatefulWidget {
 class _SavedScreenState extends State<SavedScreen> {
   int _tab = 0;
   _SavedFilter _filter = _SavedFilter.all;
+  late final MachineTranslator _vocabularyTranslator = FallbackMachineTranslator(
+    primary: MyMemoryTranslator(),
+    fallback: MlKitOnDeviceTranslationEngine(),
+  );
 
   void _select(int index) {
     if (_tab == index) return;
@@ -45,6 +52,7 @@ class _SavedScreenState extends State<SavedScreen> {
     final SettingsController settings = context.watch<SettingsController>();
     final SourceRegistry registry = context.registry;
     final bool historyTab = _tab == 1;
+    final bool vocabularyTab = _tab == 2;
 
     final List<SavedArticle> base = historyTab ? saved.history : saved.saved;
     final List<SavedArticle> items = base.where(_keeps).toList();
@@ -57,8 +65,13 @@ class _SavedScreenState extends State<SavedScreen> {
           child: Column(
             children: <Widget>[
               _SavedHeader(
-                count: historyTab ? saved.history.length : saved.count,
+                count: vocabularyTab
+                    ? saved.vocabulary.length
+                    : historyTab
+                        ? saved.history.length
+                        : saved.count,
                 historyTab: historyTab,
+                vocabularyTab: vocabularyTab,
                 onClearHistory: settings.historyEnabled && saved.history.isNotEmpty
                     ? () => _confirmClearHistory(context)
                     : null,
@@ -66,9 +79,10 @@ class _SavedScreenState extends State<SavedScreen> {
               _SavedTabs(
                 index: _tab,
                 savedCount: saved.count,
+                vocabularyCount: saved.vocabulary.length,
                 onSelect: _select,
               ),
-              if (!historyTab)
+              if (!historyTab && !vocabularyTab)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter, 2),
                   child: Row(
@@ -99,7 +113,9 @@ class _SavedScreenState extends State<SavedScreen> {
                   ),
                 ),
               Expanded(
-                child: AnimatedSwitcher(
+                child: vocabularyTab
+                    ? VocabularyList(translator: _vocabularyTranslator)
+                    : AnimatedSwitcher(
                   duration: Motion.of(context).standard,
                   switchInCurve: Tokens.easeStandard,
                   child: _SavedList(
@@ -170,11 +186,13 @@ class _SavedHeader extends StatelessWidget {
   const _SavedHeader({
     required this.count,
     required this.historyTab,
+    required this.vocabularyTab,
     this.onClearHistory,
   });
 
   final int count;
   final bool historyTab;
+  final bool vocabularyTab;
   final VoidCallback? onClearHistory;
 
   @override
@@ -189,7 +207,9 @@ class _SavedHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  context.strings.savedTitle,
+                    vocabularyTab
+                        ? (context.isBengali ? 'শব্দভান্ডার' : 'Vocabulary')
+                        : context.strings.savedTitle,
                   style: context.texts.headlineMedium?.copyWith(
                     fontFamily: Tokens.serif,
                     fontSize: 27,
@@ -201,7 +221,7 @@ class _SavedHeader extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   '${context.isBengali ? BengaliText.toBengaliDigits(count) : count} '
-                  '${context.strings.articleCountShort}',
+                  '${vocabularyTab ? (context.isBengali ? 'শব্দ' : 'words') : context.strings.articleCountShort}',
                   style: context.texts.labelSmall?.copyWith(
                     fontSize: 10.5,
                     letterSpacing: 0.2,
@@ -229,11 +249,13 @@ class _SavedTabs extends StatelessWidget {
   const _SavedTabs({
     required this.index,
     required this.savedCount,
+    required this.vocabularyCount,
     required this.onSelect,
   });
 
   final int index;
   final int savedCount;
+  final int vocabularyCount;
   final ValueChanged<int> onSelect;
 
   @override
@@ -241,6 +263,12 @@ class _SavedTabs extends StatelessWidget {
     final List<Widget> labels = <Widget>[
       _tabLabel(context, 0, context.strings.savedTitle, '$savedCount'),
       _tabLabel(context, 1, context.strings.historyTitle, null),
+      _tabLabel(
+        context,
+        2,
+        context.isBengali ? 'শব্দভান্ডার' : 'Vocabulary',
+        '$vocabularyCount',
+      ),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 2),
@@ -251,7 +279,7 @@ class _SavedTabs extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final double tabWidth = (constraints.maxWidth - 8) / 2;
+            final double tabWidth = (constraints.maxWidth - 8) / 3;
             return SizedBox(
               height: 38,
               child: Stack(
@@ -259,9 +287,11 @@ class _SavedTabs extends StatelessWidget {
                   AnimatedAlign(
                     duration: Motion.of(context).fast,
                     curve: Tokens.easeStandard,
-                    alignment: index == 0
-                        ? AlignmentDirectional.centerStart
-                        : AlignmentDirectional.centerEnd,
+                    alignment: switch (index) {
+                      0 => AlignmentDirectional.centerStart,
+                      1 => AlignmentDirectional.center,
+                      _ => AlignmentDirectional.centerEnd,
+                    },
                     child: Container(
                       width: tabWidth,
                       height: 34,

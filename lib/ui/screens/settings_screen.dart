@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
 import '../../data/models/app_preferences.dart';
+import '../../services/fallback_translation.dart';
+import '../../services/machine_translation.dart';
 import '../../state/feed_controller.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
@@ -11,6 +13,22 @@ import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import 'about_screen.dart';
+
+Future<void> _prepareOfflineTranslation(BuildContext context) async {
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  messenger.showSnackBar(const SnackBar(content: Text('Preparing offline translation…')));
+  final MlKitOnDeviceTranslationEngine engine = MlKitOnDeviceTranslationEngine();
+  try {
+    await engine.prepare();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Offline English and Bengali translation is ready.')),
+    );
+  } on TranslationException catch (error) {
+    messenger.showSnackBar(SnackBar(content: Text(error.message)));
+  } finally {
+    await engine.close();
+  }
+}
 
 /// Settings, composed as a short stack of glass panels.
 ///
@@ -180,6 +198,17 @@ class SettingsScreen extends StatelessWidget {
                           await settings.setHistoryEnabled(value);
                           if (!value) await controller.clearHistory();
                         },
+                      ),
+                      const _PanelDivider(),
+                      _ActionRow(
+                        icon: Icons.translate_rounded,
+                        title: bengali
+                            ? 'অফলাইন অনুবাদ প্রস্তুত করুন'
+                            : 'Prepare offline translation',
+                        subtitle: bengali
+                            ? 'Google ML Kit-এর ইংরেজি ও বাংলা মডেল ডাউনলোড করুন'
+                            : 'Download Google ML Kit English and Bengali models',
+                        onTap: () => _prepareOfflineTranslation(context),
                       ),
                       const _PanelDivider(),
                       _ActionRow(

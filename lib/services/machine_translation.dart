@@ -4,11 +4,21 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 /// A translation that could not be produced, with a reason the UI can show.
+enum TranslationFailure { quotaExhausted, modelUnavailable, network, other }
+
 class TranslationException implements Exception {
-  const TranslationException(this.message, {this.retryable = true});
+  const TranslationException(
+    this.message, {
+    this.retryable = true,
+    this.failure = TranslationFailure.other,
+  });
 
   final String message;
   final bool retryable;
+  final TranslationFailure failure;
+
+  bool get quotaExhausted => failure == TranslationFailure.quotaExhausted ||
+      message == 'The free translation allowance for today is used up.';
 
   @override
   String toString() => 'TranslationException: $message';
@@ -156,15 +166,20 @@ class MyMemoryTranslator implements MachineTranslator {
     } catch (error) {
       throw const TranslationException(
         'The translation service is unreachable. Check the connection.',
+        failure: TranslationFailure.network,
       );
     }
 
     if (response.statusCode != 200) {
+      final bool quota = response.statusCode == 429 || response.statusCode == 403;
       throw TranslationException(
-        response.statusCode == 429 || response.statusCode == 403
+        quota
             ? 'The free translation allowance for today is used up.'
             : 'The translation service answered ${response.statusCode}.',
         retryable: response.statusCode >= 500,
+        failure: quota
+            ? TranslationFailure.quotaExhausted
+            : TranslationFailure.other,
       );
     }
 
@@ -174,9 +189,15 @@ class MyMemoryTranslator implements MachineTranslator {
     }
     final Object? status = decoded['responseStatus'];
     if (status is num && status >= 400) {
+      final bool quota = status == 403 || status == 429;
       throw TranslationException(
-        'The translation service refused this text (${status.toInt()}).',
+        quota
+            ? 'The free translation allowance for today is used up.'
+            : 'The translation service refused this text (${status.toInt()}).',
         retryable: false,
+        failure: quota
+            ? TranslationFailure.quotaExhausted
+            : TranslationFailure.other,
       );
     }
     final Object? data = decoded['responseData'];

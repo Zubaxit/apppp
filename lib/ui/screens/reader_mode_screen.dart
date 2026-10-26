@@ -1,18 +1,24 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/extensions.dart';
 import '../../core/utils/language_detect.dart';
 import '../../core/utils/reader_extract.dart';
 import '../../services/machine_translation.dart';
 import '../../services/reader_translation_controller.dart';
+import '../../services/reader_tts.dart';
+import '../../services/vocabulary_matcher.dart';
+import '../../state/saved_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../widgets/actions.dart';
 import '../widgets/common.dart';
+import '../widgets/vocabulary.dart';
 
 /// The bilingual reading surface.
 ///
@@ -51,15 +57,48 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
     translator: widget.translator,
     paragraphs: widget.document.paragraphs,
   );
+  final ReaderTtsController _tts = ReaderTtsController.instance;
+  final ScrollController _scroll = ScrollController();
+  late final List<GlobalKey> _paragraphKeys = <GlobalKey>[
+    for (final String _ in widget.document.paragraphs) GlobalKey(),
+  ];
+  late final String _articleId = widget.document.url ?? widget.document.title;
+  int _lastAutoSentence = -1;
 
   @override
   void initState() {
     super.initState();
+    _tts.attach(_articleId, widget.document.paragraphs);
+    _tts.addListener(_onTtsChanged);
     if (widget.startTranslated) unawaited(_controller.translateAll());
+  }
+
+  void _onTtsChanged() {
+    if (!mounted) return;
+    setState(() {});
+    if (!_tts.isCurrent(_articleId) ||
+        _tts.playbackState != TtsPlaybackState.playing ||
+        _tts.activeSentence == _lastAutoSentence) return;
+    _lastAutoSentence = _tts.activeSentence;
+    final int paragraph = _tts.document?.paragraphForSentence(_tts.activeSentence) ?? -1;
+    if (paragraph < 0 || paragraph >= _paragraphKeys.length) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final BuildContext? target = _paragraphKeys[paragraph].currentContext;
+      if (mounted && target != null) {
+        Scrollable.ensureVisible(
+          target,
+          duration: Motion.of(context).standard,
+          alignment: 0.28,
+          curve: Motion.of(context).curve,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
+    _tts.removeListener(_onTtsChanged);
+    _scroll.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -99,10 +138,24 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
                   builder: (BuildContext context, Widget? child) => _Article(
                     document: document,
                     controller: _controller,
+                    tts: _tts,
+                    articleId: _articleId,
+                    scrollController: _scroll,
+                    paragraphKeys: _paragraphKeys,
+                    translator: widget.translator,
                     onRetry: (int index) => unawaited(_controller.retry(index)),
                     onOpenOriginal: _openOriginal,
                   ),
                 ),
+              ),
+              _ListenBar(
+                controller: _tts,
+                currentArticle: _articleId,
+                onPlay: () => unawaited(_tts.play(
+                  _articleId,
+                  document.paragraphs,
+                  language: language == TextLanguage.bengali ? 'bn-BD' : 'en-US',
+                )),
               ),
               if (canTranslate)
                 ListenableBuilder(
@@ -175,20 +228,33 @@ class _Article extends StatelessWidget {
   const _Article({
     required this.document,
     required this.controller,
+    required this.tts,
+    required this.articleId,
+    required this.scrollController,
+    required this.paragraphKeys,
+    required this.translator,
     required this.onRetry,
     required this.onOpenOriginal,
   });
 
   final ReaderDocument document;
   final ReaderTranslationController controller;
+  final ReaderTtsController tts;
+  final String articleId;
+  final ScrollController scrollController;
+  final List<GlobalKey> paragraphKeys;
+  final MachineTranslator translator;
   final ValueChanged<int> onRetry;
   final VoidCallback onOpenOriginal;
 
   @override
   Widget build(BuildContext context) {
     int proseIndex = -1;
+    final SavedController saved = context.watch<SavedController>();
+    final VocabularyMatcher vocabulary = VocabularyMatcher(saved.vocabulary);
 
     return ListView.builder(
+      controller: scrollController,
       padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 140),
       // Blocks are cheap text rows; the extra cache extent keeps a fast fling
       // from showing gaps, and nothing off-screen holds an animation.
@@ -253,15 +319,22 @@ class _Article extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              SelectableText(
-                block.text,
-                style: context.texts.bodyMedium?.copyWith(
-                  fontFamily: Tokens.serif,
-                  fontSize: 16.4,
-                  height: 1.72,
-                  letterSpacing: 0.1,
-                  color: context.colors.onSurface,
-                ),
+              _ReaderParagraph(
+                key: paragraphKeys[paragraph],
+                text: block.text,
+                matches: vocabulary.find(block.text),
+                activeSentence: tts.isCurrent(articleId) &&
+                        tts.document != null &&
+                        tts.activeSentence >= 0 &&
+                        paragraph < tts.document!.paragraphStarts.length
+                    ? _localSentence(
+                        tts.document!,
+                        tts.activeSentence,
+                        paragraph,
+                      )
+                    : null,
+                translator: translator,
+                document: document,
               ),
               if (show)
                 Padding(
@@ -274,6 +347,253 @@ class _Article extends StatelessWidget {
       },
     );
   }
+}
+
+class _ReaderParagraph extends StatefulWidget {
+  const _ReaderParagraph({
+    super.key,
+    required this.text,
+    required this.matches,
+    required this.activeSentence,
+    required this.translator,
+    required this.document,
+  });
+
+  final String text;
+  final List<VocabularyMatch> matches;
+  final SentenceRange? activeSentence;
+  final MachineTranslator translator;
+  final ReaderDocument document;
+
+  @override
+  State<_ReaderParagraph> createState() => _ReaderParagraphState();
+}
+
+class _ReaderParagraphState extends State<_ReaderParagraph> {
+  final List<TapGestureRecognizer> _recognizers = <TapGestureRecognizer>[];
+
+  @override
+  void dispose() {
+    for (final TapGestureRecognizer recognizer in _recognizers) recognizer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    for (final TapGestureRecognizer recognizer in _recognizers) recognizer.dispose();
+    _recognizers.clear();
+    final Set<int> boundary = <int>{0, widget.text.length};
+    final SentenceRange? active = widget.activeSentence;
+    if (active != null) boundary.addAll(<int>[active.start, active.end]);
+    for (final VocabularyMatch match in widget.matches) {
+      boundary.addAll(<int>[match.start, match.end]);
+    }
+    final List<int> points = boundary.where((int value) => value >= 0 && value <= widget.text.length).toList()..sort();
+    final List<InlineSpan> spans = <InlineSpan>[];
+    for (int i = 0; i + 1 < points.length; i++) {
+      final int start = points[i];
+      final int end = points[i + 1];
+      if (start == end) continue;
+      VocabularyMatch? vocabulary;
+      for (final VocabularyMatch candidate in widget.matches) {
+        if (start >= candidate.start && end <= candidate.end) {
+          vocabulary = candidate;
+          break;
+        }
+      }
+      final bool speaking = active != null && start >= active.start && end <= active.end;
+      TapGestureRecognizer? recognizer;
+      if (vocabulary != null) {
+        final VocabularyMatch selected = vocabulary;
+        recognizer = TapGestureRecognizer()
+          ..onTap = () => showVocabularyMeaning(context, selected.entry);
+        _recognizers.add(recognizer);
+      }
+      spans.add(TextSpan(
+        text: widget.text.substring(start, end),
+        recognizer: recognizer,
+        style: TextStyle(
+          backgroundColor: speaking
+              ? context.colors.primary.withValues(alpha: 0.16)
+              : vocabulary == null
+                  ? null
+                  : context.colors.tertiary.withValues(alpha: 0.13),
+          decoration: vocabulary == null ? null : TextDecoration.underline,
+          decorationColor: vocabulary == null ? null : context.colors.primary,
+          decorationThickness: vocabulary == null ? null : 1.5,
+        ),
+      ));
+    }
+
+    return SelectableText.rich(
+      TextSpan(children: spans),
+      style: context.texts.bodyMedium?.copyWith(
+        fontFamily: Tokens.serif,
+        fontSize: 16.4,
+        height: 1.72,
+        letterSpacing: 0.1,
+        color: context.colors.onSurface,
+      ),
+      contextMenuBuilder: (BuildContext menuContext, EditableTextState state) {
+        final TextSelection selection = state.textEditingValue.selection;
+        final String selected = selection.isValid
+            ? selection.textInside(state.textEditingValue.text).trim()
+            : '';
+        final List<ContextMenuButtonItem> items =
+            List<ContextMenuButtonItem>.of(state.contextMenuButtonItems);
+        if (RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$").hasMatch(selected)) {
+          items.add(ContextMenuButtonItem(
+            label: 'Save word',
+            onPressed: () {
+              state.hideToolbar();
+              showVocabularyEditor(
+                context,
+                word: selected,
+                translator: widget.translator,
+                articleTitle: widget.document.title,
+                articleUrl: widget.document.url,
+                sourceName: widget.document.site,
+              );
+            },
+          ));
+        }
+        return AdaptiveTextSelectionToolbar.buttonItems(
+          anchors: state.contextMenuAnchors,
+          buttonItems: items,
+        );
+      },
+    );
+  }
+}
+
+class _ListenBar extends StatelessWidget {
+  const _ListenBar({
+    required this.controller,
+    required this.currentArticle,
+    required this.onPlay,
+  });
+
+  final ReaderTtsController controller;
+  final String currentArticle;
+  final VoidCallback onPlay;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool current = controller.isCurrent(currentArticle);
+    final TtsPlaybackState state =
+        current ? controller.playbackState : TtsPlaybackState.idle;
+    final int sentence = current ? controller.activeSentence : -1;
+    final int total = current ? controller.document?.sentences.length ?? 0 : 0;
+    return Material(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 5),
+        child: GlassPanel(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          radius: Tokens.radiusPill,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (current && controller.progress != null)
+                LinearProgressIndicator(
+                  value: controller.progress,
+                  minHeight: 2,
+                  backgroundColor: context.colors.outlineVariant,
+                ),
+              Row(
+                children: <Widget>[
+                  IconButton(
+                    tooltip: 'Stop',
+                    onPressed: current && state != TtsPlaybackState.idle
+                        ? () => unawaited(controller.stop())
+                        : null,
+                    icon: const Icon(Icons.stop_rounded),
+                  ),
+                  IconButton(
+                    tooltip: 'Back about 10 seconds',
+                    onPressed: current && controller.active
+                        ? () => unawaited(controller.skipSentences(-1))
+                        : null,
+                    icon: const Icon(Icons.replay_10_rounded),
+                  ),
+                  IconButton.filled(
+                    tooltip: state == TtsPlaybackState.playing ? 'Pause' : 'Listen',
+                    onPressed: () {
+                      if (state == TtsPlaybackState.playing) {
+                        unawaited(controller.pause());
+                      } else if (state == TtsPlaybackState.paused) {
+                        unawaited(controller.resume());
+                      } else {
+                        onPlay();
+                      }
+                    },
+                    icon: Icon(state == TtsPlaybackState.playing
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded),
+                  ),
+                  IconButton(
+                    tooltip: 'Forward about 10 seconds',
+                    onPressed: current && controller.active
+                        ? () => unawaited(controller.skipSentences(1))
+                        : null,
+                    icon: const Icon(Icons.forward_10_rounded),
+                  ),
+                  Expanded(
+                    child: Text(
+                      state == TtsPlaybackState.error
+                          ? controller.error ?? 'Playback error'
+                          : sentence >= 0 && total > 0
+                              ? 'Sentence ${sentence + 1} of $total'
+                              : 'Listen',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.texts.labelSmall,
+                    ),
+                  ),
+                  PopupMenuButton<double>(
+                    tooltip: 'Playback speed',
+                    initialValue: controller.speed,
+                    onSelected: (double value) =>
+                        unawaited(controller.setSpeed(value)),
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<double>>[
+                      for (final double speed in ReaderTtsController.speeds)
+                        PopupMenuItem<double>(
+                          value: speed,
+                          child: Text('${speed}x'),
+                        ),
+                    ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Text('${controller.speed}x'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+SentenceRange? _localSentence(
+  SpokenDocument document,
+  int sentenceIndex,
+  int paragraph,
+) {
+  if (sentenceIndex < 0 || sentenceIndex >= document.sentences.length) return null;
+  final SentenceRange sentence = document.sentences[sentenceIndex];
+  final int paragraphStart = document.paragraphStarts[paragraph];
+  final int paragraphEnd = paragraph + 1 < document.paragraphStarts.length
+      ? document.paragraphStarts[paragraph + 1] - 2
+      : document.text.length;
+  if (sentence.end <= paragraphStart || sentence.start >= paragraphEnd) return null;
+  return SentenceRange(
+    start: (sentence.start - paragraphStart).clamp(0, paragraphEnd - paragraphStart),
+    end: (sentence.end - paragraphStart).clamp(0, paragraphEnd - paragraphStart),
+    text: sentence.text,
+  );
 }
 
 /// One translation block: the Bengali, or its honest state (working / failed).

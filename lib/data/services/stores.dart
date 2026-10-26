@@ -7,6 +7,7 @@ import '../models/article.dart';
 import '../models/feed_query.dart';
 import '../models/news_source.dart';
 import '../models/source_health.dart';
+import '../models/vocabulary_entry.dart';
 
 /// Cache/ETag bookkeeping per source.
 class FeedMeta {
@@ -63,6 +64,13 @@ abstract class HistoryStore {
   Future<void> record(Article article);
   Future<List<SavedArticle>> recent({int limit = 60});
   Future<void> clear();
+}
+
+abstract class VocabularyStore {
+  Future<void> save(VocabularyEntry entry);
+  Future<List<VocabularyEntry>> all();
+  Future<VocabularyEntry?> byWord(String normalizedWord);
+  Future<void> remove(String normalizedWord);
 }
 
 abstract class HealthStore {
@@ -354,6 +362,72 @@ class SqliteHistoryStore implements HistoryStore {
   Future<void> clear() async => _db.delete(_table);
 }
 
+class SqliteVocabularyStore implements VocabularyStore {
+  SqliteVocabularyStore(this._db);
+  final Database _db;
+  static const String _table = 'saved_vocabulary';
+
+  @override
+  Future<void> save(VocabularyEntry entry) async {
+    await _db.insert(
+      _table,
+      <String, Object?>{
+        'word': entry.normalizedWord,
+        'display_word': entry.word.trim(),
+        'meaning_bn': entry.meaningBn.trim(),
+        'definition_en': entry.definitionEn,
+        'part_of_speech': entry.partOfSpeech,
+        'article_title': entry.articleTitle,
+        'article_url': entry.articleUrl,
+        'source_name': entry.sourceName,
+        'saved_at': entry.savedAt.toUtc().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<List<VocabularyEntry>> all() async {
+    final List<Map<String, Object?>> rows = await _db.query(
+      _table,
+      orderBy: 'saved_at DESC',
+    );
+    return rows.map(_decode).toList(growable: false);
+  }
+
+  @override
+  Future<VocabularyEntry?> byWord(String normalizedWord) async {
+    final List<Map<String, Object?>> rows = await _db.query(
+      _table,
+      where: 'word = ?',
+      whereArgs: <Object?>[VocabularyEntry.normalizeWord(normalizedWord)],
+      limit: 1,
+    );
+    return rows.isEmpty ? null : _decode(rows.first);
+  }
+
+  @override
+  Future<void> remove(String normalizedWord) => _db.delete(
+        _table,
+        where: 'word = ?',
+        whereArgs: <Object?>[VocabularyEntry.normalizeWord(normalizedWord)],
+      );
+
+  VocabularyEntry _decode(Map<String, Object?> row) => VocabularyEntry(
+        word: (row['display_word'] as String?) ?? (row['word']! as String),
+        meaningBn: row['meaning_bn']! as String,
+        definitionEn: row['definition_en'] as String?,
+        partOfSpeech: row['part_of_speech'] as String?,
+        articleTitle: row['article_title'] as String?,
+        articleUrl: row['article_url'] as String?,
+        sourceName: row['source_name'] as String?,
+        savedAt: DateTime.fromMillisecondsSinceEpoch(
+          (row['saved_at'] as int?) ?? 0,
+          isUtc: true,
+        ),
+      );
+}
+
 class SqliteHealthStore implements HealthStore {
   SqliteHealthStore(this._db);
   final Database _db;
@@ -498,6 +572,7 @@ class AppStores {
     required this.articles,
     required this.saved,
     required this.history,
+    required this.vocabulary,
     required this.health,
     required this.feedMeta,
     required this.meta,
@@ -506,6 +581,7 @@ class AppStores {
   final ArticleStore articles;
   final SavedStore saved;
   final HistoryStore history;
+  final VocabularyStore vocabulary;
   final HealthStore health;
   final FeedMetaStore feedMeta;
   final MetaStore meta;

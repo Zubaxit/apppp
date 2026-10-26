@@ -38,6 +38,9 @@ dependencies:
   # In-app browser for reading the publisher's own page without leaving the app.
   webview_flutter: ^4.10.0
 
+  # On-device English↔Bengali fallback after the free primary quota is exhausted.
+  google_mlkit_translation: ^0.13.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

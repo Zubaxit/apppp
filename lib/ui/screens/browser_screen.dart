@@ -9,6 +9,7 @@ import '../../core/utils/reader_extract.dart';
 import '../../core/utils/url_safety.dart';
 import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
+import '../../services/fallback_translation.dart';
 import '../../services/machine_translation.dart';
 import '../../services/translation_service.dart';
 import '../../state/saved_controller.dart';
@@ -67,7 +68,11 @@ class _BrowserScreenState extends State<BrowserScreen> {
   /// navigation.
   bool _backPending = false;
 
-  late final MachineTranslator _translator = widget.translator ?? MyMemoryTranslator();
+  late final MachineTranslator _translator = widget.translator ??
+      FallbackMachineTranslator(
+        primary: MyMemoryTranslator(),
+        fallback: MlKitOnDeviceTranslationEngine(),
+      );
   final TranslationService _glossary = TranslationService();
 
   /// The page's current text selection, trimmed, or empty.

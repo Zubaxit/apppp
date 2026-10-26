@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../data/models/article.dart';
+import '../data/models/vocabulary_entry.dart';
 import '../data/services/article_repository.dart';
 import 'settings_controller.dart';
 
@@ -16,13 +17,25 @@ class SavedController extends ChangeNotifier {
 
   List<SavedArticle> _saved = const <SavedArticle>[];
   List<SavedArticle> _history = const <SavedArticle>[];
+  List<VocabularyEntry> _vocabulary = const <VocabularyEntry>[];
   Set<String> _ids = <String>{};
+  int _vocabularyRevision = 0;
   bool _loading = true;
 
   List<SavedArticle> get saved => _saved;
   List<SavedArticle> get history => _history;
+  List<VocabularyEntry> get vocabulary => _vocabulary;
+  int get vocabularyRevision => _vocabularyRevision;
   bool get isLoading => _loading;
   int get count => _saved.length;
+
+  VocabularyEntry? vocabularyFor(String word) {
+    final String normalized = VocabularyEntry.normalizeWord(word);
+    for (final VocabularyEntry entry in _vocabulary) {
+      if (entry.normalizedWord == normalized) return entry;
+    }
+    return null;
+  }
 
   bool isSaved(String articleId) => _ids.contains(articleId);
 
@@ -35,6 +48,8 @@ class SavedController extends ChangeNotifier {
       } else {
         _history = const <SavedArticle>[];
       }
+      _vocabulary = await repository.vocabulary();
+      _vocabularyRevision += 1;
     } catch (error) {
       if (kDebugMode) debugPrint('Saved load failed: $error');
       _saved = const <SavedArticle>[];
@@ -81,6 +96,30 @@ class SavedController extends ChangeNotifier {
     } catch (error) {
       if (kDebugMode) debugPrint('History write failed: $error');
     }
+  }
+
+  Future<void> saveVocabulary(VocabularyEntry entry) async {
+    if (entry.normalizedWord.isEmpty || entry.meaningBn.trim().isEmpty) return;
+    await repository.saveVocabulary(entry);
+    _vocabulary = <VocabularyEntry>[
+      entry,
+      ..._vocabulary.where(
+        (VocabularyEntry item) =>
+            item.normalizedWord != entry.normalizedWord,
+      ),
+    ];
+    _vocabularyRevision += 1;
+    notifyListeners();
+  }
+
+  Future<void> removeVocabulary(String word) async {
+    final String normalized = VocabularyEntry.normalizeWord(word);
+    await repository.removeVocabulary(normalized);
+    _vocabulary = _vocabulary
+        .where((VocabularyEntry item) => item.normalizedWord != normalized)
+        .toList(growable: false);
+    _vocabularyRevision += 1;
+    notifyListeners();
   }
 
   Future<void> clearHistory() async {
