@@ -19,7 +19,9 @@ class VocabularyMatcher {
   VocabularyMatcher(Iterable<VocabularyEntry> entries) {
     for (final VocabularyEntry entry in entries) {
       final String base = entry.normalizedWord;
-      if (base.isEmpty) continue;
+      if (base.isEmpty) {
+        continue;
+      }
       _exact[base] = entry;
       for (final String form in formsFor(base)) {
         _forms.putIfAbsent(form, () => entry);
@@ -31,12 +33,16 @@ class VocabularyMatcher {
   final Map<String, VocabularyEntry> _forms = <String, VocabularyEntry>{};
 
   List<VocabularyMatch> find(String text) {
-    if (_exact.isEmpty || text.isEmpty) return const <VocabularyMatch>[];
+    if (_exact.isEmpty || text.isEmpty) {
+      return const <VocabularyMatch>[];
+    }
     final List<VocabularyMatch> matches = <VocabularyMatch>[];
     for (final RegExpMatch token in RegExp(r"[A-Za-z]+(?:['’][A-Za-z]+)?").allMatches(text)) {
       final String normalized = token.group(0)!.toLowerCase();
       final VocabularyEntry? entry = _exact[normalized] ?? _forms[normalized];
-      if (entry == null) continue;
+      if (entry == null) {
+        continue;
+      }
       matches.add(VocabularyMatch(start: token.start, end: token.end, entry: entry));
     }
     return matches;
@@ -44,7 +50,9 @@ class VocabularyMatcher {
 
   static Set<String> formsFor(String value) {
     final String word = VocabularyEntry.normalizeWord(value);
-    if (word.length < 4) return <String>{word};
+    if (word.length < 4) {
+      return <String>{word};
+    }
     final Set<String> forms = <String>{word};
     if (word.endsWith('e')) {
       forms

@@ -3,8 +3,7 @@ import 'package:bangladesh_newspaper_hub/services/machine_translation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _Primary implements MachineTranslator {
-  _Primary({this.result = 'primary', this.error});
-  final String result;
+  _Primary({this.error});
   final TranslationException? error;
   int calls = 0;
   @override
@@ -14,8 +13,10 @@ class _Primary implements MachineTranslator {
   @override
   Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
     calls++;
-    if (error != null) throw error!;
-    return result;
+    if (error != null) {
+      throw error!;
+    }
+    return 'primary';
   }
   @override
   Future<List<String>> translateAll(List<String> texts, {String from = 'en', String to = 'bn'}) =>
@@ -44,7 +45,9 @@ class _Device implements OnDeviceTranslationEngine {
   @override
   Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
     calls++;
-    if (!ready) await prepare(from: from, to: to);
+    if (!ready) {
+      await prepare(from: from, to: to);
+    }
     return 'বাংলা:$text';
   }
   @override

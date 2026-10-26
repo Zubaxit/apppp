@@ -42,12 +42,16 @@ class MlKitOnDeviceTranslationEngine implements OnDeviceTranslationEngine {
       if (!await _models.isModelDownloaded(source.bcpCode)) {
         final bool downloaded =
             await _models.downloadModel(source.bcpCode, isWifiRequired: false);
-        if (!downloaded) throw StateError('English model download failed');
+        if (!downloaded) {
+          throw StateError('English model download failed');
+        }
       }
       if (!await _models.isModelDownloaded(target.bcpCode)) {
         final bool downloaded =
             await _models.downloadModel(target.bcpCode, isWifiRequired: false);
-        if (!downloaded) throw StateError('Bengali model download failed');
+        if (!downloaded) {
+          throw StateError('Bengali model download failed');
+        }
       }
     } catch (_) {
       throw const TranslationException(
@@ -77,7 +81,7 @@ class MlKitOnDeviceTranslationEngine implements OnDeviceTranslationEngine {
 
   @override
   Future<void> close() async {
-    _translator?.close();
+    await _translator?.close();
     _translator = null;
   }
 }
@@ -110,10 +114,14 @@ class FallbackMachineTranslator implements MachineTranslator {
   @override
   Future<String> translate(String text, {String from = 'en', String to = 'bn'}) {
     final String source = text.trim();
-    if (source.isEmpty) return Future<String>.value('');
+    if (source.isEmpty) {
+      return Future<String>.value('');
+    }
     final String key = '$from|$to|$source';
     final String? cached = _cache[key];
-    if (cached != null) return Future<String>.value(cached);
+    if (cached != null) {
+      return Future<String>.value(cached);
+    }
     return _inFlight.putIfAbsent(key, () async {
       try {
         String translated;
@@ -123,16 +131,20 @@ class FallbackMachineTranslator implements MachineTranslator {
           try {
             translated = await _primary.translate(source, from: from, to: to);
           } on TranslationException catch (error) {
-            if (!error.quotaExhausted) rethrow;
+            if (!error.quotaExhausted) {
+              rethrow;
+            }
             _usingFallback = true;
             translated = await _fallback.translate(source, from: from, to: to);
           }
         }
-        if (_cache.length >= 300) _cache.remove(_cache.keys.first);
+        if (_cache.length >= 300) {
+          _cache.remove(_cache.keys.first);
+        }
         _cache[key] = translated;
         return translated;
       } finally {
-        _inFlight.remove(key);
+        unawaited(_inFlight.remove(key));
       }
     });
   }

@@ -31,7 +31,9 @@ class SpokenDocument {
     final List<int> starts = <int>[];
     final StringBuffer joined = StringBuffer();
     for (int i = 0; i < clean.length; i++) {
-      if (i > 0) joined.write('\n\n');
+      if (i > 0) {
+        joined.write('\n\n');
+      }
       starts.add(joined.length);
       joined.write(clean[i]);
     }
@@ -41,7 +43,9 @@ class SpokenDocument {
     final RegExp boundary = RegExp(r'[.!?।]+(?:["”’\)]*)?(?=\s|$)');
     for (final RegExpMatch match in boundary.allMatches(text)) {
       int start = cursor;
-      while (start < match.end && _space(text.codeUnitAt(start))) start += 1;
+      while (start < match.end && _space(text.codeUnitAt(start))) {
+        start += 1;
+      }
       if (start < match.end) {
         sentences.add(SentenceRange(
           start: start,
@@ -52,7 +56,9 @@ class SpokenDocument {
       cursor = match.end;
     }
     int start = cursor;
-    while (start < text.length && _space(text.codeUnitAt(start))) start += 1;
+    while (start < text.length && _space(text.codeUnitAt(start))) {
+      start += 1;
+    }
     if (start < text.length) {
       sentences.add(SentenceRange(start: start, end: text.length, text: text.substring(start)));
     }
@@ -68,17 +74,23 @@ class SpokenDocument {
   int sentenceAt(int offset) {
     for (int i = 0; i < sentences.length; i++) {
       if (sentences[i].contains(offset) ||
-          (offset == text.length && i == sentences.length - 1)) return i;
+          (offset == text.length && i == sentences.length - 1)) {
+        return i;
+      }
     }
     return -1;
   }
 
   int paragraphForSentence(int sentence) {
-    if (sentence < 0 || sentence >= sentences.length) return -1;
+    if (sentence < 0 || sentence >= sentences.length) {
+      return -1;
+    }
     final int offset = sentences[sentence].start;
     int result = 0;
     for (int i = 0; i < paragraphStarts.length; i++) {
-      if (paragraphStarts[i] > offset) break;
+      if (paragraphStarts[i] > offset) {
+        break;
+      }
       result = i;
     }
     return result;
@@ -113,7 +125,9 @@ abstract class ReaderTtsEngine {
 class PlatformReaderTtsEngine implements ReaderTtsEngine {
   PlatformReaderTtsEngine() {
     _channel.setMethodCallHandler((MethodCall call) async {
-      if (call.method != 'ttsEvent') return;
+      if (call.method != 'ttsEvent') {
+        return;
+      }
       final Map<Object?, Object?> raw = call.arguments as Map<Object?, Object?>? ?? <Object?, Object?>{};
       _events.add(TtsEvent(
         '${raw['type'] ?? ''}',
@@ -198,7 +212,9 @@ class ReaderTtsController extends ChangeNotifier {
     } on MissingPluginException {
       return;
     }
-    if (value.isEmpty) return;
+    if (value.isEmpty) {
+      return;
+    }
     _articleId = value['articleId'] as String?;
     _offset = (value['offset'] as num?)?.toInt() ?? 0;
     _speed = (value['rate'] as num?)?.toDouble() ?? 1;
@@ -208,7 +224,9 @@ class ReaderTtsController extends ChangeNotifier {
 
   Future<void> play(String id, List<String> paragraphs, {required String language}) async {
     final SpokenDocument next = SpokenDocument.fromParagraphs(paragraphs);
-    if (next.text.isEmpty) return;
+    if (next.text.isEmpty) {
+      return;
+    }
     if (_articleId != id) {
       _offset = 0;
       _activeSentence = 0;
@@ -238,7 +256,9 @@ class ReaderTtsController extends ChangeNotifier {
   Future<void> stop() => _engine.stop();
 
   Future<void> setSpeed(double value) async {
-    if (!speeds.contains(value)) return;
+    if (!speeds.contains(value)) {
+      return;
+    }
     _speed = value;
     notifyListeners();
     await _engine.setRate(value);
@@ -246,7 +266,9 @@ class ReaderTtsController extends ChangeNotifier {
 
   Future<void> skipSentences(int delta) async {
     final SpokenDocument? value = _document;
-    if (value == null || value.sentences.isEmpty) return;
+    if (value == null || value.sentences.isEmpty) {
+      return;
+    }
     final int current = _activeSentence < 0 ? value.sentenceAt(_offset) : _activeSentence;
     final int target = (current + delta).clamp(0, value.sentences.length - 1);
     _activeSentence = target;
@@ -256,15 +278,21 @@ class ReaderTtsController extends ChangeNotifier {
   }
 
   void attach(String id, List<String> paragraphs) {
-    if (_articleId != id) return;
+    if (_articleId != id) {
+      return;
+    }
     _document = SpokenDocument.fromParagraphs(paragraphs);
     _activeSentence = _document!.sentenceAt(_offset);
     notifyListeners();
   }
 
   void _onEvent(TtsEvent event) {
-    if (event.data['articleId'] != null) _articleId = '${event.data['articleId']}';
-    if (event.data['offset'] is num) _offset = (event.data['offset']! as num).toInt();
+    if (event.data['articleId'] != null) {
+      _articleId = '${event.data['articleId']}';
+    }
+    if (event.data['offset'] is num) {
+      _offset = (event.data['offset']! as num).toInt();
+    }
     switch (event.type) {
       case 'playing':
       case 'progress':
@@ -281,7 +309,9 @@ class ReaderTtsController extends ChangeNotifier {
         _state = TtsPlaybackState.error;
         _error = '${event.data['message'] ?? 'Text-to-speech failed.'}';
     }
-    if (_document != null) _activeSentence = _document!.sentenceAt(_offset);
+    if (_document != null) {
+      _activeSentence = _document!.sentenceAt(_offset);
+    }
     notifyListeners();
   }
 
@@ -295,7 +325,7 @@ class ReaderTtsController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _subscription.cancel();
+    unawaited(_subscription.cancel());
     super.dispose();
   }
 }

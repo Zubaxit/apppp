@@ -21,7 +21,9 @@ Future<void> showVocabularyEditor(
 }) async {
   final SavedController saved = context.read<SavedController>();
   final String normalized = VocabularyEntry.normalizeWord(word);
-  if (normalized.isEmpty) return;
+  if (normalized.isEmpty) {
+    return;
+  }
   final VocabularyEntry? existing = saved.vocabularyFor(normalized);
   final TextEditingController meaning =
       TextEditingController(text: existing?.meaningBn ?? '');
@@ -109,7 +111,9 @@ Future<void> showVocabularyEditor(
           ),
           FilledButton(
             onPressed: () async {
-              if (meaning.text.trim().isEmpty) return;
+              if (meaning.text.trim().isEmpty) {
+                return;
+              }
               await saved.saveVocabulary(VocabularyEntry(
                 word: existing?.word ?? word.trim(),
                 meaningBn: meaning.text.trim(),
@@ -120,7 +124,9 @@ Future<void> showVocabularyEditor(
                 sourceName: existing?.sourceName ?? sourceName,
                 savedAt: existing?.savedAt ?? DateTime.now().toUtc(),
               ));
-              if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
             },
             child: const Text('Save'),
           ),

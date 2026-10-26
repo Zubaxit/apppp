@@ -70,18 +70,26 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
     super.initState();
     _tts.attach(_articleId, widget.document.paragraphs);
     _tts.addListener(_onTtsChanged);
-    if (widget.startTranslated) unawaited(_controller.translateAll());
+    if (widget.startTranslated) {
+      unawaited(_controller.translateAll());
+    }
   }
 
   void _onTtsChanged() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {});
     if (!_tts.isCurrent(_articleId) ||
         _tts.playbackState != TtsPlaybackState.playing ||
-        _tts.activeSentence == _lastAutoSentence) return;
+        _tts.activeSentence == _lastAutoSentence) {
+      return;
+    }
     _lastAutoSentence = _tts.activeSentence;
     final int paragraph = _tts.document?.paragraphForSentence(_tts.activeSentence) ?? -1;
-    if (paragraph < 0 || paragraph >= _paragraphKeys.length) return;
+    if (paragraph < 0 || paragraph >= _paragraphKeys.length) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final BuildContext? target = _paragraphKeys[paragraph].currentContext;
       if (mounted && target != null) {
@@ -261,7 +269,9 @@ class _Article extends StatelessWidget {
       cacheExtent: 480,
       itemCount: document.blocks.length + 1,
       itemBuilder: (BuildContext context, int index) {
-        if (index == 0) return _ArticleHead(document: document);
+        if (index == 0) {
+          return _ArticleHead(document: document);
+        }
 
         final ReaderBlock block = document.blocks[index - 1];
         if (block.isImage) {
@@ -374,17 +384,23 @@ class _ReaderParagraphState extends State<_ReaderParagraph> {
 
   @override
   void dispose() {
-    for (final TapGestureRecognizer recognizer in _recognizers) recognizer.dispose();
+    for (final TapGestureRecognizer recognizer in _recognizers) {
+      recognizer.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    for (final TapGestureRecognizer recognizer in _recognizers) recognizer.dispose();
+    for (final TapGestureRecognizer recognizer in _recognizers) {
+      recognizer.dispose();
+    }
     _recognizers.clear();
     final Set<int> boundary = <int>{0, widget.text.length};
     final SentenceRange? active = widget.activeSentence;
-    if (active != null) boundary.addAll(<int>[active.start, active.end]);
+    if (active != null) {
+      boundary.addAll(<int>[active.start, active.end]);
+    }
     for (final VocabularyMatch match in widget.matches) {
       boundary.addAll(<int>[match.start, match.end]);
     }
@@ -393,7 +409,9 @@ class _ReaderParagraphState extends State<_ReaderParagraph> {
     for (int i = 0; i + 1 < points.length; i++) {
       final int start = points[i];
       final int end = points[i + 1];
-      if (start == end) continue;
+      if (start == end) {
+        continue;
+      }
       VocabularyMatch? vocabulary;
       for (final VocabularyMatch candidate in widget.matches) {
         if (start >= candidate.start && end <= candidate.end) {
@@ -582,13 +600,17 @@ SentenceRange? _localSentence(
   int sentenceIndex,
   int paragraph,
 ) {
-  if (sentenceIndex < 0 || sentenceIndex >= document.sentences.length) return null;
+  if (sentenceIndex < 0 || sentenceIndex >= document.sentences.length) {
+    return null;
+  }
   final SentenceRange sentence = document.sentences[sentenceIndex];
   final int paragraphStart = document.paragraphStarts[paragraph];
   final int paragraphEnd = paragraph + 1 < document.paragraphStarts.length
       ? document.paragraphStarts[paragraph + 1] - 2
       : document.text.length;
-  if (sentence.end <= paragraphStart || sentence.start >= paragraphEnd) return null;
+  if (sentence.end <= paragraphStart || sentence.start >= paragraphEnd) {
+    return null;
+  }
   return SentenceRange(
     start: (sentence.start - paragraphStart).clamp(0, paragraphEnd - paragraphStart),
     end: (sentence.end - paragraphStart).clamp(0, paragraphEnd - paragraphStart),
@@ -895,14 +917,18 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
     }
     try {
       final String value = await widget.translator.translate(widget.selection);
-      if (!mounted) return;
+      if (!mounted) {
+      return;
+    }
       setState(() {
         _translation = value;
         _loading = false;
       });
     } on TranslationException catch (error) {
       final String? meaning = await widget.glossary(widget.selection);
-      if (!mounted) return;
+      if (!mounted) {
+      return;
+    }
       setState(() {
         _error = error.message;
         _offlineMeaning = meaning;
@@ -910,7 +936,9 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
       });
     } catch (_) {
       final String? meaning = await widget.glossary(widget.selection);
-      if (!mounted) return;
+      if (!mounted) {
+      return;
+    }
       setState(() {
         _error = widget.selection.trim().contains(' ')
             ? 'This text could not be translated right now.'
@@ -923,7 +951,9 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
 
   Future<void> _copy() async {
     await Clipboard.setData(ClipboardData(text: widget.selection));
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     context.showSnack(context.strings.textCopied);
   }
 
