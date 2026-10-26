@@ -1,6 +1,8 @@
 name: Format once
 
 on:
+  push:
+    branches: ["arena/3a277fda-apppp"]
   workflow_dispatch:
 
 permissions:
