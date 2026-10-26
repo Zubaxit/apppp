@@ -830,7 +830,7 @@ class _AddressPill extends StatelessWidget {
             Tooltip(
               message: tooltip ?? '',
               child: _ReaderDiscoveryButton(
-                onTap: onRead,
+                onTap: onRead!,
                 reading: reading,
                 compact: compact,
               ),
