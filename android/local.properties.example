@@ -1,0 +1,5 @@
+# Copy to android/local.properties (never commit it) or let `flutter build` create it.
+sdk.dir=/path/to/Android/sdk
+flutter.sdk=/path/to/flutter
+flutter.versionCode=1
+flutter.versionName=1.0.0

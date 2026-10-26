@@ -1,0 +1,244 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "arena/**", "feature/**"]
+  pull_request:
+  workflow_dispatch:
+
+# A superseded commit must not keep expensive Flutter tests and three APK
+# builds running. Push and PR refs remain isolated from each other.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    name: Analyze & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.27.4"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Format Dart source
+        run: |
+          dart format lib test
+          git diff --binary > dart-format.patch
+
+      - name: Upload formatting patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: dart-format-patch
+          path: dart-format.patch
+          retention-days: 3
+
+      - name: Static analysis
+        run: |
+          set -o pipefail
+          flutter analyze --fatal-warnings 2>&1 | tee analyze.log
+
+      # Runner logs are not always reachable from a headless session, so the
+      # diagnostics are republished as check annotations (and kept as an
+      # artifact). The analysis step above still decides pass/fail.
+      - name: Surface analyzer diagnostics
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          entries = [line for line in Path('analyze.log').read_text(
+              encoding='utf-8', errors='replace').splitlines() if line.strip()]
+          for start in range(0, min(len(entries), 240), 12):
+              chunk = entries[start:start + 12]
+              message = '%0A'.join(item.replace('%', '%25') for item in chunk)
+              print(f'::error::{message}')
+          PY
+
+      - name: Upload analyzer output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyze-log
+          path: analyze.log
+          if-no-files-found: ignore
+
+      - name: Unit and widget tests
+        run: |
+          set -o pipefail
+          flutter test --reporter expanded --concurrency=1 --coverage 2>&1 | tee test.log
+
+      - name: Surface test failures
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          lines = Path('test.log').read_text(encoding='utf-8', errors='replace').splitlines()
+          noise = re.compile(r'^(<asynchronous|package:flutter|package:stack_trace|'
+                             r'\(elided|════|══╡|When the exception|'
+                             r'\.\.\.\s+Normal element mounting|\s*$)')
+
+          failing = [line for line in lines if '[E]' in line]
+          names = []
+          for line in failing:
+              parts = line.split(': ', 2)
+              names.append(parts[-1].split(' [E]')[0] if len(parts) > 1 else line)
+
+          def emit(prefix: str, body: list[str]) -> None:
+              body = [line for line in body if not noise.match(line)][:90]
+              if not body:
+                  return
+              message = '%0A'.join(item.replace('%', '%25') for item in body)
+              print(f'::error::{prefix}%0A{message}')
+
+          emit(f'{len(failing)} failing tests:', names[:40])
+          emit('App frames in the log:', [line for line in lines
+                                          if 'bangladesh_newspaper_hub/' in line][:25])
+          failures = [i for i, line in enumerate(lines) if '[E]' in line][:6]
+          for index, start_at in enumerate(failures, start=1):
+              emit(f'Failure {index}:', lines[start_at:start_at + 14])
+
+          start = next((i for i, line in enumerate(lines) if 'LAYOUT-ERROR' in line), None)
+          layout = lines[start:start + 60] if start is not None else []
+          emit('Layout diagnostics:', layout)
+
+          first = next((i for i, line in enumerate(lines) if 'EXCEPTION CAUGHT' in line), None)
+          if first is not None:
+              emit('First exception:', lines[first:first + 200])
+          else:
+              emit('Log tail:', lines[-160:])
+          PY
+
+      - name: Upload test output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log
+          path: test.log
+          if-no-files-found: ignore
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.27.4"
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build release APK (universal)
+        run: flutter build apk --release
+
+      # One APK per ABI as well: an arm64 phone only needs its own engine, and
+      # that slice is roughly a third of the universal file. The universal APK
+      # stays available because it installs anywhere without a choice.
+      - name: Build split release APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      # Size evidence, published as check annotations because runner logs are
+      # not reachable from a headless session. These are measurements of the
+      # real artifacts and their entries, not estimates. GitHub keeps only a
+      # handful of annotations per job, so each one is packed with lines.
+      - name: Report artifact sizes and the composition of the release APK
+        run: |
+          set -euo pipefail
+          mkdir -p dist/split
+          cp build/app/outputs/flutter-apk/app-release.apk dist/
+          cp build/app/outputs/flutter-apk/app-debug.apk dist/
+          cp build/app/outputs/flutter-apk/app-*-release.apk dist/split/ 2>/dev/null || true
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+
+          def emit(title, lines):
+              body = '%0A'.join(line.replace('%', '%25') for line in lines)
+              print(f'::notice title={title}::{body}')
+
+          files = sorted(Path('dist').rglob('*.apk'))
+          emit('APK sizes (bytes)', [f'{f} = {f.stat().st_size}' for f in files])
+
+          apk = Path('dist/app-release.apk')
+          with zipfile.ZipFile(apk) as z:
+              entries = [(i.file_size, i.filename) for i in z.infolist()]
+          entries.sort(reverse=True)
+          total = sum(size for size, _ in entries)
+          emit('Universal release APK: largest entries (uncompressed bytes)',
+               [f'{size:>10}  {name}' for size, name in entries[:16]])
+
+          groups = {}
+          for size, name in entries:
+              if name.startswith('lib/'):
+                  key = 'lib/' + name.split('/')[1] + ' native'
+              elif name.startswith('assets/flutter_assets/fonts'):
+                  key = 'assets/flutter_assets/fonts'
+              elif name.startswith('assets/flutter_assets/assets'):
+                  key = 'assets/flutter_assets/assets (registry, glossary, icons)'
+              elif name.startswith('assets/flutter_assets'):
+                  key = 'assets/flutter_assets (Dart code, kernel blobs)'
+              elif name.startswith('res/'):
+                  key = 'res (compiled Android resources)'
+              elif name.endswith('.dex'):
+                  key = 'classes*.dex'
+              elif name.startswith('META-INF'):
+                  key = 'META-INF (signature, services)'
+              else:
+                  key = 'other'
+              groups[key] = groups.get(key, 0) + size
+          lines = [f'{size / 1048576:6.2f} MB  {size * 100 / total:5.1f}%  {key}'
+                   for key, size in sorted(groups.items(), key=lambda kv: -kv[1])]
+          emit(f'Release APK composition (total {total / 1048576:.2f} MB uncompressed)', lines)
+          PY
+
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-release
+          path: dist/app-release.apk
+          if-no-files-found: error
+
+      - name: Upload per-ABI release APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-split
+          path: dist/split/*.apk
+          if-no-files-found: error
+
+      # The debug build is kept for inspection only. It embeds a JIT snapshot
+      # for every ABI and is ~5x the release APK, which is why it is no longer
+      # bundled with the release file under one artifact name.
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-debug
+          path: dist/app-debug.apk
+          if-no-files-found: error

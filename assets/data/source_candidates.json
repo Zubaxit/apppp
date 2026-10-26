@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Maintenance backlog. These publications are known to exist but their official domain or feed has not been confirmed, so they are NOT shown in the app directory. Move an entry into sources.json once its official website is verified.",
+  "candidates": [
+    {
+      "name": "Dainik Purbanchal",
+      "nameBn": "দৈনিক পূর্বাঞ্চল",
+      "division": "Khulna",
+      "district": "Khulna",
+      "language": "bn",
+      "note": "Regional daily from Khulna. Confirm the current official domain before publishing an entry."
+    },
+    {
+      "name": "Dainik Sonar Desh",
+      "nameBn": "দৈনিক সোনার দেশ",
+      "division": "Rajshahi",
+      "district": "Rajshahi",
+      "language": "bn",
+      "note": "Regional daily from Rajshahi. Confirm current official domain."
+    },
+    {
+      "name": "Dainik Uttarbanga",
+      "nameBn": "দৈনিক উত্তরবঙ্গ",
+      "division": "Rangpur",
+      "district": "Rangpur",
+      "language": "bn",
+      "note": "Regional daily from Rangpur. Confirm current official domain."
+    },
+    {
+      "name": "Dainik Barishal",
+      "nameBn": "দৈনিক বরিশাল",
+      "division": "Barishal",
+      "district": "Barishal",
+      "language": "bn",
+      "note": "Regional daily from Barishal. Confirm current official domain."
+    },
+    {
+      "name": "Dainik Ajker Barta",
+      "nameBn": "দৈনিক আজকের বার্তা",
+      "division": "Mymensingh",
+      "district": "Mymensingh",
+      "language": "bn",
+      "note": "Regional daily from Mymensingh. Confirm current official domain."
+    },
+    {
+      "name": "Dainik Banglabazar",
+      "nameBn": "দৈনিক বাংলাবাজার",
+      "division": "Dhaka",
+      "district": "Dhaka",
+      "language": "bn",
+      "note": "Confirm current publication status and domain."
+    }
+  ]
+}

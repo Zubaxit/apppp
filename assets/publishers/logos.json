@@ -1,0 +1,33 @@
+{
+  "note": "Bundled publisher marks, used only to identify each publisher in this reader. Provenance and the exact source for each file: assets/publishers/SOURCES.md.",
+  "size": 128,
+  "logos": {
+    "ajker_patrika": {
+      "file": "assets/publishers/ajker_patrika.png"
+    },
+    "aljazeera": {
+      "file": "assets/publishers/aljazeera.png"
+    },
+    "bbc_bangla": {
+      "file": "assets/publishers/bbc_bangla.png"
+    },
+    "bbc_world": {
+      "file": "assets/publishers/bbc_world.png"
+    },
+    "dainik_azadi": {
+      "file": "assets/publishers/dainik_azadi.png"
+    },
+    "dhaka_post": {
+      "file": "assets/publishers/dhaka_post.png"
+    },
+    "dw_news": {
+      "file": "assets/publishers/dw_news.png"
+    },
+    "kaler_kantho": {
+      "file": "assets/publishers/kaler_kantho.png"
+    },
+    "prothomalo": {
+      "file": "assets/publishers/prothomalo.png"
+    }
+  }
+}

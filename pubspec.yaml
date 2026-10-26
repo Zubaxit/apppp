@@ -1,0 +1,84 @@
+name: bangladesh_newspaper_hub
+description: >-
+  Amar News (আমার নিউজ) — a premium, offline-friendly Android news reader that
+  brings verified Bangladeshi and international news feeds together in one
+  editorial reading experience.
+publish_to: "none"
+version: 1.2.0+3
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management (lightweight, no code generation).
+  provider: ^6.1.2
+
+  # Networking + XML/RSS parsing.
+  http: ^1.2.2
+  xml: ^6.5.0
+  html: ^0.15.4
+
+  # Local persistence: structured cache (sqlite) + small preferences.
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+  shared_preferences: ^2.2.3
+
+  # Platform integration.
+  url_launcher: ^6.3.0
+  share_plus: ^7.2.2
+  connectivity_plus: ^6.0.3
+  file_selector: ^1.0.3
+
+  # Media + formatting.
+  cached_network_image: ^3.4.1
+  # Direct access to the image cache for the user-controlled safe cleanup.
+  flutter_cache_manager: ^3.4.1
+
+  # In-app browser for reading the publisher's own page without leaving the app.
+  webview_flutter: ^4.10.0
+
+  # On-device English↔Bengali fallback after the free primary quota is exhausted.
+  google_mlkit_translation: ^0.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/data/sources.json
+    - assets/data/source_candidates.json
+    - assets/data/bn_glossary.json
+    - assets/fonts/OFL.txt
+    - assets/publishers/logos.json
+    - assets/publishers/
+    - assets/filters/news_shield_hosts.txt
+    - assets/developer/md_emon.jpg
+    - assets/images/news_fallback.jpg
+
+  fonts:
+    - family: NotoSansBengali
+      fonts:
+        - asset: assets/fonts/NotoSansBengali-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansBengali-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansBengali-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/NotoSansBengali-Bold.ttf
+          weight: 700
+    - family: NotoSerifBengali
+      fonts:
+        - asset: assets/fonts/NotoSerifBengali-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSerifBengali-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/NotoSerifBengali-Bold.ttf
+          weight: 700

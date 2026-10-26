@@ -1,0 +1,522 @@
+import 'dart:async';
+import 'dart:ui' show ImageFilter;
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/extensions.dart';
+import '../../data/models/app_preferences.dart';
+import '../../state/feed_controller.dart';
+import '../../state/saved_controller.dart';
+import '../../state/settings_controller.dart';
+import '../../theme/materials.dart';
+import '../../theme/motion.dart';
+import '../../theme/tokens.dart';
+import '../screens/categories_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/newspapers_screen.dart';
+import '../screens/saved_screen.dart';
+import '../screens/settings_screen.dart';
+
+/// The app shell: five tabs, a floating glass navigation bar, and one shared
+/// springy selection indicator.
+///
+/// Each tab keeps its own scroll state in an [IndexedStack]; the bar floats over
+/// the content with a real blur so headlines slide beneath it. Back navigation
+/// pops details first, then returns to Home, then exits.
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
+  int _index = 0;
+  bool _started = false;
+  Timer? _performanceTipTimer;
+
+  late final AnimationController _tabFade;
+  late final AnimationController _navBounce;
+  late final Animation<double> _navOffset;
+  double _scrollDistance = 0;
+  Timer? _bounceDebounce;
+  DateTime? _lastBounce;
+
+  final HomeReselectController _homeReselect = HomeReselectController();
+  final GlobalKey _ultraLightKey = GlobalKey();
+  late final List<Widget> _tabs = <Widget>[
+    HomeScreen(reselectController: _homeReselect),
+    const CategoriesScreen(),
+    const NewspapersScreen(),
+    const SavedScreen(),
+    SettingsScreen(ultraLightKey: _ultraLightKey),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabFade = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+      value: 1,
+    );
+    _navBounce = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _navOffset = TweenSequence<double>(
+      <TweenSequenceItem<double>>[
+        TweenSequenceItem<double>(
+          tween: Tween<double>(begin: 0, end: -5)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: 35,
+        ),
+        TweenSequenceItem<double>(
+          tween: Tween<double>(begin: -5, end: 1.5)
+              .chain(CurveTween(curve: Curves.easeInOut)),
+          weight: 35,
+        ),
+        TweenSequenceItem<double>(
+          tween: Tween<double>(begin: 1.5, end: 0)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: 30,
+        ),
+      ],
+    ).animate(_navBounce);
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_start()));
+  }
+
+  Future<void> _start() async {
+    if (_started || !mounted) return;
+    _started = true;
+    final FeedController feed = context.read<FeedController>();
+    final SavedController saved = context.read<SavedController>();
+    final SettingsController settings = context.read<SettingsController>();
+    final bool firstLaunch = !settings.prefs.onboardingComplete;
+    await saved.load();
+    await feed.start();
+    final bool successfulLoad = feed.articles.isNotEmpty &&
+        feed.lastReport?.storageError == null &&
+        ((feed.lastReport?.sourcesSucceeded ?? 0) > 0 ||
+            (feed.lastReport?.sourcesNotModified ?? 0) > 0);
+    if (firstLaunch && successfulLoad) {
+      // The welcome disappears synchronously with this preference update. The
+      // five-second tip delay starts only after that successful transition.
+      await settings.completeOnboarding();
+    }
+    if (firstLaunch && successfulLoad && !settings.performanceTipComplete) {
+      _schedulePerformanceTip(settings);
+    }
+    feed.setPollingActive(_index == 0);
+    if (settings.defaultFeed == DefaultFeed.following &&
+        settings.followedSourceIds.isNotEmpty) {
+      await feed.setFollowedOnly(true);
+    }
+  }
+
+  void _schedulePerformanceTip(SettingsController settings) {
+    if (_performanceTipTimer?.isActive ?? false) return;
+    _performanceTipTimer = Timer(const Duration(seconds: 5), () async {
+      if (!mounted || settings.performanceTipComplete) return;
+      await settings.completePerformanceTip();
+      if (!mounted) return;
+      final bool? openSettings = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext dialogContext) => AlertDialog(
+          key: const ValueKey<String>('performance-tip'),
+          title: Text(settings.strings.performanceTipTitle),
+          content: Text(settings.strings.performanceTipBody),
+          actions: <Widget>[
+            TextButton(
+              key: const ValueKey<String>('performance-tip-dismiss'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(settings.strings.cancel),
+            ),
+            FilledButton(
+              key: const ValueKey<String>('performance-tip-settings'),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(settings.strings.performanceTipAction),
+            ),
+          ],
+        ),
+      );
+      if (openSettings == true && mounted) {
+        Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
+        _select(4);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final BuildContext? target = _ultraLightKey.currentContext;
+          if (!mounted || target == null) return;
+          Scrollable.ensureVisible(
+            target,
+            alignment: 0.35,
+            duration: AppMotionScope.of(context)
+                ? Duration.zero
+                : const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+          );
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _performanceTipTimer?.cancel();
+    _bounceDebounce?.cancel();
+    _tabFade.dispose();
+    _navBounce.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (!mounted) return;
+    final FeedController feed = context.read<FeedController>();
+    final bool resumed = state == AppLifecycleState.resumed;
+    feed.setPollingActive(resumed && _index == 0);
+    if (resumed) {
+      unawaited(feed.refreshIfStale());
+      unawaited(context.read<SavedController>().refreshHistory());
+    }
+  }
+
+  void _select(int index) {
+    if (index == _index) {
+      if (index == 0) {
+        unawaited(Haptics.tick());
+        unawaited(_homeReselect.reselect());
+      }
+      return;
+    }
+    unawaited(Haptics.tick());
+    setState(() => _index = index);
+    context.read<FeedController>().setPollingActive(index == 0);
+    _tabFade
+      ..value = 0
+      ..forward();
+  }
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth != 0) return false;
+    if (notification is ScrollStartNotification && _bounceDebounce == null) {
+      _scrollDistance = 0;
+    } else if (notification is ScrollUpdateNotification) {
+      _scrollDistance += (notification.scrollDelta ?? 0).abs();
+      _bounceDebounce?.cancel();
+      _bounceDebounce = Timer(const Duration(milliseconds: 120), () {
+        _bounceDebounce = null;
+        final double distance = _scrollDistance;
+        _scrollDistance = 0;
+        if (!mounted) return;
+        final DateTime now = DateTime.now();
+        final DateTime? previous = _lastBounce;
+        if (distance >= 72 &&
+            !Motion.of(context).reduce &&
+            !AppEffectsScope.of(context) &&
+            (previous == null ||
+                now.difference(previous) >= const Duration(seconds: 2))) {
+          _lastBounce = now;
+          _navBounce.forward(from: 0);
+        }
+      });
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final SettingsController settings = context.watch<SettingsController>();
+    final int savedCount = context.select<SavedController, int>(
+      (SavedController controller) => controller.count,
+    );
+
+    return PopScope(
+      // Back on a non-home tab returns to Home; on Home it leaves the app.
+      canPop: _index == 0,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) return;
+        if (_index != 0) _select(0);
+      },
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: Colors.transparent,
+        body: AuroraBackdrop(
+          child: Stack(
+            children: <Widget>[
+              NotificationListener<ScrollNotification>(
+                onNotification: _onScroll,
+                child: FadeTransition(
+                  opacity: _tabFade,
+                  child: IndexedStack(index: _index, children: _tabs),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: AnimatedBuilder(
+                  animation: _navBounce,
+                  child: _FloatingNav(
+                    index: _index,
+                    onSelected: _select,
+                    savedCount: savedCount,
+                    labels: <String>[
+                      settings.strings.navHome,
+                      settings.strings.navCategories,
+                      settings.strings.navPapers,
+                      settings.strings.navSaved,
+                      settings.strings.navSettings,
+                    ],
+                  ),
+                  builder: (BuildContext context, Widget? child) {
+                    return Transform.translate(
+                      key: const ValueKey<String>('scroll-nav-bounce'),
+                      offset: Offset(0, _navOffset.value),
+                      child: child,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The floating navigation bar.
+///
+/// A single glass capsule, inset from the screen edges, sitting above the
+/// gesture bar. The selected item gets a tinted capsule that animates across
+/// with a spring curve, and each item compresses on touch.
+class _FloatingNav extends StatelessWidget {
+  const _FloatingNav({
+    required this.index,
+    required this.onSelected,
+    required this.labels,
+    required this.savedCount,
+  });
+
+  final int index;
+  final ValueChanged<int> onSelected;
+  final List<String> labels;
+  final int savedCount;
+
+  static const List<IconData> _icons = <IconData>[
+    Icons.article_outlined,
+    Icons.grid_view_outlined,
+    Icons.menu_book_outlined,
+    Icons.bookmark_border_rounded,
+    Icons.tune_rounded,
+  ];
+
+  static const List<IconData> _activeIcons = <IconData>[
+    Icons.article_rounded,
+    Icons.grid_view_rounded,
+    Icons.menu_book_rounded,
+    Icons.bookmark_rounded,
+    Icons.tune_rounded,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final Motion motion = Motion.of(context);
+    final bool dark = context.isDark;
+    final double bottomInset = MediaQuery.paddingOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset > 0 ? 10 : 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Tokens.radiusXl),
+        child: BackdropFilter(
+          enabled: !AppEffectsScope.of(context),
+          filter: ImageFilter.blur(
+            sigmaX: Tokens.blurStrong,
+            sigmaY: Tokens.blurStrong,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Tokens.radiusXl),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: dark
+                    ? <Color>[
+                        Colors.white.withValues(alpha: 0.10),
+                        Colors.white.withValues(alpha: 0.045),
+                      ]
+                    : <Color>[
+                        Colors.white.withValues(alpha: 0.88),
+                        Colors.white.withValues(alpha: 0.64),
+                      ],
+              ),
+              border: Border.all(
+                color: dark
+                    ? Colors.white.withValues(alpha: 0.14)
+                    : Colors.white.withValues(alpha: 0.9),
+                width: 0.9,
+              ),
+              boxShadow: AppEffectsScope.of(context)
+                  ? const <BoxShadow>[]
+                  : Tokens.shadow(context, lift: 1),
+            ),
+            child: Stack(
+              children: <Widget>[
+                AnimatedAlign(
+                  duration: motion.reduce
+                      ? Duration.zero
+                      : const Duration(milliseconds: 420),
+                  curve: Curves.easeOutBack,
+                  alignment: Alignment(
+                    -1 + (2 / (_icons.length - 1)) * index,
+                    0,
+                  ),
+                  child: FractionallySizedBox(
+                    widthFactor: 1 / _icons.length,
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(Tokens.radiusLg),
+                        color: context.colors.primary.withValues(alpha: 0.10),
+                        border: Border.all(
+                          color: context.colors.primary.withValues(alpha: 0.18),
+                          width: 0.9,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: <Widget>[
+                    for (int i = 0; i < _icons.length; i++)
+                      Expanded(
+                        child: _NavItem(
+                          key: ValueKey<String>('nav-item-$i-${i == index}'),
+                          icon: _icons[i],
+                          activeIcon: _activeIcons[i],
+                          label: labels[i],
+                          active: i == index,
+                          badge: i == 3 && savedCount > 0 ? savedCount : null,
+                          onTap: () => onSelected(i),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    super.key,
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+    this.badge,
+  });
+
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+  final int? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final Motion motion = Motion.of(context);
+    final Color color =
+        active ? context.colors.primary : context.colors.onSurfaceVariant;
+    return Semantics(
+      selected: active,
+      button: true,
+      label: label,
+      child: JellySurface(
+        onTap: onTap,
+        scale: 0.9,
+        child: SizedBox(
+          height: 52,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Stack(
+                clipBehavior: Clip.none,
+                children: <Widget>[
+                  AnimatedSwitcher(
+                    duration: motion.standard,
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      if (motion.reduce) return child;
+                      return ScaleTransition(
+                        scale: Tween<double>(begin: 0.82, end: 1).animate(
+                          CurvedAnimation(
+                              parent: animation, curve: Curves.easeOutBack),
+                        ),
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: Icon(
+                      active ? activeIcon : icon,
+                      key: ValueKey<bool>(active),
+                      size: 21,
+                      color: color,
+                    ),
+                  ),
+                  if (badge != null)
+                    Positioned(
+                      right: -7,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: context.colors.primary,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '$badge',
+                          style: TextStyle(
+                            fontFamily: Tokens.sans,
+                            fontSize: 8,
+                            height: 1.3,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.texts.labelSmall?.copyWith(
+                  fontSize: 9,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+                  letterSpacing: 0.1,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

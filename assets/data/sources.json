@@ -1,0 +1,1682 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-25",
+  "about": "Curated registry of Bangladeshi publications and international Bengali/English news services. Domains were curated by hand and restricted to publishers whose official address the maintainer is confident about. A feed is only marked feedClaim=verified_working after scripts/probe_feeds.py or scripts/verify_sources.py fetched it and the evidence gate passed (valid XML, at least three items with links, timestamps, on-domain links, and Bengali headlines for Bengali publications); the per-source notes record the measured evidence and the date. Publishers that answer 403 or publish no feed stay in the directory as website-only entries, and the app never presents their headlines as available. The curated reading set is a presentation choice and covers only publishers whose feeds verified.",
+  "sources": [
+    {
+      "id": "prothomalo",
+      "name": "Prothom Alo",
+      "nameBn": "প্রথম আলো",
+      "aliases": [
+        "prothomalo",
+        "প্রথম আলো"
+      ],
+      "website": "https://www.prothomalo.com/",
+      "feedUrl": "https://www.prothomalo.com/stories.rss",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national",
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.prothomalo.com/",
+      "notes": "Feed fetched and parsed 2026-10-25: 60 items, all timestamped, Bengali headlines, valid XML, on-domain links.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 1
+    },
+    {
+      "id": "bd_pratidin",
+      "name": "Bangladesh Pratidin",
+      "nameBn": "বাংলাদেশ প্রতিদিন",
+      "aliases": [
+        "bd pratidin",
+        "bd-pratidin",
+        "বাংলাদেশ প্রতিদিন"
+      ],
+      "website": "https://www.bd-pratidin.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Eleven feed paths probed 2026-10-25: HTTP 403 on every one. No feed is claimed; website link only.",
+      "curated": true,
+      "curationOrder": 25,
+      "lastVerifiedAt": "2026-10-25"
+    },
+    {
+      "id": "kaler_kantho",
+      "name": "Kaler Kantho",
+      "nameBn": "কালের কণ্ঠ",
+      "aliases": [
+        "kalerkantho",
+        "কালের কণ্ঠ"
+      ],
+      "website": "https://www.kalerkantho.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.kalerkantho.com/",
+      "notes": "Eleven feed paths probed 2026-10-25 (/rss, /rss.xml, /feed, /rss/rss.xml, /rss/all.xml and more): every one answered HTTP 403 to a non-browser client. No feed is claimed; the publication is offered as an official website link only.",
+      "curated": true,
+      "curationOrder": 23,
+      "lastVerifiedAt": "2026-10-25"
+    },
+    {
+      "id": "jugantor",
+      "name": "Jugantor",
+      "nameBn": "যুগান্তর",
+      "aliases": [
+        "jugantor",
+        "যুগান্তর"
+      ],
+      "website": "https://www.jugantor.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": "https://epaper.jugantor.com/",
+      "notes": "Eleven feed paths probed 2026-10-25: HTTP 403 on every one. No feed is claimed; website link only.",
+      "curated": true,
+      "curationOrder": 21,
+      "lastVerifiedAt": "2026-10-25"
+    },
+    {
+      "id": "ittefaq",
+      "name": "The Daily Ittefaq",
+      "nameBn": "দৈনিক ইত্তেফাক",
+      "aliases": [
+        "ittefaq",
+        "ইত্তেফাক",
+        "দৈনিক ইত্তেফাক"
+      ],
+      "website": "https://www.ittefaq.com.bd/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.ittefaq.com.bd/",
+      "notes": "Ten feed paths probed 2026-10-25 (/rss, /feed, /rss.xml, /rss/rss.xml, /rss/all.xml and more): HTTP 403 on every one. No feed is claimed; website link only.",
+      "curated": true,
+      "curationOrder": 24,
+      "lastVerifiedAt": "2026-10-25"
+    },
+    {
+      "id": "samakal",
+      "name": "Samakal",
+      "nameBn": "সমকাল",
+      "aliases": [
+        "samakal",
+        "সমকাল"
+      ],
+      "website": "https://samakal.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": "https://epaper.samakal.com/",
+      "notes": "Ten feed paths probed 2026-10-25: HTTP 403 on every one. No feed is claimed; website link only.",
+      "curated": true,
+      "curationOrder": 22,
+      "lastVerifiedAt": "2026-10-25"
+    },
+    {
+      "id": "janakantha",
+      "name": "Daily Janakantha",
+      "nameBn": "দৈনিক জনকণ্ঠ",
+      "aliases": [
+        "janakantha",
+        "জনকণ্ঠ"
+      ],
+      "website": "https://www.dailyjanakantha.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "inqilab",
+      "name": "Daily Inqilab",
+      "nameBn": "দৈনিক ইনকিলাব",
+      "aliases": [
+        "inqilab",
+        "ইনকিলাব"
+      ],
+      "website": "https://dailyinqilab.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "amar_sangbad",
+      "name": "Amar Sangbad",
+      "nameBn": "আমার সংবাদ",
+      "aliases": [
+        "amarsangbad",
+        "আমার সংবাদ"
+      ],
+      "website": "https://www.amarsangbad.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national",
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "ajker_patrika",
+      "name": "Ajker Patrika",
+      "nameBn": "আজকের পত্রিকা",
+      "aliases": [
+        "ajkerpatrika",
+        "আজকের পত্রিকা"
+      ],
+      "website": "https://www.ajkerpatrika.com/",
+      "feedUrl": "https://www.ajkerpatrika.com/feed",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 20 items, all timestamped and on-domain, valid XML.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 3
+    },
+    {
+      "id": "desh_rupantor",
+      "name": "Desh Rupantor",
+      "nameBn": "দেশ রূপান্তর",
+      "aliases": [
+        "deshrupantor",
+        "দেশ রূপান্তর"
+      ],
+      "website": "https://www.deshrupantor.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "naya_diganta",
+      "name": "Daily Naya Diganta",
+      "nameBn": "দৈনিক নয়া দিগন্ত",
+      "aliases": [
+        "nayadiganta",
+        "নয়া দিগন্ত"
+      ],
+      "website": "https://www.dailynayadiganta.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "manabzamin",
+      "name": "Manabzamin",
+      "nameBn": "মানবজমিন",
+      "aliases": [
+        "mzamin",
+        "মানবজমিন"
+      ],
+      "website": "https://mzamin.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Publishes Bengali and English content. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "kalbela",
+      "name": "Kalbela",
+      "nameBn": "কালবেলা",
+      "aliases": [
+        "kalbela",
+        "কালবেলা"
+      ],
+      "website": "https://www.kalbela.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "amader_shomoy",
+      "name": "Amader Shomoy",
+      "nameBn": "আমাদের সময়",
+      "aliases": [
+        "amadershomoy",
+        "আমাদের সময়"
+      ],
+      "website": "https://www.amadershomoy.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "bhorer_kagoj",
+      "name": "Bhorer Kagoj",
+      "nameBn": "ভোরের কাগজ",
+      "aliases": [
+        "bhorerkagoj",
+        "ভোরের কাগজ"
+      ],
+      "website": "https://www.bhorerkagoj.net/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "bhorerkagoj.com now redirects to bhorerkagoj.net (checked 2026-10-24); the feed path is still unverified. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "protidiner_sangbad",
+      "name": "Protidiner Sangbad",
+      "nameBn": "প্রতিদিনের সংবাদ",
+      "aliases": [
+        "protidinersangbad",
+        "প্রতিদিনের সংবাদ"
+      ],
+      "website": "https://www.protidinersangbad.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "jaijaidin",
+      "name": "Jaijaidin",
+      "nameBn": "যায়যায়দিন",
+      "aliases": [
+        "jaijaidin",
+        "যায়যায়দিন"
+      ],
+      "website": "https://www.jaijaidinbd.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "sangbad",
+      "name": "The Sangbad",
+      "nameBn": "সংবাদ",
+      "aliases": [
+        "sangbad",
+        "সংবাদ"
+      ],
+      "website": "https://www.sangbad.com.bd/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Website only; no public news feed known."
+    },
+    {
+      "id": "bangladesher_khabor",
+      "name": "Bangladesher Khabor",
+      "nameBn": "বাংলাদেশের খবর",
+      "aliases": [
+        "bangladesher khabor",
+        "বাংলাদেশের খবর"
+      ],
+      "website": "https://www.bangladesherkhabor.net/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "national"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "daily_star",
+      "name": "The Daily Star",
+      "nameBn": "দ্য ডেইলি স্টার",
+      "aliases": [
+        "thedailystar",
+        "daily star",
+        "ডেইলি স্টার"
+      ],
+      "website": "https://www.thedailystar.net/",
+      "feedUrl": "https://www.thedailystar.net/frontpage/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": "https://epaper.thedailystar.net/",
+      "notes": "Feed fetched and parsed 2026-10-25: 10 well-formed, on-domain English items, but the feed carries no item timestamps, so those stories are shown with \"publication time unknown\" and sort after dated ones. /rss/all, /feed and /rss.xml answer 404 or serve a non-XML page.",
+      "curated": true,
+      "curationOrder": 8,
+      "lastVerifiedAt": "2026-10-25",
+      "allowUndated": true
+    },
+    {
+      "id": "dhaka_tribune",
+      "name": "Dhaka Tribune",
+      "nameBn": "ঢাকা ট্রিবিউন",
+      "aliases": [
+        "dhakatribune",
+        "ঢাকা ট্রিবিউন"
+      ],
+      "website": "https://www.dhakatribune.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "No public RSS on the current site (checked 2026-10-24). Website link only.",
+      "curated": true,
+      "curationOrder": 27
+    },
+    {
+      "id": "tbs",
+      "name": "The Business Standard",
+      "nameBn": "দ্য বিজনেস স্ট্যান্ডার্ড",
+      "aliases": [
+        "tbsnews",
+        "business standard",
+        "বিজনেস স্ট্যান্ডার্ড"
+      ],
+      "website": "https://www.tbsnews.net/",
+      "feedUrl": "https://www.tbsnews.net/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 10 items, all timestamped and on-domain, valid XML.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 9
+    },
+    {
+      "id": "financial_express",
+      "name": "The Financial Express",
+      "nameBn": "দ্য ফিন্যান্সিয়াল এক্সপ্রেস",
+      "aliases": [
+        "financialexpress",
+        "financial express"
+      ],
+      "website": "https://thefinancialexpress.com.bd/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "daily_sun",
+      "name": "Daily Sun",
+      "nameBn": "ডেইলি সান",
+      "aliases": [
+        "dailysun",
+        "daily-sun",
+        "ডেইলি সান"
+      ],
+      "website": "https://www.daily-sun.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "new_age",
+      "name": "New Age",
+      "nameBn": "নিউ এজ",
+      "aliases": [
+        "newage",
+        "new age",
+        "নিউ এজ"
+      ],
+      "website": "https://www.newagebd.net/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "daily_observer",
+      "name": "The Daily Observer",
+      "nameBn": "দ্য ডেইলি অবজারভার",
+      "aliases": [
+        "observerbd",
+        "daily observer"
+      ],
+      "website": "https://www.observerbd.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "bangladesh_post",
+      "name": "Bangladesh Post",
+      "nameBn": "বাংলাদেশ পোস্ট",
+      "aliases": [
+        "bangladeshpost",
+        "বাংলাদেশ পোস্ট"
+      ],
+      "website": "https://bangladeshpost.net/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "asian_age",
+      "name": "The Asian Age",
+      "nameBn": "দ্য এশিয়ান এজ",
+      "aliases": [
+        "dailyasianage",
+        "asian age"
+      ],
+      "website": "https://dailyasianage.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "new_nation",
+      "name": "The New Nation",
+      "nameBn": "দ্য নিউ নেশন",
+      "aliases": [
+        "dailynewnation",
+        "new nation"
+      ],
+      "website": "https://dailynewnation.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "needs_review",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Publishing frequency has varied; confirm current status before relying on it. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "business_post",
+      "name": "The Business Post",
+      "nameBn": "দ্য বিজনেস পোস্ট",
+      "aliases": [
+        "businesspostbd",
+        "business post"
+      ],
+      "website": "https://businesspostbd.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "needs_review",
+      "featured": false,
+      "notes": "businesspostbd.com redirected to an unrelated hosting page on 2026-10-24, so the publication has moved or closed. Kept listed until the current official domain is confirmed; no feed is claimed."
+    },
+    {
+      "id": "bdnews24",
+      "name": "bdnews24.com",
+      "nameBn": "বিডিনিউজ টোয়েন্টিফোর ডটকম",
+      "aliases": [
+        "bdnews24",
+        "বিডিনিউজ"
+      ],
+      "website": "https://bdnews24.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Sixteen feed paths probed 2026-10-25 (English and bangla.bdnews24 hosts): the host answers, but no path returns a usable feed (HTML, not RSS/Atom). Website link only.",
+      "curated": true,
+      "curationOrder": 20,
+      "lastVerifiedAt": "2026-10-25"
+    },
+    {
+      "id": "banglanews24",
+      "name": "Banglanews24",
+      "nameBn": "বাংলানিউজটোয়েন্টিফোর",
+      "aliases": [
+        "banglanews24",
+        "বাংলানিউজ"
+      ],
+      "website": "https://www.banglanews24.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "jagonews24",
+      "name": "Jago News 24",
+      "nameBn": "জাগোনিউজ২৪ ডটকম",
+      "aliases": [
+        "jagonews24",
+        "জাগো নিউজ"
+      ],
+      "website": "https://www.jagonews24.com/",
+      "feedUrl": "https://www.jagonews24.com/rss/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 100 items, all timestamped and on-domain, valid XML. The /rss path is HTML; /rss/rss.xml is the feed.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 2
+    },
+    {
+      "id": "bangla_tribune",
+      "name": "Bangla Tribune",
+      "nameBn": "বাংলা ট্রিবিউন",
+      "aliases": [
+        "banglatribune",
+        "বাংলা ট্রিবিউন"
+      ],
+      "website": "https://www.banglatribune.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Ten feed paths probed 2026-10-25: HTTP 403 on every one. No feed is claimed; website link only.",
+      "curated": true,
+      "curationOrder": 26,
+      "lastVerifiedAt": "2026-10-25"
+    },
+    {
+      "id": "dhaka_post",
+      "name": "Dhaka Post",
+      "nameBn": "ঢাকা পোস্ট",
+      "aliases": [
+        "dhakapost",
+        "ঢাকা পোস্ট"
+      ],
+      "website": "https://www.dhakapost.com/",
+      "feedUrl": "https://www.dhakapost.com/rss/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 20 items, all timestamped and on-domain, valid XML. The /rss path answers 403; /rss/rss.xml is the feed.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 4
+    },
+    {
+      "id": "risingbd",
+      "name": "Risingbd",
+      "nameBn": "রাইজিংবিডি",
+      "aliases": [
+        "risingbd",
+        "রাইজিংবিডি"
+      ],
+      "website": "https://www.risingbd.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "barta24",
+      "name": "Barta24",
+      "nameBn": "বার্তা২৪",
+      "aliases": [
+        "barta24",
+        "বার্তা ২৪"
+      ],
+      "website": "https://barta24.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "newsbangla24",
+      "name": "Newsbangla24",
+      "nameBn": "নিউজবাংলা২৪",
+      "aliases": [
+        "newsbangla24",
+        "নিউজ বাংলা"
+      ],
+      "website": "https://www.newsbangla24.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "sarabangla",
+      "name": "Sara Bangla",
+      "nameBn": "সারাবাংলা",
+      "aliases": [
+        "sarabangla",
+        "সারাবাংলা"
+      ],
+      "website": "https://sarabangla.net/",
+      "feedUrl": "https://sarabangla.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 10 items, all timestamped and on-domain, Bengali headlines, valid XML.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 6
+    },
+    {
+      "id": "orthoneeti",
+      "name": "Amader Orthoneeti",
+      "nameBn": "আমাদের অর্থনীতি",
+      "aliases": [
+        "orthoneeti",
+        "অর্থনীতি"
+      ],
+      "website": "https://www.orthoneeti.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online",
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Economy and business reporting in Bengali. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "protidiner_bangladesh",
+      "name": "Protidiner Bangladesh",
+      "nameBn": "প্রতিদিনের বাংলাদেশ",
+      "aliases": [
+        "protidinerbangladesh",
+        "প্রতিদিনের বাংলাদেশ"
+      ],
+      "website": "https://www.protidinerbangladesh.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "purboposhchim",
+      "name": "Purboposhchim",
+      "nameBn": "পূর্বপশ্চিম",
+      "aliases": [
+        "purboposhchim",
+        "পূর্বপশ্চিম"
+      ],
+      "website": "https://purboposhchimbd.news/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "online_portal",
+      "categories": [
+        "online"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "bonik_barta",
+      "name": "Bonik Barta",
+      "nameBn": "বণিক বার্তা",
+      "aliases": [
+        "bonikbarta",
+        "বণিক বার্তা"
+      ],
+      "website": "https://www.bonikbarta.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "business"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": true,
+      "epaperUrl": null,
+      "notes": "Bengali business daily. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "business_insider_bd",
+      "name": "Business Insider Bangladesh",
+      "nameBn": "বিজনেস ইনসাইডার বাংলাদেশ",
+      "aliases": [
+        "businessinsiderbd",
+        "business insider"
+      ],
+      "website": "https://www.businessinsiderbd.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "online_portal",
+      "categories": [
+        "business",
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "dainik_azadi",
+      "name": "Dainik Azadi",
+      "nameBn": "দৈনিক আজাদী",
+      "aliases": [
+        "azadi",
+        "আজাদী"
+      ],
+      "website": "https://www.dainikazadi.net/",
+      "feedUrl": "https://www.dainikazadi.net/rss",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Chattogram",
+      "district": "Chattogram",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 10 items, all timestamped and on-domain, Bengali headlines, valid XML.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 7
+    },
+    {
+      "id": "purbokone",
+      "name": "Dainik Purbokone",
+      "nameBn": "দৈনিক পূর্বকোণ",
+      "aliases": [
+        "purbokone",
+        "purbakone",
+        "পূর্বকোণ"
+      ],
+      "website": "https://www.purbakone.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Chattogram",
+      "district": "Chattogram",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "suprobhat",
+      "name": "Dainik Suprobhat",
+      "nameBn": "দৈনিক সুপ্রভাত",
+      "aliases": [
+        "suprobhat",
+        "সুপ্রভাত"
+      ],
+      "website": "https://www.suprobhat.com/",
+      "feedUrl": "https://www.suprobhat.com/rss",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Chattogram",
+      "district": "Chattogram",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 10 items, all timestamped and on-domain, Bengali headlines, valid XML.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 5
+    },
+    {
+      "id": "sylheter_dak",
+      "name": "Dainik Sylheter Dak",
+      "nameBn": "দৈনিক সিলেটের ডাক",
+      "aliases": [
+        "sylheterdak",
+        "সিলেটের ডাক"
+      ],
+      "website": "https://www.sylheterdak.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "daily_newspaper",
+      "categories": [
+        "regional"
+      ],
+      "division": "Sylhet",
+      "district": "Sylhet",
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "bss",
+      "name": "Bangladesh Sangbad Sangstha (BSS)",
+      "nameBn": "বাংলাদেশ সংবাদ সংস্থা",
+      "aliases": [
+        "bss",
+        "বাসস"
+      ],
+      "website": "https://www.bssnews.net/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "news_agency",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "National news agency of Bangladesh. Not a newspaper. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "unb",
+      "name": "United News of Bangladesh (UNB)",
+      "nameBn": "ইউএনবি",
+      "aliases": [
+        "unb",
+        "ইউনাইটেড নিউজ"
+      ],
+      "website": "https://unb.com.bd/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "news_agency",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Private news agency. Not a newspaper. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "bbc_bangla",
+      "name": "BBC News Bengali",
+      "nameBn": "বিবিসি বাংলা",
+      "aliases": [
+        "bbc bangla",
+        "বিবিসি"
+      ],
+      "website": "https://www.bbc.com/bengali",
+      "feedUrl": "https://feeds.bbci.co.uk/bengali/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "BBC publishes this feed at feeds.bbci.co.uk; fetched and parsed 2026-10-25: 14 items, all timestamped and on-domain, Bengali headlines, valid XML.",
+      "lastVerifiedAt": "2026-10-25",
+      "curated": true,
+      "curationOrder": 10
+    },
+    {
+      "id": "dw_bangla",
+      "name": "DW Bangla",
+      "nameBn": "ডিডাব্লিউ বাংলা",
+      "aliases": [
+        "dw bangla",
+        "ডিডাব্লিউ"
+      ],
+      "website": "https://www.dw.com/bn",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Deutsche Welle Bengali service. Not a Bangladeshi newspaper. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "voa_bangla",
+      "name": "VOA Bangla",
+      "nameBn": "ভিওএ বাংলা",
+      "aliases": [
+        "voa bangla",
+        "ভিওএ"
+      ],
+      "website": "https://www.voabangla.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Voice of America Bengali service. No public RSS feed listed; website only."
+    },
+    {
+      "id": "somoy_news",
+      "name": "Somoy News",
+      "nameBn": "সময় নিউজ",
+      "aliases": [
+        "somoy",
+        "সময় টিভি"
+      ],
+      "website": "https://www.somoynews.tv/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "jamuna_tv",
+      "name": "Jamuna Television",
+      "nameBn": "যমুনা টেলিভিশন",
+      "aliases": [
+        "jamuna",
+        "যমুনা টিভি"
+      ],
+      "website": "https://jamuna.tv/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "channel24",
+      "name": "Channel 24",
+      "nameBn": "চ্যানেল ২৪",
+      "aliases": [
+        "channel24",
+        "চ্যানেল ২৪"
+      ],
+      "website": "https://www.channel24bd.tv/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "ekattor",
+      "name": "Ekattor Television",
+      "nameBn": "একাত্তর টেলিভিশন",
+      "aliases": [
+        "ekattor",
+        "একাত্তর"
+      ],
+      "website": "https://ekattor.tv/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "bn",
+      "type": "broadcaster",
+      "categories": [
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Television news channel website. Not a newspaper. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "the_independent",
+      "name": "The Independent",
+      "nameBn": "দ্য ইনডিপেন্ডেন্ট",
+      "aliases": [
+        "independent",
+        "the independent bd"
+      ],
+      "website": "https://www.theindependentbd.com/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "candidate",
+      "language": "en",
+      "type": "daily_newspaper",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "English daily published from Dhaka. No feed shipped: the URL candidates were never verified, so they live in assets/data/feed_candidates.json until the probe qualifies one. Website link only."
+    },
+    {
+      "id": "dhaka_courier",
+      "name": "Dhaka Courier",
+      "nameBn": "ঢাকা কুরিয়ার",
+      "aliases": [
+        "dhakacourier",
+        "dhaka courier"
+      ],
+      "website": "https://www.dhakacourier.com.bd/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "language": "en",
+      "type": "weekly",
+      "categories": [
+        "english"
+      ],
+      "division": null,
+      "district": null,
+      "status": "needs_review",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Weekly news magazine. Publishing frequency must be confirmed before relying on this entry."
+    },
+    {
+      "id": "aljazeera",
+      "name": "Al Jazeera English",
+      "nameBn": "আল জাজিরা ইংরেজি",
+      "aliases": [
+        "al jazeera",
+        "আল জাজিরা"
+      ],
+      "website": "https://www.aljazeera.com/",
+      "feedUrl": "https://www.aljazeera.com/xml/rss/all.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "lastVerifiedAt": "2026-10-25",
+      "language": "en",
+      "type": "broadcaster",
+      "categories": [
+        "english",
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 25 items, all timestamped and on-domain, valid XML.",
+      "curated": true,
+      "curationOrder": 11
+    },
+    {
+      "id": "dw_news",
+      "name": "DW News (English)",
+      "nameBn": "ডিডাব্লিউ নিউজ",
+      "aliases": [
+        "dw",
+        "deutsche welle"
+      ],
+      "website": "https://www.dw.com/en/",
+      "feedUrl": "https://rss.dw.com/rdf/rss-en-all",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "lastVerifiedAt": "2026-10-25",
+      "language": "en",
+      "type": "broadcaster",
+      "categories": [
+        "english",
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 131 items, all timestamped and on-domain, valid XML.",
+      "curated": true,
+      "curationOrder": 12
+    },
+    {
+      "id": "reuters",
+      "name": "Reuters",
+      "nameBn": "রয়টার্স",
+      "aliases": [
+        "reuters world"
+      ],
+      "website": "https://www.reuters.com/world/",
+      "feedUrl": null,
+      "feedFormat": null,
+      "feedClaim": "none",
+      "lastVerifiedAt": "2026-10-25",
+      "language": "en",
+      "type": "news_agency",
+      "categories": [
+        "english",
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "No public RSS on 2026-10-25: feeds.reuters.com no longer resolves, outboundfeeds answers 404/401. Website link only; Reuters is never presented as a feed.",
+      "curated": true,
+      "curationOrder": 28
+    },
+    {
+      "id": "bbc_world",
+      "name": "BBC News (World)",
+      "nameBn": "বিবিসি নিউজ (বিশ্ব)",
+      "aliases": [
+        "bbc world",
+        "bbc news",
+        "বিবিসি নিউজ"
+      ],
+      "website": "https://www.bbc.com/news/world",
+      "feedUrl": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "feedFormat": "rss",
+      "feedClaim": "verified_working",
+      "lastVerifiedAt": "2026-10-25",
+      "language": "en",
+      "type": "broadcaster",
+      "categories": [
+        "english",
+        "broadcast"
+      ],
+      "division": null,
+      "district": null,
+      "status": "active",
+      "featured": false,
+      "epaperUrl": null,
+      "notes": "Feed fetched and parsed 2026-10-25: 30 items, all timestamped and on-domain, valid XML.",
+      "curated": true,
+      "curationOrder": 13
+    }
+  ],
+  "epapers": [
+    {
+      "id": "epaper_prothomalo",
+      "sourceId": "prothomalo",
+      "name": "Prothom Alo E-Paper",
+      "nameBn": "প্রথম আলো ই-পেপার",
+      "url": "https://epaper.prothomalo.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper. Access terms set by the publisher."
+    },
+    {
+      "id": "epaper_ittefaq",
+      "sourceId": "ittefaq",
+      "name": "Ittefaq E-Paper",
+      "nameBn": "ইত্তেফাক ই-পেপার",
+      "url": "https://epaper.ittefaq.com.bd/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_kalerkantho",
+      "sourceId": "kaler_kantho",
+      "name": "Kaler Kantho E-Paper",
+      "nameBn": "কালের কণ্ঠ ই-পেপার",
+      "url": "https://epaper.kalerkantho.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_jugantor",
+      "sourceId": "jugantor",
+      "name": "Jugantor E-Paper",
+      "nameBn": "যুগান্তর ই-পেপার",
+      "url": "https://epaper.jugantor.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_samakal",
+      "sourceId": "samakal",
+      "name": "Samakal E-Paper",
+      "nameBn": "সমকাল ই-পেপার",
+      "url": "https://epaper.samakal.com/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    },
+    {
+      "id": "epaper_dailystar",
+      "sourceId": "daily_star",
+      "name": "The Daily Star E-Paper",
+      "nameBn": "ডেইলি স্টার ই-পেপার",
+      "url": "https://epaper.thedailystar.net/",
+      "access": "unknown",
+      "notes": "Publisher-hosted e-paper."
+    }
+  ]
+}

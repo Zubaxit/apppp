@@ -1,0 +1,6 @@
+# Copy to android/key.properties and fill in to sign release builds.
+# Keep the .jks file outside the repository.
+storePassword=change-me
+keyPassword=change-me
+keyAlias=upload
+storeFile=/absolute/path/to/upload-keystore.jks

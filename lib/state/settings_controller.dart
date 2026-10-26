@@ -1,0 +1,185 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../core/l10n/app_strings.dart';
+import '../data/models/app_preferences.dart';
+import '../data/models/article.dart';
+import '../services/news_shield.dart';
+import '../services/preferences_store.dart';
+
+/// Owns every user preference and persists it on change.
+class SettingsController extends ChangeNotifier {
+  SettingsController({
+    required AppPreferences initial,
+    required PreferencesStore store,
+  })  : _prefs = initial,
+        _store = store;
+
+  final PreferencesStore _store;
+  AppPreferences _prefs;
+  bool _webViewTourClaimed = false;
+
+  AppPreferences get prefs => _prefs;
+  AppStrings get strings => AppStrings.forLanguage(_prefs.language);
+  bool get useBengali => _prefs.isBengali;
+  double get textScale => _prefs.textScale;
+  AppFontChoice get font => _prefs.font;
+
+  ThemeMode get themeMode {
+    switch (_prefs.theme) {
+      case AppThemeChoice.light:
+        return ThemeMode.light;
+      case AppThemeChoice.dark:
+        return ThemeMode.dark;
+      case AppThemeChoice.system:
+        return ThemeMode.system;
+    }
+  }
+
+  bool isFollowing(String sourceId) =>
+      _prefs.followedSourceIds.contains(sourceId);
+  Set<String> get followedSourceIds => _prefs.followedSourceIds;
+  bool get historyEnabled => _prefs.historyEnabled;
+  bool get breakingBannerEnabled => _prefs.breakingBannerEnabled;
+  bool get newsShieldEnabled => _prefs.newsShieldEnabled;
+  Set<String> get newsShieldExceptions => _prefs.newsShieldExceptions;
+  bool shieldEnabledFor(String domain) =>
+      _prefs.newsShieldEnabled &&
+      !_prefs.newsShieldExceptions.contains(domain.toLowerCase());
+  bool get reduceMotion => _prefs.motion == MotionChoice.reduced;
+  bool get vocabularyIntegrationEnabled => _prefs.vocabularyIntegrationEnabled;
+  bool get ttsIntegrationEnabled => _prefs.ttsIntegrationEnabled;
+  bool get translationIntegrationEnabled =>
+      _prefs.translationIntegrationEnabled;
+  bool get ultraLightMode => _prefs.ultraLightMode;
+  bool get webViewTourComplete => _prefs.webViewTourComplete;
+  bool get performanceTipComplete => _prefs.performanceTipComplete;
+  int get refreshMinutes => _prefs.refreshMinutes;
+  DefaultFeed get defaultFeed => _prefs.defaultFeed;
+
+  Future<void> _update(AppPreferences next, {bool notify = true}) async {
+    _prefs = next;
+    if (notify) notifyListeners();
+    try {
+      await _store.write(next.encode());
+    } catch (_) {
+      // Persistence is best effort; the in-memory value stays authoritative for
+      // this session so the UI never blocks on disk.
+    }
+  }
+
+  Future<void> setLanguage(AppLanguage language) =>
+      _update(_prefs.copyWith(language: language));
+
+  Future<void> toggleLanguage() => setLanguage(
+      _prefs.language == AppLanguage.bn ? AppLanguage.en : AppLanguage.bn);
+
+  Future<void> setTheme(AppThemeChoice theme) =>
+      _update(_prefs.copyWith(theme: theme));
+
+  Future<void> setTextScale(double scale) =>
+      _update(_prefs.copyWith(textScale: scale));
+
+  Future<void> setFont(AppFontChoice font) =>
+      _update(_prefs.copyWith(font: font));
+
+  Future<void> setDefaultFeed(DefaultFeed feed) =>
+      _update(_prefs.copyWith(defaultFeed: feed));
+
+  Future<void> setRefreshMinutes(int minutes) =>
+      _update(_prefs.copyWith(refreshMinutes: minutes));
+
+  Future<void> setHistoryEnabled(bool enabled) =>
+      _update(_prefs.copyWith(historyEnabled: enabled));
+
+  Future<void> setBreakingBannerEnabled(bool enabled) =>
+      _update(_prefs.copyWith(breakingBannerEnabled: enabled));
+
+  Future<void> setNewsShieldEnabled(bool enabled) async {
+    await _update(_prefs.copyWith(newsShieldEnabled: enabled));
+    final DateTime? updated = NewsShield.updatedAt;
+    if (enabled &&
+        (updated == null ||
+            DateTime.now().toUtc().difference(updated) >=
+                NewsShield.updateInterval)) {
+      unawaited(NewsShield.update());
+    }
+  }
+
+  Future<void> setShieldException(String domain, {required bool except}) {
+    final String host = domain.trim().toLowerCase().replaceFirst('www.', '');
+    if (host.isEmpty) return Future<void>.value();
+    final Set<String> next = Set<String>.of(_prefs.newsShieldExceptions);
+    if (except) {
+      next.add(host);
+    } else {
+      next.remove(host);
+    }
+    return _update(_prefs.copyWith(newsShieldExceptions: next));
+  }
+
+  Future<void> setReduceMotion(bool reduce) => _update(
+        _prefs.copyWith(
+            motion: reduce ? MotionChoice.reduced : MotionChoice.system),
+      );
+
+  /// Claims the one automatic coach mark without marking discovery complete.
+  /// The in-memory claim prevents concurrent browser routes from duplicating it.
+  bool beginWebViewTour() {
+    if (_prefs.webViewTourComplete || _webViewTourClaimed) return false;
+    _webViewTourClaimed = true;
+    return true;
+  }
+
+  void releaseWebViewTour() {
+    _webViewTourClaimed = false;
+  }
+
+  Future<void> completeWebViewTour() {
+    _webViewTourClaimed = false;
+    if (_prefs.webViewTourComplete) return Future<void>.value();
+    return _update(_prefs.copyWith(webViewTourComplete: true));
+  }
+
+  Future<void> setVocabularyIntegrationEnabled(bool enabled) => _update(
+        _prefs.copyWith(vocabularyIntegrationEnabled: enabled),
+      );
+
+  Future<void> setTtsIntegrationEnabled(bool enabled) => _update(
+        _prefs.copyWith(ttsIntegrationEnabled: enabled),
+      );
+
+  Future<void> setTranslationIntegrationEnabled(bool enabled) => _update(
+        _prefs.copyWith(translationIntegrationEnabled: enabled),
+      );
+
+  Future<void> setUltraLightMode(bool enabled) => _update(
+        _prefs.copyWith(ultraLightMode: enabled),
+      );
+
+  Future<void> toggleFollow(String sourceId) =>
+      _update(_prefs.toggleFollow(sourceId));
+
+  Future<void> togglePreferredTopic(ArticleTopic topic) =>
+      _update(_prefs.toggleTopic(topic));
+
+  bool isPreferredTopic(ArticleTopic topic) =>
+      _prefs.preferredTopics.contains(topic);
+
+  Future<void> rememberSearch(String query) => _update(_prefs.addSearch(query));
+
+  Future<void> clearSearchHistory() =>
+      _update(_prefs.copyWith(searchHistory: const <String>[]));
+
+  Future<void> completeOnboarding() =>
+      _update(_prefs.copyWith(onboardingComplete: true));
+
+  Future<void> completePerformanceTip() {
+    if (_prefs.performanceTipComplete) return Future<void>.value();
+    return _update(_prefs.copyWith(performanceTipComplete: true));
+  }
+
+  Future<void> applyExtractedPreferences(AppPreferences prefs) =>
+      _update(prefs);
+}
