@@ -999,7 +999,11 @@ void main() {
         ),
       );
       await tester.pumpWidget(h.wrap(const AppShell()));
-      await tester.pumpAndSettle();
+      for (int i = 0;
+          i < 10 && !h.settings.prefs.onboardingComplete;
+          i++) {
+        await tester.pump();
+      }
       expect(h.settings.prefs.onboardingComplete, isTrue);
       expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
 
@@ -1052,7 +1056,11 @@ void main() {
         ),
       );
       await tester.pumpWidget(h.wrap(const AppShell()));
-      await tester.pumpAndSettle();
+      for (int i = 0;
+          i < 10 && !h.settings.prefs.onboardingComplete;
+          i++) {
+        await tester.pump();
+      }
       await tester.pump(const Duration(seconds: 5));
       expect(find.text('অ্যাপ একটু ধীর মনে হচ্ছে?'), findsOneWidget);
       expect(find.text('Settings খুলুন'), findsOneWidget);

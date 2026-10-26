@@ -22,6 +22,16 @@ class _Writer implements VocabularyDocumentWriter {
   }
 }
 
+String uniqueWord(int index) {
+  int value = index;
+  final StringBuffer suffix = StringBuffer();
+  do {
+    suffix.writeCharCode(97 + value % 26);
+    value = value ~/ 26;
+  } while (value > 0);
+  return 'term${suffix.toString()}';
+}
+
 VocabularyEntry entry(String word, String meaning) => VocabularyEntry(
       word: word,
       meaningBn: meaning,
@@ -56,7 +66,7 @@ void main() {
       'Legislature অর্থ আইনসভা। ১২৩টি ধারা',
     ];
     final String json = VocabularyTransferCodec.encode(<VocabularyEntry>[
-      for (int i = 0; i < meanings.length; i++) entry('word$i', meanings[i]),
+      for (int i = 0; i < meanings.length; i++) entry(uniqueWord(i), meanings[i]),
     ]);
     final List<VocabularyEntry> decoded = VocabularyTransferCodec.decodeBytes(
       Uint8List.fromList(<int>[0xEF, 0xBB, 0xBF, ...utf8.encode(json)]),
@@ -70,7 +80,7 @@ void main() {
   test('large UTF-8 vocabulary round trips without character replacement', () {
     final List<VocabularyEntry> original = <VocabularyEntry>[
       for (int i = 0; i < 1500; i++)
-        entry('term$i', 'অর্থ $i — বাংলাদেশের যুক্তাক্ষর ও কার-ফলা'),
+        entry(uniqueWord(i), 'অর্থ $i — বাংলাদেশের যুক্তাক্ষর ও কার-ফলা'),
     ];
     final List<VocabularyEntry> decoded = VocabularyTransferCodec.decodeBytes(
       Uint8List.fromList(

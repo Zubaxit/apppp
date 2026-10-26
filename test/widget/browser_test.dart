@@ -525,11 +525,13 @@ void main() {
       );
       final FakeBrowserEngine engine = FakeBrowserEngine()
         ..extraction = jsonEncode(<String, Object?>{
+          'ok': true,
           'title': 'Readable article',
           'site': 'dw.com',
           'blocks': <Map<String, Object?>>[
             <String, Object?>{
-              'text': 'A readable English paragraph for Reading Mode.',
+              'text': 'A readable English paragraph for Reading Mode. ' * 4,
+              'heading': false,
             },
           ],
         });
