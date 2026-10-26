@@ -64,6 +64,9 @@ void main() {
       expect(find.text('আমার নিউজে স্বাগতম'), findsOneWidget);
       expect(find.text('No headlines yet'), findsNothing);
 
+      // Advance the widget-test clock so the intentionally slow fake request
+      // can complete before awaiting its Future.
+      await tester.pump(const Duration(milliseconds: 60));
       await starting;
       await tester.pumpAndSettle();
       expect(find.text('আমার নিউজে স্বাগতম'), findsNothing);
