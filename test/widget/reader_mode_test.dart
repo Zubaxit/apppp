@@ -57,7 +57,7 @@ void main() {
     const ReaderDocument value = ReaderDocument(
       title: 'Test',
       site: 'dw.com',
-      blocks: const <ReaderBlock>[
+      blocks: <ReaderBlock>[
         ReaderBlock(text: 'obstacle'),
       ],
     );
