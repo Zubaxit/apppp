@@ -162,10 +162,18 @@ class SettingsScreen extends StatelessWidget {
                         child: _Choice<DefaultFeed>(
                           values: DefaultFeed.values,
                           selected: settings.defaultFeed,
-                          labelOf: (DefaultFeed value) =>
-                              value == DefaultFeed.latest
-                                  ? context.strings.latestFeed
-                                  : context.strings.followingFeed,
+                          labelOf: (DefaultFeed value) {
+                            final bool narrow =
+                                MediaQuery.sizeOf(context).width < 380;
+                            if (value == DefaultFeed.latest) {
+                              return narrow
+                                  ? (bengali ? 'সর্বশেষ' : 'Latest')
+                                  : context.strings.latestFeed;
+                            }
+                            return narrow
+                                ? (bengali ? 'অনুসরণ' : 'Following')
+                                : context.strings.followingFeed;
+                          },
                           onSelected: (DefaultFeed value) async {
                             await settings.setDefaultFeed(value);
                             if (context.mounted) {

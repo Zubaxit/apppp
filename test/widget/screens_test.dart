@@ -454,8 +454,8 @@ void main() {
         250,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Latest news'), findsOneWidget);
-      expect(find.text('Followed publishers'), findsOneWidget);
+      expect(find.text('Latest'), findsOneWidget);
+      expect(find.text('Following'), findsOneWidget);
       expect(find.text('15m'), findsOneWidget);
       expect(find.text('240m'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -980,11 +980,11 @@ void main() {
       await tester.pumpWidget(h.wrap(const AppShell(), reduceMotion: false));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
-      final TestGesture gesture = await tester.startGesture(
-        tester.getCenter(find.byType(CustomScrollView).first),
+      await tester.drag(
+        find.byType(CustomScrollView).first,
+        const Offset(0, -450),
+        duration: const Duration(seconds: 1),
       );
-      await gesture.moveBy(const Offset(0, -450));
-      await gesture.up();
       await tester.pump(const Duration(milliseconds: 100));
       final Transform bounce = tester.widget<Transform>(
         find.byKey(const ValueKey<String>('scroll-nav-bounce')),
