@@ -144,8 +144,7 @@ class VocabularyFileTransfer {
 
   static Future<bool> export(
     List<VocabularyEntry> entries, {
-    VocabularyDocumentWriter writer =
-        const AndroidVocabularyDocumentWriter(),
+    VocabularyDocumentWriter writer = const AndroidVocabularyDocumentWriter(),
   }) {
     // Encoding happens before launching the picker. Invalid in-memory data can
     // therefore never create or partially overwrite a destination document.

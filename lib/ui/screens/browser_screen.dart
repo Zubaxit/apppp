@@ -856,8 +856,7 @@ class _ReaderDiscoveryButton extends StatefulWidget {
   final bool compact;
 
   @override
-  State<_ReaderDiscoveryButton> createState() =>
-      _ReaderDiscoveryButtonState();
+  State<_ReaderDiscoveryButton> createState() => _ReaderDiscoveryButtonState();
 }
 
 class _ReaderDiscoveryButtonState extends State<_ReaderDiscoveryButton>
