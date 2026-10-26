@@ -40,6 +40,7 @@ class _AppShellState extends State<AppShell>
   late final AnimationController _navBounce;
   late final Animation<double> _navOffset;
   double _scrollDistance = 0;
+  Timer? _bounceDebounce;
   DateTime? _lastBounce;
 
   final HomeReselectController _homeReselect = HomeReselectController();
@@ -104,6 +105,7 @@ class _AppShellState extends State<AppShell>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _bounceDebounce?.cancel();
     _tabFade.dispose();
     _navBounce.dispose();
     super.dispose();
@@ -140,23 +142,27 @@ class _AppShellState extends State<AppShell>
 
   bool _onScroll(ScrollNotification notification) {
     if (notification.depth != 0) return false;
-    if (notification is ScrollStartNotification) {
+    if (notification is ScrollStartNotification && _bounceDebounce == null) {
       _scrollDistance = 0;
     } else if (notification is ScrollUpdateNotification) {
       _scrollDistance += (notification.scrollDelta ?? 0).abs();
-    } else if (notification is ScrollEndNotification) {
-      final double distance = _scrollDistance;
-      _scrollDistance = 0;
-      final DateTime now = DateTime.now();
-      final DateTime? previous = _lastBounce;
-      if (distance >= 72 &&
-          !Motion.of(context).reduce &&
-          !AppEffectsScope.of(context) &&
-          (previous == null ||
-              now.difference(previous) >= const Duration(seconds: 2))) {
-        _lastBounce = now;
-        _navBounce.forward(from: 0);
-      }
+      _bounceDebounce?.cancel();
+      _bounceDebounce = Timer(const Duration(milliseconds: 120), () {
+        _bounceDebounce = null;
+        final double distance = _scrollDistance;
+        _scrollDistance = 0;
+        if (!mounted) return;
+        final DateTime now = DateTime.now();
+        final DateTime? previous = _lastBounce;
+        if (distance >= 72 &&
+            !Motion.of(context).reduce &&
+            !AppEffectsScope.of(context) &&
+            (previous == null ||
+                now.difference(previous) >= const Duration(seconds: 2))) {
+          _lastBounce = now;
+          _navBounce.forward(from: 0);
+        }
+      });
     }
     return false;
   }
