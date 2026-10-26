@@ -134,6 +134,70 @@ void main() {
       expect(StoryMatcher.index(<Article>[first, late])[first.id], contains(late));
     });
 
+    test('matches the observed Brazil election across English and Bengali', () {
+      final Article dw = story(
+        source: 'dw_news',
+        title: 'Brazilian leftist President Lula wins reelection against '
+            'conservative challenger Flavio Bolsonaro',
+        link: 'https://dw.example/brazil-election-result',
+        excerpt: 'Lula won Brazil’s presidential election and secured another term.',
+      );
+      final Article prothomAlo = story(
+        source: 'prothomalo',
+        title: 'ব্রাজিলে লুলার নাটকীয় জয়',
+        link: 'https://prothomalo.example/brazil-lula',
+        excerpt: 'প্রেসিডেন্ট নির্বাচনে প্রতিদ্বন্দ্বীকে হারিয়ে জয়ী হয়েছেন লুলা।',
+      );
+      final Article unrelated = story(
+        source: 'other',
+        title: 'Brazilian President Lula announces new Amazon climate fund',
+        link: 'https://other.example/brazil-climate',
+        excerpt: 'Lula announced an environmental policy in Brazil.',
+      );
+
+      expect(StoryMatcher.matches(dw, prothomAlo), isTrue);
+      expect(StoryMatcher.matches(dw, unrelated), isFalse);
+    });
+
+    test('matches Serbia election outcome but rejects unrelated Serbia news', () {
+      final Article ajker = story(
+        source: 'ajker_patrika',
+        title: 'সার্বিয়ার নির্বাচনে ভুচিচের বিরুদ্ধে শিক্ষার্থী প্রতিদ্বন্দ্বীরা',
+        link: 'https://ajker.example/serbia-election',
+        excerpt: 'সার্বিয়ার প্রেসিডেন্ট নির্বাচনে আলেকসান্দার ভুচিচ জয়ী হয়েছেন।',
+      );
+      final Article prothomAlo = story(
+        source: 'prothomalo',
+        title: 'সার্বিয়ার নির্বাচনে ভুচিচের জয়',
+        link: 'https://prothomalo.example/serbia-vucic-win',
+        excerpt: 'শিক্ষার্থী প্রতিদ্বন্দ্বীদের হারিয়ে নির্বাচনে জিতেছেন ভুচিচ।',
+      );
+      final Article unrelated = story(
+        source: 'sports',
+        title: 'সার্বিয়ার শিক্ষার্থীদের আন্তর্জাতিক ফুটবল জয়',
+        link: 'https://sports.example/serbia-students-football',
+        excerpt: 'সার্বিয়ার ছাত্র দল ফুটবল ম্যাচে জয় পেয়েছে।',
+      );
+
+      expect(StoryMatcher.matches(ajker, prothomAlo), isTrue);
+      expect(StoryMatcher.matches(ajker, unrelated), isFalse);
+    });
+
+    test('semantic cross-language matching requires close confirmed dates', () {
+      final Article recent = story(
+        source: 'one',
+        title: 'Brazilian President Lula wins reelection',
+        link: 'https://one.example/recent-election',
+      );
+      final Article old = story(
+        source: 'two',
+        title: 'ব্রাজিলে লুলার নির্বাচনে জয়',
+        link: 'https://two.example/old-election',
+        published: DateTime.utc(2026, 10, 10),
+      );
+      expect(StoryMatcher.matches(recent, old), isFalse);
+    });
+
     test('bridges clear Bangla and English event concepts conservatively', () {
       final Article en = story(
         source: 'one',

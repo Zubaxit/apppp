@@ -699,6 +699,54 @@ void main() {
       expect(find.text(other.title), findsOneWidget);
     });
 
+    testWidgets(
+        'renders observed bilingual election coverage outside the visible feed',
+        (WidgetTester tester) async {
+      final DateTime now = DateTime.now().toUtc();
+      final Article dw = sampleArticle(
+        sourceId: 'daily_star',
+        title: 'Brazilian leftist President Lula wins reelection against '
+            'conservative challenger Flavio Bolsonaro',
+        link: 'https://www.dw.com/en/brazil-election-result/a-123',
+        excerpt: 'Lula won Brazil’s presidential election and secured another term.',
+        language: SourceLanguage.en,
+        publishedAt: now.subtract(const Duration(hours: 4)),
+      );
+      final Article prothomAlo = sampleArticle(
+        title: 'ব্রাজিলে লুলার নাটকীয় জয়',
+        link: 'https://www.prothomalo.com/world/brazil-lula-win',
+        excerpt: 'প্রেসিডেন্ট নির্বাচনে প্রতিদ্বন্দ্বীকে হারিয়ে জয়ী হয়েছেন লুলা।',
+        publishedAt: now.subtract(const Duration(hours: 3, minutes: 45)),
+      );
+      final List<Article> newer = List<Article>.generate(
+        FeedController.pageSize + 5,
+        (int index) => sampleArticle(
+          title: 'স্বতন্ত্র সাম্প্রতিক সংবাদ $index',
+          link: 'https://www.prothomalo.com/unrelated-$index',
+          publishedAt: now.subtract(Duration(minutes: index)),
+        ),
+      );
+      final TestHarness h = harness(
+        artwork: <Article>[...newer, dw, prothomAlo],
+      );
+      await h.feed.start();
+      expect(h.feed.articles, isNot(contains(dw)));
+      expect(h.feed.relatedFor(dw), contains(prothomAlo));
+
+      await tester.pumpWidget(h.wrap(
+        ArticleDetailScreen(article: dw, related: const <Article>[]),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('একই ঘটনা, বিভিন্ন সংবাদমাধ্যমে'), findsOneWidget);
+      expect(find.text(prothomAlo.title), findsOneWidget);
+      expect(find.text('কোনো সম্পর্কিত খবর পাওয়া যায়নি।'), findsNothing);
+      await tester.ensureVisible(find.text(prothomAlo.title));
+      await tester.tap(find.text(prothomAlo.title));
+      await tester.pumpAndSettle();
+      expect(find.text(prothomAlo.title), findsWidgets);
+    });
+
     testWidgets('merges archive and live matches and excludes duplicates',
         (WidgetTester tester) async {
       final DateTime now = DateTime.now().toUtc();
