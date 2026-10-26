@@ -980,11 +980,15 @@ void main() {
       await tester.pumpWidget(h.wrap(const AppShell(), reduceMotion: false));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
-      await tester.drag(
-        find.byType(CustomScrollView).first,
-        const Offset(0, -450),
-        duration: const Duration(seconds: 1),
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(find.byType(CustomScrollView).first),
       );
+      for (int i = 0; i < 5; i++) {
+        await gesture.moveBy(const Offset(0, -90));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pump(const Duration(milliseconds: 250));
+      await gesture.up();
       await tester.pump(const Duration(milliseconds: 100));
       final Transform bounce = tester.widget<Transform>(
         find.byKey(const ValueKey<String>('scroll-nav-bounce')),
