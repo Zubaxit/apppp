@@ -21,7 +21,8 @@ Future<void> showTranslationSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (BuildContext context) => TranslationSheet(text: text, service: service),
+    builder: (BuildContext context) =>
+        TranslationSheet(text: text, service: service),
   );
 }
 
@@ -40,7 +41,8 @@ class TranslationSheet extends StatefulWidget {
 }
 
 class _TranslationSheetState extends State<TranslationSheet> {
-  late final TranslationService _service = widget.service ?? TranslationService();
+  late final TranslationService _service =
+      widget.service ?? TranslationService();
   final TextEditingController _query = TextEditingController();
   bool _ready = false;
   List<WordMeaning> _gloss = const <WordMeaning>[];
@@ -162,7 +164,8 @@ class _TranslationSheetState extends State<TranslationSheet> {
                         fillColor: context.isDark
                             ? Colors.white.withValues(alpha: 0.05)
                             : Colors.white.withValues(alpha: 0.55),
-                        prefixIcon: const Icon(Icons.translate_rounded, size: 16),
+                        prefixIcon:
+                            const Icon(Icons.translate_rounded, size: 16),
                         prefixIconConstraints: const BoxConstraints(
                           minWidth: 38,
                           minHeight: 36,

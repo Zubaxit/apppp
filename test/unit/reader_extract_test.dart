@@ -40,7 +40,10 @@ void main() {
     });
 
     test('a page the extractor could not read is reported, not faked', () {
-      expect(ReaderDocument.parse(payload(ok: false, error: 'no article container')), isNull);
+      expect(
+          ReaderDocument.parse(
+              payload(ok: false, error: 'no article container')),
+          isNull);
     });
 
     test('too little text is not an article', () {
@@ -58,7 +61,8 @@ void main() {
       expect(ReaderDocument.parse('[1,2,3]'), isNull);
     });
 
-    test('the double-encoded payload an Android bridge can return still parses', () {
+    test('the double-encoded payload an Android bridge can return still parses',
+        () {
       // evaluateJavascript hands back a JSON string, so the payload may arrive
       // quoted one extra time.
       final String wrapped = jsonEncode(payload());
@@ -91,7 +95,10 @@ void main() {
 
     test('whitespace is normalised so translation requests stay stable', () {
       final String json = payload(blocks: <Map<String, Object>>[
-        <String, Object>{'text': 'Line one\n\n  line   two\t\t' * 8, 'heading': false},
+        <String, Object>{
+          'text': 'Line one\n\n  line   two\t\t' * 8,
+          'heading': false
+        },
         <String, Object>{'text': 'Second paragraph ' * 12, 'heading': false},
       ]);
       final ReaderDocument document = ReaderDocument.parse(json)!;

@@ -49,7 +49,8 @@ class AmarNewsMark extends StatelessWidget {
               child: ClipPath(
                 clipper: const _FoldedPageClipper(),
                 child: ColoredBox(
-                  color: dark ? const Color(0xFFEFEEEC) : const Color(0xFFF7F6F4),
+                  color:
+                      dark ? const Color(0xFFEFEEEC) : const Color(0xFFF7F6F4),
                 ),
               ),
             ),
@@ -65,7 +66,9 @@ class AmarNewsMark extends StatelessWidget {
               top: sheet * 0.36,
               width: sheet * 0.60,
               height: sheet * 0.07,
-              child: ColoredBox(color: dark ? const Color(0xFF3C3C40) : const Color(0xFF3C3C40)),
+              child: ColoredBox(
+                  color:
+                      dark ? const Color(0xFF3C3C40) : const Color(0xFF3C3C40)),
             ),
             Positioned(
               left: sheet * 0.16,

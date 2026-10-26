@@ -11,7 +11,8 @@ import 'publisher_logo.dart';
 
 /// A hairline rule: the primary structural element of the layout.
 class Hairline extends StatelessWidget {
-  const Hairline({super.key, this.indent = 0, this.endIndent = 0, this.strong = false});
+  const Hairline(
+      {super.key, this.indent = 0, this.endIndent = 0, this.strong = false});
 
   final double indent;
   final double endIndent;
@@ -32,7 +33,8 @@ class Hairline extends StatelessWidget {
 
 /// Small section kicker: a red rule, a label, optional trailing action.
 class Kicker extends StatelessWidget {
-  const Kicker(this.label, {super.key, this.action, this.onAction, this.trailing});
+  const Kicker(this.label,
+      {super.key, this.action, this.onAction, this.trailing});
 
   final String label;
   final String? action;
@@ -102,7 +104,8 @@ class Pressable extends StatelessWidget {
 /// monogram when no icon can be had. [filled] fills the tile with the accent,
 /// which is how the app says "this is the publisher you are reading".
 class SourceMark extends StatelessWidget {
-  const SourceMark({super.key, required this.source, this.size = 34, this.filled = false});
+  const SourceMark(
+      {super.key, required this.source, this.size = 34, this.filled = false});
 
   final NewsSource source;
   final double size;
@@ -120,7 +123,8 @@ class SourceMark extends StatelessWidget {
 
 /// Staggered spring entrance, used once per screen and never on scroll.
 class RiseIn extends StatelessWidget {
-  const RiseIn({super.key, required this.child, this.index = 0, this.offset = 16});
+  const RiseIn(
+      {super.key, required this.child, this.index = 0, this.offset = 16});
 
   final Widget child;
   final int index;
@@ -216,11 +220,12 @@ class Attribution extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool bengali = context.isBengali;
-    final String name = source?.localizedName(bengali: bengali) ?? article.sourceId;
-    final String? when = BengaliText.relative(article.publishedAt, bengali: bengali);
+    final String name =
+        source?.localizedName(bengali: bengali) ?? article.sourceId;
+    final String? when =
+        BengaliText.relative(article.publishedAt, bengali: bengali);
 
-    final Color nameColor =
-        onDark ? Colors.white : context.colors.primary;
+    final Color nameColor = onDark ? Colors.white : context.colors.primary;
     final Color metaColor = onDark
         ? Colors.white.withValues(alpha: 0.72)
         : context.colors.onSurfaceVariant;

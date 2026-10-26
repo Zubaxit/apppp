@@ -18,7 +18,8 @@ void main() {
 
     test('a verified asset wins, then the touch icon, then the favicon', () {
       expect(
-        source(logoUrl: 'https://cdn.example.org/prothomalo-touch.png').logoUrls,
+        source(logoUrl: 'https://cdn.example.org/prothomalo-touch.png')
+            .logoUrls,
         <String>[
           'https://cdn.example.org/prothomalo-touch.png',
           'https://www.prothomalo.com/apple-touch-icon.png',
@@ -49,14 +50,16 @@ void main() {
           reason: 'a missing icon must never change the feed URL');
     });
 
-    test('an entry with no usable website has no candidates and still loads', () {
+    test('an entry with no usable website has no candidates and still loads',
+        () {
       final NewsSource broken = sampleSource(website: '');
       expect(broken.logoUrls, isEmpty);
       expect(broken.hasLogo, isFalse);
     });
 
     test('the asset survives a registry round-trip', () {
-      final NewsSource original = source(logoUrl: 'https://cdn.example.org/a.png');
+      final NewsSource original =
+          source(logoUrl: 'https://cdn.example.org/a.png');
       final NewsSource copy = NewsSource.fromMap(original.toMap());
       expect(copy.logoUrl, 'https://cdn.example.org/a.png');
       expect(copy.logoUrls, original.logoUrls);
@@ -64,7 +67,8 @@ void main() {
   });
 
   group('publisher mark rendering', () {
-    testWidgets('without an image the tile shows the monogram, never a broken glyph',
+    testWidgets(
+        'without an image the tile shows the monogram, never a broken glyph',
         (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       await tester.pumpWidget(h.wrap(
@@ -93,15 +97,19 @@ void main() {
         ),
       ));
       await tester.pumpAndSettle();
-      expect(tester.getSize(find.byType(PublisherLogo).first), const Size(40, 40));
-      expect(tester.getSize(find.byType(PublisherLogo).last), const Size(40, 40));
+      expect(
+          tester.getSize(find.byType(PublisherLogo).first), const Size(40, 40));
+      expect(
+          tester.getSize(find.byType(PublisherLogo).last), const Size(40, 40));
     });
 
-    testWidgets('the accent-filled variant inverts its monogram', (WidgetTester tester) async {
+    testWidgets('the accent-filled variant inverts its monogram',
+        (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       await tester.pumpWidget(h.wrap(
         const Center(
-          child: PublisherLogo(source: _ProthomAlo(), size: 34, solid: Tokens.accent),
+          child: PublisherLogo(
+              source: _ProthomAlo(), size: 34, solid: Tokens.accent),
         ),
       ));
       await tester.pumpAndSettle();

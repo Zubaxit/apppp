@@ -33,5 +33,6 @@ extension BuildContextX on BuildContext {
 
 /// Convenience for reading the localized name of a source from anywhere.
 extension SourceNaming on NewsSource {
-  String nameFor(BuildContext context) => localizedName(bengali: context.isBengali);
+  String nameFor(BuildContext context) =>
+      localizedName(bengali: context.isBengali);
 }

@@ -81,8 +81,7 @@ class _PublisherLogoState extends State<PublisherLogo> {
   }
 
   /// Target pixel width for a tile of [size] logical pixels.
-  static int pixels(double size) =>
-      (size * 2).round().clamp(32, 256);
+  static int pixels(double size) => (size * 2).round().clamp(32, 256);
 
   @override
   Widget build(BuildContext context) {
@@ -108,11 +107,13 @@ class _PublisherLogoState extends State<PublisherLogo> {
             _Monogram(source: widget.source, size: size, solid: widget.solid),
       );
     } else if (!PublisherLogo.remoteEnabled || showMonogram || size < 24) {
-      content = _Monogram(source: widget.source, size: size, solid: widget.solid);
+      content =
+          _Monogram(source: widget.source, size: size, solid: widget.solid);
     } else {
-      final int targetPx = (size * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2))
-          .round()
-          .clamp(48, 192);
+      final int targetPx =
+          (size * (MediaQuery.maybeDevicePixelRatioOf(context) ?? 2))
+              .round()
+              .clamp(48, 192);
       content = CachedNetworkImage(
         imageUrl: urls[_candidate],
         // A mark is a small asset; ask the codec for the tile, not the source.
@@ -125,7 +126,8 @@ class _PublisherLogoState extends State<PublisherLogo> {
             _Monogram(source: widget.source, size: size, solid: widget.solid),
         errorWidget: (BuildContext context, String value, Object error) {
           _next();
-          return _Monogram(source: widget.source, size: size, solid: widget.solid);
+          return _Monogram(
+              source: widget.source, size: size, solid: widget.solid);
         },
       );
     }
@@ -134,8 +136,8 @@ class _PublisherLogoState extends State<PublisherLogo> {
 
     // Publisher icons are drawn for white paper; keeping the tile light in both
     // themes is what makes a dark or thin wordmark legible at 20 dp.
-    final Color fill = widget.solid ??
-        (dark ? const Color(0xFFF1EFEC) : Colors.white);
+    final Color fill =
+        widget.solid ?? (dark ? const Color(0xFFF1EFEC) : Colors.white);
     return Container(
       width: size,
       height: size,
@@ -168,9 +170,8 @@ class _Monogram extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color ink = solid == null
-        ? context.colors.primary
-        : context.colors.onPrimary;
+    final Color ink =
+        solid == null ? context.colors.primary : context.colors.onPrimary;
     return SizedBox(
       width: size,
       height: size,

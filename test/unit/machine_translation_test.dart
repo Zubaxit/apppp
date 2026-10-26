@@ -15,21 +15,28 @@ http.Response ok(String translation) => http.Response(
         'responseData': <String, Object>{'translatedText': translation},
       }),
       200,
-      headers: <String, String>{'content-type': 'application/json; charset=utf-8'},
+      headers: <String, String>{
+        'content-type': 'application/json; charset=utf-8'
+      },
     );
 
 void main() {
   group('splitting long text for a size-limited endpoint', () {
     test('short text is one request', () {
-      expect(MyMemoryTranslator.splitForTranslation('One sentence.'), <String>['One sentence.']);
+      expect(MyMemoryTranslator.splitForTranslation('One sentence.'),
+          <String>['One sentence.']);
     });
 
-    test('long text is split on sentence boundaries and never exceeds the limit', () {
+    test(
+        'long text is split on sentence boundaries and never exceeds the limit',
+        () {
       final String text = List<String>.generate(
         40,
-        (int i) => 'This is sentence number $i of a fairly long newspaper paragraph.',
+        (int i) =>
+            'This is sentence number $i of a fairly long newspaper paragraph.',
       ).join(' ');
-      final List<String> chunks = MyMemoryTranslator.splitForTranslation(text, 200);
+      final List<String> chunks =
+          MyMemoryTranslator.splitForTranslation(text, 200);
       expect(chunks.length, greaterThan(1));
       for (final String chunk in chunks) {
         expect(chunk.length, lessThanOrEqualTo(200));
@@ -41,7 +48,8 @@ void main() {
 
     test('a sentence longer than the limit falls back to word packing', () {
       final String monster = List<String>.filled(80, 'word').join(' ');
-      final List<String> chunks = MyMemoryTranslator.splitForTranslation(monster, 60);
+      final List<String> chunks =
+          MyMemoryTranslator.splitForTranslation(monster, 60);
       expect(chunks.length, greaterThan(1));
       for (final String chunk in chunks) {
         expect(chunk.length, lessThanOrEqualTo(60));
@@ -66,9 +74,11 @@ void main() {
       expect(translator.requiresNetwork, isTrue);
     });
 
-    test('an exhausted allowance is reported as such, not as an empty result', () async {
+    test('an exhausted allowance is reported as such, not as an empty result',
+        () async {
       final MyMemoryTranslator translator = MyMemoryTranslator(
-        client: MockClient((http.Request request) async => http.Response('', 429)),
+        client:
+            MockClient((http.Request request) async => http.Response('', 429)),
       );
       expect(
         translator.translate('Hello'),
@@ -87,7 +97,8 @@ void main() {
               200,
             )),
       );
-      expect(translator.translate('Hello'), throwsA(isA<TranslationException>()));
+      expect(
+          translator.translate('Hello'), throwsA(isA<TranslationException>()));
     });
 
     test('unreadable and empty answers fail loudly', () async {
@@ -105,13 +116,16 @@ void main() {
         final MyMemoryTranslator translator = MyMemoryTranslator(
           client: MockClient((http.Request request) async => response),
         );
-        expect(translator.translate('Hello'), throwsA(isA<TranslationException>()));
+        expect(translator.translate('Hello'),
+            throwsA(isA<TranslationException>()));
       }
     });
 
-    test('a dropped connection becomes a message about the connection', () async {
+    test('a dropped connection becomes a message about the connection',
+        () async {
       final MyMemoryTranslator translator = MyMemoryTranslator(
-        client: MockClient((http.Request request) async => throw const SocketLikeError()),
+        client: MockClient(
+            (http.Request request) async => throw const SocketLikeError()),
       );
       expect(
         translator.translate('Hello'),
@@ -154,7 +168,8 @@ void main() {
       expect(sent.length, greaterThan(1));
       expect(result, contains('অংশ'));
       for (final String chunk in sent) {
-        expect(chunk.length, lessThanOrEqualTo(MyMemoryTranslator.maxChunkCharacters));
+        expect(chunk.length,
+            lessThanOrEqualTo(MyMemoryTranslator.maxChunkCharacters));
         expect(utf8.encode(chunk).length,
             lessThanOrEqualTo(MyMemoryTranslator.maxChunkBytes));
       }
@@ -164,24 +179,39 @@ void main() {
   group('the bilingual reading controller', () {
     test('identical paragraphs cost one request', () async {
       final FakeTranslator translator = FakeTranslator();
-      final ReaderTranslationController controller = ReaderTranslationController(
+      final ReaderTranslationController controller =
+          ReaderTranslationController(
         translator: translator,
-        paragraphs: <String>['Same paragraph.', 'Same paragraph.', 'Different one.'],
+        paragraphs: <String>[
+          'Same paragraph.',
+          'Same paragraph.',
+          'Different one.'
+        ],
       );
       addTearDown(controller.dispose);
 
       await controller.translateAll();
-      expect(translator.requests.where((String t) => t == 'Same paragraph.').length, 1);
+      expect(
+          translator.requests
+              .where((String t) => t == 'Same paragraph.')
+              .length,
+          1);
       expect(controller.unitAt(0).text, controller.unitAt(1).text);
       expect(controller.hasAnyTranslation, isTrue);
       expect(controller.busy, isFalse);
     });
 
     test('one failing paragraph does not hide the others', () async {
-      final FakeTranslator translator = FakeTranslator(failOn: <String>['poison']);
-      final ReaderTranslationController controller = ReaderTranslationController(
+      final FakeTranslator translator =
+          FakeTranslator(failOn: <String>['poison']);
+      final ReaderTranslationController controller =
+          ReaderTranslationController(
         translator: translator,
-        paragraphs: <String>['Fine paragraph.', 'A poison paragraph.', 'Another fine one.'],
+        paragraphs: <String>[
+          'Fine paragraph.',
+          'A poison paragraph.',
+          'Another fine one.'
+        ],
       );
       addTearDown(controller.dispose);
 
@@ -193,9 +223,11 @@ void main() {
       expect(controller.allFailed, isFalse);
     });
 
-    test('a retry after a failure can succeed and is counted per paragraph', () async {
+    test('a retry after a failure can succeed and is counted per paragraph',
+        () async {
       final FakeTranslator failing = FakeTranslator(failOn: <String>['flaky']);
-      final ReaderTranslationController controller = ReaderTranslationController(
+      final ReaderTranslationController controller =
+          ReaderTranslationController(
         translator: failing,
         paragraphs: <String>['A flaky paragraph.'],
       );
@@ -214,7 +246,8 @@ void main() {
     });
 
     test('translations can be hidden and shown without losing them', () async {
-      final ReaderTranslationController controller = ReaderTranslationController(
+      final ReaderTranslationController controller =
+          ReaderTranslationController(
         translator: FakeTranslator(),
         paragraphs: <String>['Something to read.'],
       );
@@ -225,7 +258,8 @@ void main() {
       await controller.setEnabled(false);
       expect(controller.enabled, isFalse);
       expect(controller.showTranslations, isFalse);
-      expect(controller.unitAt(0).done, isTrue, reason: 'hidden is not discarded');
+      expect(controller.unitAt(0).done, isTrue,
+          reason: 'hidden is not discarded');
 
       await controller.setEnabled(true);
       expect(controller.enabled, isTrue);
@@ -233,8 +267,10 @@ void main() {
     });
 
     test('finishing after dispose does not notify or throw', () async {
-      final FakeTranslator slow = FakeTranslator(delay: const Duration(milliseconds: 40));
-      final ReaderTranslationController controller = ReaderTranslationController(
+      final FakeTranslator slow =
+          FakeTranslator(delay: const Duration(milliseconds: 40));
+      final ReaderTranslationController controller =
+          ReaderTranslationController(
         translator: slow,
         paragraphs: <String>['Late paragraph.'],
       );
@@ -248,7 +284,8 @@ void main() {
 
     test('translateAll is idempotent', () async {
       final FakeTranslator translator = FakeTranslator();
-      final ReaderTranslationController controller = ReaderTranslationController(
+      final ReaderTranslationController controller =
+          ReaderTranslationController(
         translator: translator,
         paragraphs: <String>['Only paragraph.'],
       );

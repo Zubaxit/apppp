@@ -14,11 +14,51 @@ class StoryMatcher {
   static const double threshold = 0.56;
 
   static const Set<String> _stop = <String>{
-    'the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'on', 'for', 'from',
-    'with', 'at', 'by', 'after', 'before', 'over', 'under', 'new', 'latest',
-    'today', 'says', 'said', 'news', 'report', 'বাংলাদেশ', 'ঢাকা', 'এই', 'ও',
-    'এ', 'এর', 'যে', 'করে', 'করেছে', 'হয়', 'হবে', 'থেকে', 'নিয়ে', 'আরও',
-    'খবর', 'সংবাদ', 'আজ', 'নতুন', 'একটি', 'জন্য',
+    'the',
+    'a',
+    'an',
+    'and',
+    'or',
+    'of',
+    'to',
+    'in',
+    'on',
+    'for',
+    'from',
+    'with',
+    'at',
+    'by',
+    'after',
+    'before',
+    'over',
+    'under',
+    'new',
+    'latest',
+    'today',
+    'says',
+    'said',
+    'news',
+    'report',
+    'বাংলাদেশ',
+    'ঢাকা',
+    'এই',
+    'ও',
+    'এ',
+    'এর',
+    'যে',
+    'করে',
+    'করেছে',
+    'হয়',
+    'হবে',
+    'থেকে',
+    'নিয়ে',
+    'আরও',
+    'খবর',
+    'সংবাদ',
+    'আজ',
+    'নতুন',
+    'একটি',
+    'জন্য',
   };
 
   /// Small bilingual concept bridge. It does not rewrite the headline shown to
@@ -76,7 +116,12 @@ class StoryMatcher {
   };
 
   static const Set<String> _followUpTerms = <String>{
-    'তদন্ত', 'আপডেট', 'গ্রেপ্তার', 'আদালত', 'নিহত', 'হাসপাতাল',
+    'তদন্ত',
+    'আপডেট',
+    'গ্রেপ্তার',
+    'আদালত',
+    'নিহত',
+    'হাসপাতাল',
   };
 
   /// Language-neutral event and entity concepts used only as a conservative
@@ -162,7 +207,16 @@ class StoryMatcher {
       // Bengali case markers are attached to names (লুলার, ব্রাজিলে,
       // ভুচিচের). Resolve a known base instead of stemming arbitrary words.
       for (final String suffix in const <String>[
-        'দের', 'টির', 'ের', 'য়ের', 'য়ের', 'তে', 'য়', 'য়', 'র', 'ে',
+        'দের',
+        'টির',
+        'ের',
+        'য়ের',
+        'য়ের',
+        'তে',
+        'য়',
+        'য়',
+        'র',
+        'ে',
       ]) {
         if (token.length <= suffix.length + 2 || !token.endsWith(suffix)) {
           continue;
@@ -201,14 +255,15 @@ class StoryMatcher {
   static String canonicalUrl(String value) {
     final Uri? uri = Uri.tryParse(value);
     if (uri == null) return value.trim().toLowerCase();
-    final Map<String, String> query = Map<String, String>.of(uri.queryParameters)
-      ..removeWhere((String key, String value) {
-        final String lower = key.toLowerCase();
-        return lower.startsWith('utm_') ||
-            lower == 'fbclid' ||
-            lower == 'gclid' ||
-            lower == 'ref';
-      });
+    final Map<String, String> query =
+        Map<String, String>.of(uri.queryParameters)
+          ..removeWhere((String key, String value) {
+            final String lower = key.toLowerCase();
+            return lower.startsWith('utm_') ||
+                lower == 'fbclid' ||
+                lower == 'gclid' ||
+                lower == 'ref';
+          });
     final String encodedQuery = query.entries
         .map((MapEntry<String, String> entry) =>
             '${Uri.encodeQueryComponent(entry.key)}=${Uri.encodeQueryComponent(entry.value)}')

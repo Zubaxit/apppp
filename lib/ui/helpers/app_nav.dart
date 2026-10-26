@@ -17,7 +17,8 @@ Route<T> editorialRoute<T>(Widget page, {String? name}) {
     settings: RouteSettings(name: name),
     transitionDuration: const Duration(milliseconds: 280),
     reverseTransitionDuration: const Duration(milliseconds: 200),
-    pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondary) =>
+    pageBuilder: (BuildContext context, Animation<double> animation,
+            Animation<double> secondary) =>
         page,
     transitionsBuilder: (BuildContext context, Animation<double> animation,
         Animation<double> secondary, Widget child) {
@@ -31,8 +32,9 @@ Route<T> editorialRoute<T>(Widget page, {String? name}) {
       return FadeTransition(
         opacity: curved,
         child: SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, 0.03), end: Offset.zero)
-              .animate(curved),
+          position:
+              Tween<Offset>(begin: const Offset(0, 0.03), end: Offset.zero)
+                  .animate(curved),
           child: child,
         ),
       );
@@ -46,7 +48,9 @@ void openArticle(
   List<Article>? related,
 }) {
   Navigator.of(context).push<void>(
-    editorialRoute<void>(ArticleDetailScreen(article: article, related: related), name: 'article'),
+    editorialRoute<void>(
+        ArticleDetailScreen(article: article, related: related),
+        name: 'article'),
   );
 }
 
@@ -59,7 +63,8 @@ void openSource(BuildContext context, NewsSource source) {
 /// Opens the publication directory as a pushed page (used from empty states).
 void openSourceDirectory(BuildContext context) {
   Navigator.of(context).push<void>(
-    editorialRoute<void>(const NewspapersScreen(standalone: true), name: 'directory'),
+    editorialRoute<void>(const NewspapersScreen(standalone: true),
+        name: 'directory'),
   );
 }
 
@@ -92,7 +97,8 @@ void openArticleList(
 }
 
 /// Opens a validated external URL and reports failures inline.
-Future<void> openUrlFeedback(BuildContext context, String? url, {bool inApp = false}) async {
+Future<void> openUrlFeedback(BuildContext context, String? url,
+    {bool inApp = false}) async {
   final bool ok = await LinkLauncher.open(url, inApp: inApp);
   if (!ok && context.mounted) {
     context.showSnack(context.strings.openFailed);

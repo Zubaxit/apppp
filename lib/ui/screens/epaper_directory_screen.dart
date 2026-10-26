@@ -30,7 +30,8 @@ class EpaperDirectoryScreen extends StatelessWidget {
           child: Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 8, Tokens.gutter, 6),
                 child: Row(
                   children: <Widget>[
                     GlassIconButton(

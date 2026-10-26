@@ -10,7 +10,11 @@ void main() {
   SourceRegistry regionalRegistry() {
     return SourceRegistry(
       sources: <NewsSource>[
-        sampleSource(id: 'prothomalo', name: 'Prothom Alo', nameBn: 'প্রথম আলো', curated: true),
+        sampleSource(
+            id: 'prothomalo',
+            name: 'Prothom Alo',
+            nameBn: 'প্রথম আলো',
+            curated: true),
         sampleSource(
           id: 'azadi',
           name: 'Dainik Azadi',
@@ -38,7 +42,8 @@ void main() {
     );
   }
 
-  testWidgets('division chips narrow the directory to that division', (WidgetTester tester) async {
+  testWidgets('division chips narrow the directory to that division',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness(registry: regionalRegistry());
     await tester.pumpWidget(h.wrap(const NewspapersScreen()));
     await tester.pumpAndSettle();
@@ -61,24 +66,30 @@ void main() {
     expect(find.widgetWithText(GlassChip, 'Sylhet'), findsNothing);
   });
 
-  testWidgets('arriving with a division preselects it', (WidgetTester tester) async {
+  testWidgets('arriving with a division preselects it',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness(registry: regionalRegistry());
-    await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true, initialDivision: 'Sylhet')));
+    await tester.pumpWidget(h.wrap(
+        const NewspapersScreen(standalone: true, initialDivision: 'Sylhet')));
     await tester.pumpAndSettle();
 
     expect(find.text('সিলেট মিরর'), findsOneWidget);
     expect(find.text('দৈনিক আজাদী'), findsNothing);
 
     // Choosing "all divisions" returns to the curated front of the directory.
-    await tester.tap(find.widgetWithText(GlassChip, h.settings.strings.allDivisions));
+    await tester
+        .tap(find.widgetWithText(GlassChip, h.settings.strings.allDivisions));
     await tester.pumpAndSettle();
     expect(find.text('দৈনিক আজাদী'), findsNothing);
     expect(find.text('প্রথম আলো'), findsWidgets);
   });
 
-  testWidgets('a division with no publication says so instead of showing nothing', (WidgetTester tester) async {
+  testWidgets(
+      'a division with no publication says so instead of showing nothing',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness(registry: regionalRegistry());
-    await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true, initialDivision: 'Rajshahi')));
+    await tester.pumpWidget(h.wrap(
+        const NewspapersScreen(standalone: true, initialDivision: 'Rajshahi')));
     await tester.pumpAndSettle();
 
     expect(find.text(h.settings.strings.regionalEmpty), findsOneWidget);

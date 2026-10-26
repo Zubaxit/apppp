@@ -4,7 +4,8 @@ import 'package:bangladesh_newspaper_hub/services/reader_tts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _TtsEngine implements ReaderTtsEngine {
-  final StreamController<TtsEvent> stream = StreamController<TtsEvent>.broadcast();
+  final StreamController<TtsEvent> stream =
+      StreamController<TtsEvent>.broadcast();
   int speaks = 0;
   String? article;
   int start = 0;
@@ -13,25 +14,37 @@ class _TtsEngine implements ReaderTtsEngine {
   @override
   Future<Map<String, Object?>> state() async => <String, Object?>{};
   @override
-  Future<void> speak({required String articleId, required String text, required String language, required double rate, int startOffset = 0}) async {
+  Future<void> speak(
+      {required String articleId,
+      required String text,
+      required String language,
+      required double rate,
+      int startOffset = 0}) async {
     speaks++;
     article = articleId;
     start = startOffset;
-    stream.add(TtsEvent('playing', <String, Object?>{'articleId': articleId, 'offset': startOffset}));
+    stream.add(TtsEvent('playing',
+        <String, Object?>{'articleId': articleId, 'offset': startOffset}));
   }
+
   @override
-  Future<void> pause() async => stream.add(TtsEvent('paused', <String, Object?>{'articleId': article, 'offset': start}));
+  Future<void> pause() async => stream.add(TtsEvent(
+      'paused', <String, Object?>{'articleId': article, 'offset': start}));
   @override
-  Future<void> resume() async => stream.add(TtsEvent('playing', <String, Object?>{'articleId': article, 'offset': start}));
+  Future<void> resume() async => stream.add(TtsEvent(
+      'playing', <String, Object?>{'articleId': article, 'offset': start}));
   @override
   Future<void> seek(int offset) async {
     start = offset;
-    stream.add(TtsEvent('progress', <String, Object?>{'articleId': article, 'offset': offset}));
+    stream.add(TtsEvent(
+        'progress', <String, Object?>{'articleId': article, 'offset': offset}));
   }
+
   @override
   Future<void> setRate(double rate) async {}
   @override
-  Future<void> stop() async => stream.add(TtsEvent('stopped', <String, Object?>{'articleId': article, 'offset': 0}));
+  Future<void> stop() async => stream.add(TtsEvent(
+      'stopped', <String, Object?>{'articleId': article, 'offset': 0}));
 }
 
 void main() {
@@ -40,7 +53,8 @@ void main() {
       'প্রথম বাক্য। দ্বিতীয় বাক্য!',
       'English sentence? Final line.',
     ]);
-    expect(value.text, 'প্রথম বাক্য। দ্বিতীয় বাক্য!\n\nEnglish sentence? Final line.');
+    expect(value.text,
+        'প্রথম বাক্য। দ্বিতীয় বাক্য!\n\nEnglish sentence? Final line.');
     expect(value.sentences.map((SentenceRange item) => item.text), <String>[
       'প্রথম বাক্য।',
       'দ্বিতীয় বাক্য!',
@@ -54,18 +68,22 @@ void main() {
   test('active sentence follows native range offsets', () async {
     final _TtsEngine engine = _TtsEngine();
     final ReaderTtsController controller = ReaderTtsController(engine: engine);
-    await controller.play('one', <String>['One sentence. Two sentence.'], language: 'en-US');
+    await controller.play('one', <String>['One sentence. Two sentence.'],
+        language: 'en-US');
     await Future<void>.delayed(Duration.zero);
-    engine.stream.add(const TtsEvent('progress', <String, Object?>{'articleId': 'one', 'offset': 15}));
+    engine.stream.add(const TtsEvent(
+        'progress', <String, Object?>{'articleId': 'one', 'offset': 15}));
     await Future<void>.delayed(Duration.zero);
     expect(controller.activeSentence, 1);
     controller.dispose();
   });
 
-  test('pause preserves position, resume and completion update state', () async {
+  test('pause preserves position, resume and completion update state',
+      () async {
     final _TtsEngine engine = _TtsEngine();
     final ReaderTtsController controller = ReaderTtsController(engine: engine);
-    await controller.play('one', <String>['One sentence. Two sentence.'], language: 'en-US');
+    await controller.play('one', <String>['One sentence. Two sentence.'],
+        language: 'en-US');
     await Future<void>.delayed(Duration.zero);
     await controller.skipSentences(1);
     final int pausedOffset = controller.offset;
@@ -89,7 +107,8 @@ void main() {
     final _TtsEngine engine = _TtsEngine();
     final ReaderTtsController controller = ReaderTtsController(engine: engine);
     await controller.play('one', <String>['First article.'], language: 'en-US');
-    await controller.play('two', <String>['Second article.'], language: 'en-US');
+    await controller.play('two', <String>['Second article.'],
+        language: 'en-US');
     expect(engine.speaks, 2);
     expect(controller.articleId, 'two');
     expect(controller.offset, 0);

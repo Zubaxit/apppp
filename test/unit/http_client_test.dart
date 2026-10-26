@@ -33,7 +33,8 @@ void main() {
           headers: <String, String>{'content-type': 'application/rss+xml'},
         );
       });
-      final HttpFetchResult result = await c.get('https://www.prothomalo.com/stories.rss');
+      final HttpFetchResult result =
+          await c.get('https://www.prothomalo.com/stories.rss');
       expect(result.isSuccess, isTrue);
       expect(result.body, contains(_bengali));
       expect(result.body, isNot(contains('à¦')));
@@ -42,9 +43,12 @@ void main() {
     test('a declared latin-1 charset is still honoured', () async {
       final NewsHttpClient c = client((http.Request request) async {
         return http.Response.bytes(
-          latin1.encode('<rss><channel><title>café society</title></channel></rss>'),
+          latin1.encode(
+              '<rss><channel><title>café society</title></channel></rss>'),
           200,
-          headers: <String, String>{'content-type': 'text/xml; charset=iso-8859-1'},
+          headers: <String, String>{
+            'content-type': 'text/xml; charset=iso-8859-1'
+          },
         );
       });
       final HttpFetchResult result = await c.get('https://example.com/feed');
@@ -54,7 +58,13 @@ void main() {
     test('a UTF-8 BOM is skipped rather than breaking the parser', () async {
       final NewsHttpClient c = client((http.Request request) async {
         return http.Response.bytes(
-          <int>[0xEF, 0xBB, 0xBF, ...utf8.encode('<rss><channel><title>$_bengali</title></channel></rss>')],
+          <int>[
+            0xEF,
+            0xBB,
+            0xBF,
+            ...utf8.encode(
+                '<rss><channel><title>$_bengali</title></channel></rss>')
+          ],
           200,
           headers: <String, String>{'content-type': 'text/xml; charset=utf-8'},
         );
@@ -97,7 +107,8 @@ void main() {
         calls += 1;
         return http.Response('Forbidden', 403);
       });
-      final HttpFetchResult result = await c.get('https://www.jugantor.com/rss');
+      final HttpFetchResult result =
+          await c.get('https://www.jugantor.com/rss');
       expect(result.statusCode, 403);
       expect(result.error, 'HTTP 403');
       expect(calls, 1, reason: 'a blocked source must not be hammered');
@@ -123,7 +134,8 @@ void main() {
             ? http.Response('busy', 500)
             : http.Response('<rss><channel/></rss>', 200);
       });
-      final HttpFetchResult result = await c.get('https://www.kalerkantho.com/rss');
+      final HttpFetchResult result =
+          await c.get('https://www.kalerkantho.com/rss');
       expect(calls, 2);
       expect(result.isSuccess, isTrue);
     });

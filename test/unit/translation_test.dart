@@ -43,7 +43,8 @@ void main() {
 
     test('a missing asset leaves the feature unavailable instead of throwing',
         () async {
-      final TranslationService service = TranslationService(bundle: _FailingBundle());
+      final TranslationService service =
+          TranslationService(bundle: _FailingBundle());
       await service.load();
       expect(service.isAvailable, isFalse);
       expect(service.gloss('news report'), isEmpty);
@@ -58,7 +59,8 @@ void main() {
       expect(service.lookup('  POEM  ').meaning, 'কবিতা');
     });
 
-    test('unknown words are reported as not found, never approximated', () async {
+    test('unknown words are reported as not found, never approximated',
+        () async {
       final TranslationService service =
           TranslationService(bundle: _StringBundle(_payload));
       await service.load();

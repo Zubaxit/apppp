@@ -91,7 +91,11 @@ class AuthorProfile {
 
   static AuthorProfile fromJson(Map<String, dynamic> json) {
     List<String> strings(Object? value) => value is List
-        ? value.whereType<String>().map((String e) => e.trim()).where((String e) => e.isNotEmpty).toList()
+        ? value
+            .whereType<String>()
+            .map((String e) => e.trim())
+            .where((String e) => e.isNotEmpty)
+            .toList()
         : const <String>[];
     String text(Object? value, String fallback) {
       final String trimmed = value is String ? value.trim() : '';

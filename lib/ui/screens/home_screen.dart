@@ -120,7 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
     await context.read<FeedController>().applyPendingUpdates();
   }
 
-  Future<void> _refresh() => context.read<FeedController>().refresh(force: true);
+  Future<void> _refresh() =>
+      context.read<FeedController>().refresh(force: true);
 
   void _setFollowing(bool following) {
     unawaited(context.read<FeedController>().setFollowedOnly(following));
@@ -133,7 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _clearTopics() {
     final FeedController feed = context.read<FeedController>();
-    unawaited(feed.applyQuery(feed.query.copyWith(topics: const <ArticleTopic>{})));
+    unawaited(
+        feed.applyQuery(feed.query.copyWith(topics: const <ArticleTopic>{})));
   }
 
   @override
@@ -141,8 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final FeedController feed = context.watch<FeedController>();
     final SourceRegistry registry = context.registry;
     final SettingsController settings = context.watch<SettingsController>();
-    final bool noFollows = feed.query.followedOnly &&
-        settings.followedSourceIds.isEmpty;
+    final bool noFollows =
+        feed.query.followedOnly && settings.followedSourceIds.isEmpty;
     final List<Article> articles = feed.articles;
     final bool hasArticles = articles.isNotEmpty;
     final bool firstLaunch = !settings.prefs.onboardingComplete;
@@ -154,14 +156,18 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
 
-    final List<Article> carouselItems =
-        articles.where((Article a) => a.imageUrl != null).take(6).toList(growable: false);
+    final List<Article> carouselItems = articles
+        .where((Article a) => a.imageUrl != null)
+        .take(6)
+        .toList(growable: false);
     final bool showCarousel = carouselItems.length >= 3;
-    final Set<String> carouselIds =
-        showCarousel ? carouselItems.map((Article a) => a.id).toSet() : <String>{};
+    final Set<String> carouselIds = showCarousel
+        ? carouselItems.map((Article a) => a.id).toSet()
+        : <String>{};
 
     final Article? lead = !showCarousel && hasArticles ? articles.first : null;
-    final NewsSource? leadSource = lead == null ? null : registry.byId(lead.sourceId);
+    final NewsSource? leadSource =
+        lead == null ? null : registry.byId(lead.sourceId);
     final List<Article> river = !hasArticles
         ? const <Article>[]
         : showCarousel
@@ -195,7 +201,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 titleSpacing: 0,
                 flexibleSpace: const _MastheadGlass(),
                 title: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                   child: Masthead(
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -213,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icons.search_rounded,
                           tooltip: context.strings.searchTitle,
                           onTap: () => Navigator.of(context).push<void>(
-                            editorialRoute<void>(const SearchScreen(), name: 'search'),
+                            editorialRoute<void>(const SearchScreen(),
+                                name: 'search'),
                           ),
                         ),
                       ],
@@ -222,127 +230,129 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  if (feed.lastError != null && !noFollows)
-                    _ErrorNote(message: feed.lastError!),
-                  BreakingBanner(
-                    articles: feed.breakingArticles,
-                    onOpen: (Article article) => openArticle(context, article),
-                  ),
-                  if (!hasArticles && firstLaunch &&
-                      (feed.isLoading || feed.isRefreshing))
-                    const _WelcomeLoadingState()
-                  else if (!hasArticles && feed.isLoading)
-                    const _LoadingState()
-                  else if (!hasArticles)
-                    _EmptyState(
-                      feed: feed,
-                      noFollows: noFollows,
-                      onRetry: _refresh,
-                      onShowAll: () => _setFollowing(false),
-                    )
-                  else ...<Widget>[
-                    const SizedBox(height: 6),
-                    if (feed.isRefreshing)
-                      _RefreshActivity(
-                        done: feed.progressDone,
-                        total: feed.progressTotal,
-                      ),
-                    if (showCarousel)
-                      RiseIn(
-                        child: FeaturedCarousel(
-                          articles: articles,
-                          sourceFor: (Article a) => registry.byId(a.sourceId),
-                          onOpen: (Article a) => openArticle(context, a),
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    if (feed.lastError != null && !noFollows)
+                      _ErrorNote(message: feed.lastError!),
+                    BreakingBanner(
+                      articles: feed.breakingArticles,
+                      onOpen: (Article article) =>
+                          openArticle(context, article),
+                    ),
+                    if (!hasArticles &&
+                        firstLaunch &&
+                        (feed.isLoading || feed.isRefreshing))
+                      const _WelcomeLoadingState()
+                    else if (!hasArticles && feed.isLoading)
+                      const _LoadingState()
+                    else if (!hasArticles)
+                      _EmptyState(
+                        feed: feed,
+                        noFollows: noFollows,
+                        onRetry: _refresh,
+                        onShowAll: () => _setFollowing(false),
                       )
-                    else if (lead != null)
-                      RiseIn(
-                        child: LeadStory(
-                          article: lead,
-                          source: leadSource,
-                          onTap: () => openArticle(context, lead),
-                          onOpenSource: leadSource == null
-                              ? null
-                              : () => openSource(context, leadSource),
+                    else ...<Widget>[
+                      const SizedBox(height: 6),
+                      if (feed.isRefreshing)
+                        _RefreshActivity(
+                          done: feed.progressDone,
+                          total: feed.progressTotal,
                         ),
-                      ),
-                    const SizedBox(height: 8),
-                    CategoryStrip(
-                      selected: feed.query.topics,
-                      onToggle: _toggleTopic,
-                      onClear: _clearTopics,
-                    ),
-                    const SizedBox(height: 4),
-                    _FeedBar(
-                      following: feed.query.followedOnly,
-                      onChanged: _setFollowing,
-                      count: articles.length,
-                      refreshing: feed.isRefreshing,
-                      onRefresh: _refresh,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        Tokens.gutter + 4,
-                        8,
-                        Tokens.gutter,
-                        0,
-                      ),
-                      child: _StatusLine(
-                        status: _Status(
-                          offline: feed.isOffline,
-                          cached: feed.isShowingCached,
-                          updated: feed.lastRefreshAt,
+                      if (showCarousel)
+                        RiseIn(
+                          child: FeaturedCarousel(
+                            articles: articles,
+                            sourceFor: (Article a) => registry.byId(a.sourceId),
+                            onOpen: (Article a) => openArticle(context, a),
+                          ),
+                        )
+                      else if (lead != null)
+                        RiseIn(
+                          child: LeadStory(
+                            article: lead,
+                            source: leadSource,
+                            onTap: () => openArticle(context, lead),
+                            onOpenSource: leadSource == null
+                                ? null
+                                : () => openSource(context, leadSource),
+                          ),
                         ),
+                      const SizedBox(height: 8),
+                      CategoryStrip(
+                        selected: feed.query.topics,
+                        onToggle: _toggleTopic,
+                        onClear: _clearTopics,
+                      ),
+                      const SizedBox(height: 4),
+                      _FeedBar(
+                        following: feed.query.followedOnly,
+                        onChanged: _setFollowing,
+                        count: articles.length,
                         refreshing: feed.isRefreshing,
+                        onRefresh: _refresh,
                       ),
-                    ),
-                    if (feed.updatesPending)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(
-                          Tokens.gutter,
-                          10,
+                          Tokens.gutter + 4,
+                          8,
                           Tokens.gutter,
                           0,
                         ),
-                        child: Center(
-                          child: GlassChip(
-                            label: context.isBengali
-                                ? 'নতুন খবর দেখুন'
-                                : 'Show new stories',
-                            icon: Icons.arrow_upward_rounded,
-                            selected: true,
-                            onTap: _showPending,
+                        child: _StatusLine(
+                          status: _Status(
+                            offline: feed.isOffline,
+                            cached: feed.isShowingCached,
+                            updated: feed.lastRefreshAt,
+                          ),
+                          refreshing: feed.isRefreshing,
+                        ),
+                      ),
+                      if (feed.updatesPending)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            Tokens.gutter,
+                            10,
+                            Tokens.gutter,
+                            0,
+                          ),
+                          child: Center(
+                            child: GlassChip(
+                              label: context.isBengali
+                                  ? 'নতুন খবর দেখুন'
+                                  : 'Show new stories',
+                              icon: Icons.arrow_upward_rounded,
+                              selected: true,
+                              onTap: _showPending,
+                            ),
                           ),
                         ),
-                      ),
-                    if (river.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          Tokens.gutter,
-                          18,
-                          Tokens.gutter,
-                          4,
+                      if (river.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            Tokens.gutter,
+                            18,
+                            Tokens.gutter,
+                            4,
+                          ),
+                          child: Kicker(
+                            feed.query.followedOnly
+                                ? context.strings.followedPapers
+                                : context.strings.latestNews,
+                          ),
                         ),
-                        child: Kicker(
-                          feed.query.followedOnly
-                              ? context.strings.followedPapers
-                              : context.strings.latestNews,
+                      // The first two stories are laid out with the header so the
+                      // page has content immediately; the rest arrive lazily.
+                      for (int i = 0; i < river.length && i < _eagerRiver; i++)
+                        NewsCard(
+                          article: river[i],
+                          source: registry.byId(river[i].sourceId),
+                          index: i,
+                          onTap: () => openArticle(context, river[i]),
                         ),
-                      ),
-                    // The first two stories are laid out with the header so the
-                    // page has content immediately; the rest arrive lazily.
-                    for (int i = 0; i < river.length && i < _eagerRiver; i++)
-                      NewsCard(
-                        article: river[i],
-                        source: registry.byId(river[i].sourceId),
-                        index: i,
-                        onTap: () => openArticle(context, river[i]),
-                      ),
+                    ],
                   ],
-                ],
                 ),
               ),
               // The river is a real sliver list, so a long feed only builds the
@@ -404,7 +414,8 @@ class _MastheadGlass extends StatelessWidget {
     return ClipRect(
       child: BackdropFilter(
         enabled: !AppEffectsScope.of(context),
-        filter: ImageFilter.blur(sigmaX: Tokens.blurBar, sigmaY: Tokens.blurBar),
+        filter:
+            ImageFilter.blur(sigmaX: Tokens.blurBar, sigmaY: Tokens.blurBar),
         child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -498,36 +509,39 @@ class _Segment extends StatelessWidget {
         width: 156,
         height: 28,
         child: Stack(
-        children: <Widget>[
-          AnimatedAlign(
-            duration: motion.reduce ? Duration.zero : const Duration(milliseconds: 330),
-            curve: Curves.easeOutBack,
-            alignment: following ? Alignment.centerRight : Alignment.centerLeft,
-            child: Container(
-              width: 78,
-              height: 28,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Tokens.radiusPill),
-                color: context.colors.primary,
+          children: <Widget>[
+            AnimatedAlign(
+              duration: motion.reduce
+                  ? Duration.zero
+                  : const Duration(milliseconds: 330),
+              curve: Curves.easeOutBack,
+              alignment:
+                  following ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 78,
+                height: 28,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(Tokens.radiusPill),
+                  color: context.colors.primary,
+                ),
               ),
             ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _SegmentTab(
-                label: context.strings.all,
-                active: !following,
-                onTap: () => onChanged(false),
-              ),
-              _SegmentTab(
-                label: context.strings.followingLabel,
-                active: following,
-                onTap: () => onChanged(true),
-              ),
-            ],
-          ),
-        ],
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _SegmentTab(
+                  label: context.strings.all,
+                  active: !following,
+                  onTap: () => onChanged(false),
+                ),
+                _SegmentTab(
+                  label: context.strings.followingLabel,
+                  active: following,
+                  onTap: () => onChanged(true),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -535,7 +549,8 @@ class _Segment extends StatelessWidget {
 }
 
 class _SegmentTab extends StatelessWidget {
-  const _SegmentTab({required this.label, required this.active, required this.onTap});
+  const _SegmentTab(
+      {required this.label, required this.active, required this.onTap});
 
   final String label;
   final bool active;
@@ -602,7 +617,8 @@ class _RefreshButton extends StatelessWidget {
 }
 
 class _Status {
-  const _Status({required this.offline, required this.cached, required this.updated});
+  const _Status(
+      {required this.offline, required this.cached, required this.updated});
 
   final bool offline;
   final bool cached;
@@ -686,7 +702,8 @@ class _ErrorNote extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(Icons.error_outline_rounded, size: 15, color: context.colors.error),
+            Icon(Icons.error_outline_rounded,
+                size: 15, color: context.colors.error),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -772,8 +789,7 @@ class _RefreshActivity extends StatelessWidget {
                 minHeight: 3,
                 borderRadius: BorderRadius.circular(3),
                 color: context.colors.primary,
-                backgroundColor:
-                    context.colors.primary.withValues(alpha: 0.1),
+                backgroundColor: context.colors.primary.withValues(alpha: 0.1),
               ),
             ],
           ),
@@ -842,40 +858,40 @@ class _LoadingState extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShimmerScope(
       child: Padding(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const ShimmerBox(height: 250, radius: Tokens.radiusLg),
-          const SizedBox(height: 14),
-          const ShimmerBox(height: 84, radius: Tokens.radiusLg),
-          const SizedBox(height: 18),
-          for (int i = 0; i < 4; i++) ...<Widget>[
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      ShimmerBox(height: 9, width: 64),
-                      SizedBox(height: 8),
-                      ShimmerBox(height: 15),
-                      SizedBox(height: 6),
-                      ShimmerBox(height: 15, width: 170),
-                    ],
+        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const ShimmerBox(height: 250, radius: Tokens.radiusLg),
+            const SizedBox(height: 14),
+            const ShimmerBox(height: 84, radius: Tokens.radiusLg),
+            const SizedBox(height: 18),
+            for (int i = 0; i < 4; i++) ...<Widget>[
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        ShimmerBox(height: 9, width: 64),
+                        SizedBox(height: 8),
+                        ShimmerBox(height: 15),
+                        SizedBox(height: 6),
+                        ShimmerBox(height: 15, width: 170),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(width: 12),
-                ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const SoftRule(opacity: 0.6),
-            const SizedBox(height: 16),
+                  SizedBox(width: 12),
+                  ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const SoftRule(opacity: 0.6),
+              const SizedBox(height: 16),
+            ],
           ],
-        ],
-      ),
+        ),
       ),
     );
   }
@@ -917,7 +933,8 @@ class _EmptyState extends StatelessWidget {
           compact: true,
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 0),
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 0),
           child: Wrap(
             spacing: 8,
             runSpacing: 8,

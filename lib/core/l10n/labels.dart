@@ -284,7 +284,9 @@ class Labels {
   static String feedClaim(FeedClaim claim, {required bool bengali}) {
     switch (claim) {
       case FeedClaim.officialDocumented:
-        return bengali ? 'প্রকাশকের নিজস্ব ডকুমেন্টেড ফিড' : 'Documented by the publisher';
+        return bengali
+            ? 'প্রকাশকের নিজস্ব ডকুমেন্টেড ফিড'
+            : 'Documented by the publisher';
       case FeedClaim.verifiedWorking:
         return bengali ? 'যাচাই করা সচল ফিড' : 'Verified working feed';
       case FeedClaim.candidate:

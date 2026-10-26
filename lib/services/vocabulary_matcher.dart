@@ -37,13 +37,15 @@ class VocabularyMatcher {
       return const <VocabularyMatch>[];
     }
     final List<VocabularyMatch> matches = <VocabularyMatch>[];
-    for (final RegExpMatch token in RegExp(r"[A-Za-z]+(?:['’][A-Za-z]+)?").allMatches(text)) {
+    for (final RegExpMatch token
+        in RegExp(r"[A-Za-z]+(?:['’][A-Za-z]+)?").allMatches(text)) {
       final String normalized = token.group(0)!.toLowerCase();
       final VocabularyEntry? entry = _exact[normalized] ?? _forms[normalized];
       if (entry == null) {
         continue;
       }
-      matches.add(VocabularyMatch(start: token.start, end: token.end, entry: entry));
+      matches.add(
+          VocabularyMatch(start: token.start, end: token.end, entry: entry));
     }
     return matches;
   }
@@ -63,7 +65,9 @@ class VocabularyMatcher {
         ..add('${word}ed')
         ..add('${word}ing');
     }
-    if (word.endsWith('y') && word.length > 4 && !'aeiou'.contains(word[word.length - 2])) {
+    if (word.endsWith('y') &&
+        word.length > 4 &&
+        !'aeiou'.contains(word[word.length - 2])) {
       forms.add('${word.substring(0, word.length - 1)}ies');
     } else if (word.endsWith('s') ||
         word.endsWith('x') ||

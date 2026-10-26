@@ -86,9 +86,8 @@ class _BookmarkActionState extends State<BookmarkAction>
       (SavedController controller) => controller.isSaved(widget.article.id),
     );
     final Motion motion = Motion.of(context);
-    final Color idle = widget.onDark
-        ? Colors.white
-        : context.colors.onSurfaceVariant;
+    final Color idle =
+        widget.onDark ? Colors.white : context.colors.onSurfaceVariant;
     final Color active = widget.onDark ? Colors.white : context.colors.primary;
 
     final Widget mark = AnimatedSwitcher(
@@ -290,7 +289,8 @@ class GlassIconButton extends StatelessWidget {
 
 /// Thin reading-progress rule pinned under the toolbar.
 class ReadingProgressBar extends StatelessWidget {
-  const ReadingProgressBar({super.key, required this.progress, this.height = 2.5});
+  const ReadingProgressBar(
+      {super.key, required this.progress, this.height = 2.5});
 
   /// The scroll fraction, published as a value so the reader's page is not
   /// rebuilt while it scrolls.
@@ -358,7 +358,8 @@ class FadingRule extends StatelessWidget {
   final double inset;
 
   @override
-  Widget build(BuildContext context) => SoftRule(inset: inset, thickness: height);
+  Widget build(BuildContext context) =>
+      SoftRule(inset: inset, thickness: height);
 }
 
 /// A translucent label chip drawn over photography ("ব্রেকিং", source name).

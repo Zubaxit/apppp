@@ -38,7 +38,8 @@ void main() {
       );
     });
 
-    test('keeps editorials for seven days and safely dates undated discoveries', () {
+    test('keeps editorials for seven days and safely dates undated discoveries',
+        () {
       final Article current = sampleArticle(
         title: 'Editorial current',
         topic: ArticleTopic.editorial,
@@ -102,7 +103,8 @@ void main() {
   });
 
   group('ArchiveSearchService', () {
-    test('keeps provider relevance order, canonical-dedupes and caches', () async {
+    test('keeps provider relevance order, canonical-dedupes and caches',
+        () async {
       final Article first = sampleArticle(
         title: 'বাংলাদেশ বাজেট',
         link: 'https://example.com/story?utm_source=test',

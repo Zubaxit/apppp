@@ -108,7 +108,8 @@ class _Standard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              if (showExcerpt && (article.excerpt ?? '').isNotEmpty) ...<Widget>[
+              if (showExcerpt &&
+                  (article.excerpt ?? '').isNotEmpty) ...<Widget>[
                 const SizedBox(height: 6),
                 Text(
                   article.excerpt!,
@@ -130,7 +131,8 @@ class _Standard extends StatelessWidget {
                       ),
                     ),
                   const Spacer(),
-                  BookmarkAction(article: article, dense: true, showSnack: false),
+                  BookmarkAction(
+                      article: article, dense: true, showSnack: false),
                   ShareAction(article: article, size: 17, dense: true),
                 ],
               ),
@@ -143,7 +145,8 @@ class _Standard extends StatelessWidget {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.article, required this.source, required this.onTap});
+  const _Hero(
+      {required this.article, required this.source, required this.onTap});
 
   final Article article;
   final NewsSource? source;
@@ -202,7 +205,8 @@ class _Hero extends StatelessWidget {
 }
 
 class _Compact extends StatelessWidget {
-  const _Compact({required this.article, required this.source, required this.onTap});
+  const _Compact(
+      {required this.article, required this.source, required this.onTap});
 
   final Article article;
   final NewsSource? source;
@@ -215,7 +219,8 @@ class _Compact extends StatelessWidget {
       onTap: onTap,
       scale: 0.99,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter, 12),
+        padding:
+            const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter, 12),
         child: Column(
           children: <Widget>[
             Row(
@@ -225,7 +230,8 @@ class _Compact extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Attribution(article: article, source: source, compact: true),
+                      Attribution(
+                          article: article, source: source, compact: true),
                       const SizedBox(height: 5),
                       Text(
                         article.title,
@@ -269,7 +275,8 @@ class _Compact extends StatelessWidget {
 
 /// Saved rows show how the item was kept, which is different from a plain list.
 class _Saved extends StatelessWidget {
-  const _Saved({required this.article, required this.source, required this.onTap});
+  const _Saved(
+      {required this.article, required this.source, required this.onTap});
 
   final Article article;
   final NewsSource? source;
@@ -296,7 +303,8 @@ class _Saved extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Attribution(article: article, source: source, compact: true),
+                    Attribution(
+                        article: article, source: source, compact: true),
                     const SizedBox(height: 6),
                     Text(
                       article.title,
@@ -366,8 +374,10 @@ class ArticleMetaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool bengali = context.isBengali;
-    final String name = source?.localizedName(bengali: bengali) ?? article.sourceId;
-    final String? time = BengaliText.relative(article.publishedAt, bengali: bengali);
+    final String name =
+        source?.localizedName(bengali: bengali) ?? article.sourceId;
+    final String? time =
+        BengaliText.relative(article.publishedAt, bengali: bengali);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -392,7 +402,8 @@ class ArticleMetaRow extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             '· $time',
-            style: context.texts.labelSmall?.copyWith(fontSize: dense ? 9.5 : 10.5),
+            style: context.texts.labelSmall
+                ?.copyWith(fontSize: dense ? 9.5 : 10.5),
           ),
         ],
       ],

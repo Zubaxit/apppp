@@ -53,7 +53,8 @@ class NewsShield {
       }
       if (updateEnabled &&
           (_updatedAt == null ||
-              DateTime.now().toUtc().difference(_updatedAt!) >= updateInterval)) {
+              DateTime.now().toUtc().difference(_updatedAt!) >=
+                  updateInterval)) {
         unawaited(update());
       }
     } catch (_) {
@@ -68,12 +69,11 @@ class NewsShield {
     try {
       final Set<String> next = <String>{};
       for (final String value in updateUrls) {
-        final http.Response response = await transport
-            .get(Uri.parse(value), headers: <String, String>{
-              'Accept': 'text/plain',
-              'User-Agent': 'AmarNews/1.2 NewsShield',
-            })
-            .timeout(const Duration(seconds: 20));
+        final http.Response response =
+            await transport.get(Uri.parse(value), headers: <String, String>{
+          'Accept': 'text/plain',
+          'User-Agent': 'AmarNews/1.2 NewsShield',
+        }).timeout(const Duration(seconds: 20));
         if (response.statusCode != 200 || response.body.length < 10000) {
           return false;
         }
@@ -108,7 +108,8 @@ class NewsShield {
         continue;
       }
       final RegExpMatch? match = host.firstMatch(line);
-      final String? value = match?.group(1) ?? (plain.hasMatch(line) ? line : null);
+      final String? value =
+          match?.group(1) ?? (plain.hasMatch(line) ? line : null);
       if (value == null || value.contains('..')) continue;
       out.add(value);
       if (out.length >= maxHosts) break;
@@ -140,6 +141,7 @@ class NewsShield {
           ? value.toLowerCase()
           : labels.sublist(labels.length - 2).join('.');
     }
+
     return base(first) == base(second);
   }
 

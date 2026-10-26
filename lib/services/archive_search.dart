@@ -72,7 +72,8 @@ class CachedArticleArchiveProvider implements ArchiveSearchProvider {
         .toList(growable: false);
     if (terms.isEmpty) return const ArchiveProviderResult();
     final List<Article> cached = await repository.searchArchiveCandidates();
-    final List<({Article article, int score})> ranked = <({Article article, int score})>[];
+    final List<({Article article, int score})> ranked =
+        <({Article article, int score})>[];
     for (final Article article in cached) {
       if (query.sourceIds.isNotEmpty &&
           !query.sourceIds.contains(article.sourceId)) {

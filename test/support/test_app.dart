@@ -111,19 +111,21 @@ class TestHarness {
                     reduceMotion: true,
                     child: MaterialApp(
                       debugShowCheckedModeBanner: false,
-                    theme: brightness == Brightness.dark ? AppTheme.dark() : AppTheme.light(),
-                    builder: (BuildContext context, Widget? child) {
-                      final MediaQueryData data = MediaQuery.of(context);
-                      return MediaQuery(
-                        data: data.copyWith(
-                          textScaler: TextScaler.linear(settings.textScale),
-                        ),
-                        child: child ?? const SizedBox.shrink(),
-                      );
-                    },
-                    // Screens are always mounted inside a Scaffold in the app
-                    // (AppShell), so the harness mirrors that.
-                    home: Scaffold(body: child),
+                      theme: brightness == Brightness.dark
+                          ? AppTheme.dark()
+                          : AppTheme.light(),
+                      builder: (BuildContext context, Widget? child) {
+                        final MediaQueryData data = MediaQuery.of(context);
+                        return MediaQuery(
+                          data: data.copyWith(
+                            textScaler: TextScaler.linear(settings.textScale),
+                          ),
+                          child: child ?? const SizedBox.shrink(),
+                        );
+                      },
+                      // Screens are always mounted inside a Scaffold in the app
+                      // (AppShell), so the harness mirrors that.
+                      home: Scaffold(body: child),
                     ),
                   ),
                 ),

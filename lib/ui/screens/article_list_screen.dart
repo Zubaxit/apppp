@@ -58,14 +58,15 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
       _error = null;
     });
     try {
-      final List<Article> articles = await context.read<ArticleRepository>().loadFeed(
-            FeedQuery(
-              topics: widget.topics,
-              sourceIds: widget.sourceIds,
-              languages: widget.languages,
-              limit: _limit,
-            ),
-          );
+      final List<Article> articles =
+          await context.read<ArticleRepository>().loadFeed(
+                FeedQuery(
+                  topics: widget.topics,
+                  sourceIds: widget.sourceIds,
+                  languages: widget.languages,
+                  limit: _limit,
+                ),
+              );
       if (!mounted) return;
       setState(() {
         _articles = articles;
@@ -103,7 +104,8 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
           child: Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 8, Tokens.gutter, 6),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
@@ -134,7 +136,8 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                               widget.subtitle!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
+                              style: context.texts.labelSmall
+                                  ?.copyWith(fontSize: 10.5),
                             ),
                         ],
                       ),
@@ -173,7 +176,8 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                               ],
                             )
                           : ListView.builder(
-                              padding: const EdgeInsets.only(top: 10, bottom: 120),
+                              padding:
+                                  const EdgeInsets.only(top: 10, bottom: 120),
                               itemCount: _articles.length + 1,
                               itemBuilder: (BuildContext context, int index) {
                                 if (index == _articles.length) {
@@ -188,7 +192,8 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                                       child: Center(
                                         child: Text(
                                           context.strings.feedEnd,
-                                          style: context.texts.labelSmall?.copyWith(
+                                          style: context.texts.labelSmall
+                                              ?.copyWith(
                                             fontSize: 10.5,
                                           ),
                                         ),

@@ -11,16 +11,20 @@ class _Primary implements MachineTranslator {
   @override
   bool get requiresNetwork => true;
   @override
-  Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
+  Future<String> translate(String text,
+      {String from = 'en', String to = 'bn'}) async {
     calls++;
     if (error != null) {
       throw error!;
     }
     return 'primary';
   }
+
   @override
-  Future<List<String>> translateAll(List<String> texts, {String from = 'en', String to = 'bn'}) =>
-      Future.wait(texts.map((String text) => translate(text, from: from, to: to)));
+  Future<List<String>> translateAll(List<String> texts,
+          {String from = 'en', String to = 'bn'}) =>
+      Future.wait(
+          texts.map((String text) => translate(text, from: from, to: to)));
 }
 
 class _Device implements OnDeviceTranslationEngine {
@@ -30,7 +34,8 @@ class _Device implements OnDeviceTranslationEngine {
   int calls = 0;
   int prepares = 0;
   @override
-  Future<bool> modelsReady({String from = 'en', String to = 'bn'}) async => ready;
+  Future<bool> modelsReady({String from = 'en', String to = 'bn'}) async =>
+      ready;
   @override
   Future<void> prepare({String from = 'en', String to = 'bn'}) async {
     prepares++;
@@ -42,14 +47,17 @@ class _Device implements OnDeviceTranslationEngine {
     }
     ready = true;
   }
+
   @override
-  Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
+  Future<String> translate(String text,
+      {String from = 'en', String to = 'bn'}) async {
     calls++;
     if (!ready) {
       await prepare(from: from, to: to);
     }
     return 'বাংলা:$text';
   }
+
   @override
   Future<void> close() async {}
 }
@@ -95,7 +103,8 @@ void main() {
       ),
       fallback: device,
     );
-    await expectLater(translator.translate('hello'), throwsA(isA<TranslationException>()));
+    await expectLater(
+        translator.translate('hello'), throwsA(isA<TranslationException>()));
     expect(device.calls, 0);
   });
 

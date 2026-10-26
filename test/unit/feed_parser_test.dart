@@ -96,7 +96,8 @@ void main() {
     late FeedParseResult result;
 
     setUpAll(() {
-      result = parser.parse(_rssFixture, source: bnSource, fetchedAt: fetchedAt);
+      result =
+          parser.parse(_rssFixture, source: bnSource, fetchedAt: fetchedAt);
     });
 
     test('detects RSS 2.0', () {
@@ -106,7 +107,8 @@ void main() {
 
     test('keeps only usable items and drops unsafe links', () {
       expect(result.articles.length, 3);
-      expect(result.articles.any((Article a) => a.title.contains('অনিরাপদ')), isFalse);
+      expect(result.articles.any((Article a) => a.title.contains('অনিরাপদ')),
+          isFalse);
       expect(result.warnings.join(' '), contains('unsafe link'));
     });
 
@@ -133,21 +135,22 @@ void main() {
     });
 
     test('leaves publication date null instead of inventing one', () {
-      final Article undated =
-          result.articles.firstWhere((Article a) => a.title.contains('তারিখ ছাড়া'));
+      final Article undated = result.articles
+          .firstWhere((Article a) => a.title.contains('তারিখ ছাড়া'));
       expect(undated.publishedAt, isNull);
       expect(undated.sortKey, undated.fetchedAt);
     });
 
     test('marks publisher-labelled breaking news and strips the prefix', () {
-      final Article breaking =
-          result.articles.firstWhere((Article a) => a.title.contains('বড় সিদ্ধান্ত'));
+      final Article breaking = result.articles
+          .firstWhere((Article a) => a.title.contains('বড় সিদ্ধান্ত'));
       expect(breaking.breaking, isTrue);
       expect(breaking.title.startsWith('ব্রেকিং'), isFalse);
     });
 
     test('extracts the media:content thumbnail', () {
-      expect(result.articles.first.imageUrl, 'https://images.prothomalo.com/one.jpg');
+      expect(result.articles.first.imageUrl,
+          'https://images.prothomalo.com/one.jpg');
     });
 
     test('classifies the topic from publisher category', () {
@@ -173,7 +176,8 @@ void main() {
     late FeedParseResult result;
 
     setUpAll(() {
-      result = parser.parse(_atomFixture, source: enSource, fetchedAt: fetchedAt);
+      result =
+          parser.parse(_atomFixture, source: enSource, fetchedAt: fetchedAt);
     });
 
     test('detects Atom', () {
@@ -183,14 +187,16 @@ void main() {
     test('reads the alternate link, summary and timestamp', () {
       expect(result.articles, hasLength(1));
       final Article entry = result.articles.single;
-      expect(entry.link, 'https://www.thedailystar.net/business/news/exports-rise-123');
+      expect(entry.link,
+          'https://www.thedailystar.net/business/news/exports-rise-123');
       expect(entry.excerpt, contains('Exports rose'));
       expect(entry.publishedAt, DateTime.utc(2026, 10, 1, 8, 30));
       expect(entry.language, SourceLanguage.en);
     });
 
     test('skips entries without a usable link', () {
-      expect(result.articles.any((Article a) => a.title == 'No link entry'), isFalse);
+      expect(result.articles.any((Article a) => a.title == 'No link entry'),
+          isFalse);
     });
   });
 
@@ -274,8 +280,10 @@ void main() {
       expect(result.recovered, isFalse);
       expect(result.articles, hasLength(3));
       expect(result.articles.first.title, startsWith('টঙ্গীতে মাদ্রাসা'));
-      expect(result.articles.first.link, 'https://www.bbc.com/bengali/articles/c9dr8n7pd4zko');
-      expect(result.articles.first.publishedAt, DateTime.utc(2026, 10, 24, 14, 5, 43));
+      expect(result.articles.first.link,
+          'https://www.bbc.com/bengali/articles/c9dr8n7pd4zko');
+      expect(result.articles.first.publishedAt,
+          DateTime.utc(2026, 10, 24, 14, 5, 43));
       expect(result.articles.first.language, SourceLanguage.bn);
     });
 
@@ -284,9 +292,11 @@ void main() {
           parser.parse(quintypeShaped, source: bnSource, fetchedAt: fetchedAt);
       expect(result.articles, hasLength(3));
       final Article first = result.articles.first;
-      expect(first.link, 'https://www.prothomalo.com/video/bangladesh/1jf9hf946z');
+      expect(
+          first.link, 'https://www.prothomalo.com/video/bangladesh/1jf9hf946z');
       expect(first.publishedAt, DateTime.utc(2026, 10, 24, 14, 8, 41));
-      expect(first.imageUrl, 'https://media.prothomalo.com/prothomalo-bangla/2026-10-24/abc/thumb.jpg');
+      expect(first.imageUrl,
+          'https://media.prothomalo.com/prothomalo-bangla/2026-10-24/abc/thumb.jpg');
       expect(first.topic, ArticleTopic.bangladesh);
       expect(first.id, isNotEmpty);
     });
@@ -297,7 +307,8 @@ void main() {
             parser.parse(body, source: bnSource, fetchedAt: fetchedAt);
         for (final Article article in result.articles) {
           expect(
-            article.title.runes.any((int rune) => rune >= 0x0980 && rune <= 0x09FF),
+            article.title.runes
+                .any((int rune) => rune >= 0x0980 && rune <= 0x09FF),
             isTrue,
             reason: 'not Bengali: ${article.title}',
           );
@@ -308,8 +319,8 @@ void main() {
 
   group('malformed feeds', () {
     test('recovers items from invalid XML instead of throwing', () {
-      final FeedParseResult result =
-          parser.parse(_malformedFixture, source: bnSource, fetchedAt: fetchedAt);
+      final FeedParseResult result = parser.parse(_malformedFixture,
+          source: bnSource, fetchedAt: fetchedAt);
       expect(result.recovered, isTrue);
       expect(result.articles, hasLength(1));
       expect(result.articles.single.title, contains('A & B'));
@@ -360,7 +371,8 @@ void main() {
   });
 
   test('decodeFeedBody tolerates broken UTF-8', () {
-    final String decoded = decodeFeedBody(<int>[0xE0, 0xA6, 0xAC, 0xFF], 'text/xml');
+    final String decoded =
+        decodeFeedBody(<int>[0xE0, 0xA6, 0xAC, 0xFF], 'text/xml');
     expect(decoded, isNotEmpty);
   });
 }

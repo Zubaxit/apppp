@@ -123,20 +123,24 @@ class SqliteArticleStore implements ArticleStore {
     final List<String> clauses = <String>[];
     final List<Object?> args = <Object?>[];
     if (sourceIds.isNotEmpty) {
-      clauses.add('source_id IN (${List<String>.filled(sourceIds.length, '?').join(',')})');
+      clauses.add(
+          'source_id IN (${List<String>.filled(sourceIds.length, '?').join(',')})');
       args.addAll(sourceIds);
     }
     if (topics.isNotEmpty) {
-      clauses.add('topic IN (${List<String>.filled(topics.length, '?').join(',')})');
+      clauses.add(
+          'topic IN (${List<String>.filled(topics.length, '?').join(',')})');
       args.addAll(topics.map((ArticleTopic t) => t.name));
     }
     if (languages.isNotEmpty) {
-      clauses.add('language IN (${List<String>.filled(languages.length, '?').join(',')})');
+      clauses.add(
+          'language IN (${List<String>.filled(languages.length, '?').join(',')})');
       args.addAll(languages.map((SourceLanguage l) => l.name));
     }
     final String normalizedText = TextUtils.searchNormalize(text);
     if (normalizedText.isNotEmpty) {
-      clauses.add('(LOWER(title) LIKE ? OR LOWER(IFNULL(excerpt, \'\')) LIKE ?)');
+      clauses
+          .add('(LOWER(title) LIKE ? OR LOWER(IFNULL(excerpt, \'\')) LIKE ?)');
       args
         ..add('%$normalizedText%')
         ..add('%$normalizedText%');
@@ -209,10 +213,8 @@ class SqliteArticleStore implements ArticleStore {
     int keepTotal = 5000,
     Duration maxAge = const Duration(days: 180),
   }) async {
-    final int cutoff = DateTime.now()
-        .toUtc()
-        .subtract(maxAge)
-        .millisecondsSinceEpoch;
+    final int cutoff =
+        DateTime.now().toUtc().subtract(maxAge).millisecondsSinceEpoch;
     await _db.rawDelete(
       'DELETE FROM $_table WHERE fetched_at < ?',
       <Object?>[cutoff],
@@ -262,7 +264,8 @@ class SqliteSavedStore implements SavedStore {
 
   @override
   Future<void> remove(String articleId) async {
-    await _db.delete(_table, where: 'article_id = ?', whereArgs: <Object?>[articleId]);
+    await _db.delete(_table,
+        where: 'article_id = ?', whereArgs: <Object?>[articleId]);
   }
 
   @override
@@ -499,7 +502,9 @@ class SqliteFeedMetaStore implements FeedMetaStore {
     final Map<String, Object?> row = rows.first;
     DateTime? date(Object? value) {
       final int? millis = value as int?;
-      return millis == null ? null : DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
+      return millis == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
     }
 
     return FeedMeta(
@@ -541,10 +546,13 @@ class SqliteFeedMetaStore implements FeedMetaStore {
         lastModified: row['last_modified'] as String?,
         lastFetchAt: row['last_fetch_at'] == null
             ? null
-            : DateTime.fromMillisecondsSinceEpoch(row['last_fetch_at']! as int, isUtc: true),
+            : DateTime.fromMillisecondsSinceEpoch(row['last_fetch_at']! as int,
+                isUtc: true),
         lastSuccessAt: row['last_success_at'] == null
             ? null
-            : DateTime.fromMillisecondsSinceEpoch(row['last_success_at']! as int, isUtc: true),
+            : DateTime.fromMillisecondsSinceEpoch(
+                row['last_success_at']! as int,
+                isUtc: true),
         itemCount: (row['item_count'] as int?) ?? 0,
         lastError: row['last_error'] as String?,
       ));

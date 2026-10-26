@@ -87,11 +87,13 @@ class _BrowserScreenState extends State<BrowserScreen> {
     super.initState();
     _ownsEngine = widget.engine == null;
     final SettingsController settings = context.read<SettingsController>();
-    final String host = Uri.tryParse(widget.url)?.host.replaceFirst('www.', '') ?? '';
-    _engine = widget.engine ?? WebViewBrowserEngine(
-      url: widget.url,
-      shieldEnabled: settings.shieldEnabledFor(host),
-    );
+    final String host =
+        Uri.tryParse(widget.url)?.host.replaceFirst('www.', '') ?? '';
+    _engine = widget.engine ??
+        WebViewBrowserEngine(
+          url: widget.url,
+          shieldEnabled: settings.shieldEnabledFor(host),
+        );
     _browserView = _engine.buildView(context);
     _canGoBack = _engine.canGoBack;
     _engine.addListener(_onEngine);
@@ -196,7 +198,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
             const SizedBox(height: 8),
             Text(
               context.strings.readerExtractionFailedBody,
-              style: context.texts.bodySmall?.copyWith(height: 1.6, fontSize: 12.5),
+              style: context.texts.bodySmall
+                  ?.copyWith(height: 1.6, fontSize: 12.5),
             ),
             const SizedBox(height: 16),
             Row(
@@ -224,8 +227,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
 
   Future<void> _saveSelectedWord() async {
     final String selection = _selection.trim();
-    if (!RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
-        .hasMatch(selection)) {
+    if (!RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$").hasMatch(selection)) {
       return;
     }
     await showVocabularyEditor(
@@ -241,9 +243,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
   Future<void> _readSelection() => ReaderTtsController.instance.play(
         'web-selection:${_engine.url}',
         <String>[_selection],
-        language: RegExp(r'[\u0980-\u09FF]').hasMatch(_selection)
-            ? 'bn-BD'
-            : 'en-US',
+        language:
+            RegExp(r'[\u0980-\u09FF]').hasMatch(_selection) ? 'bn-BD' : 'en-US',
       );
 
   Future<void> _translateSelection() async {
@@ -276,7 +277,9 @@ class _BrowserScreenState extends State<BrowserScreen> {
     if (!mounted) return;
     setState(() => _savedLink = true);
     context.showSnack(
-      saved.isSaved(link.id) ? context.strings.savedLabel : context.strings.removeSaved,
+      saved.isSaved(link.id)
+          ? context.strings.savedLabel
+          : context.strings.removeSaved,
     );
   }
 
@@ -338,14 +341,19 @@ class _BrowserScreenState extends State<BrowserScreen> {
     await _engine.setShieldEnabled(next);
     if (!mounted) return;
     context.showSnack(next
-        ? (context.isBengali ? 'এই সাইটে নিউজ শিল্ড চালু' : 'News Shield enabled for this site')
-        : (context.isBengali ? 'এই সাইটে নিউজ শিল্ড বন্ধ' : 'News Shield disabled for this site'));
+        ? (context.isBengali
+            ? 'এই সাইটে নিউজ শিল্ড চালু'
+            : 'News Shield enabled for this site')
+        : (context.isBengali
+            ? 'এই সাইটে নিউজ শিল্ড বন্ধ'
+            : 'News Shield disabled for this site'));
   }
 
   @override
   Widget build(BuildContext context) {
     final SettingsController settings = context.watch<SettingsController>();
-    final String domain = _engine.domain.isNotEmpty ? _engine.domain : widget.url;
+    final String domain =
+        _engine.domain.isNotEmpty ? _engine.domain : widget.url;
     return PopScope(
       // The route never pops itself: every back press comes through
       // _handleBack, which asks the live page history first and pops only when
@@ -378,9 +386,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 reading: _extracting,
                 onRead: _engine.supportsReaderMode ? _openReaderMode : null,
                 shieldEnabled: _engine.shieldEnabled,
-                onShield: settings.newsShieldEnabled
-                    ? _toggleShield
-                    : null,
+                onShield: settings.newsShieldEnabled ? _toggleShield : null,
               ),
             ),
             // The page surface listens to the engine itself, so a navigation
@@ -399,7 +405,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
                         return _BrowserError(
                           message: error,
                           onRetry: () => _engine.reload(),
-                          onExternal: () => openUrlFeedback(context, _engine.url),
+                          onExternal: () =>
+                              openUrlFeedback(context, _engine.url),
                         );
                       },
                     ),
@@ -506,8 +513,7 @@ class BrowserToolbar extends StatelessWidget {
               padding: const EdgeInsets.all(4),
               child: LayoutBuilder(
                 builder: (BuildContext context, BoxConstraints constraints) {
-                  final bool compact =
-                      constraints.maxWidth < compactBreakpoint;
+                  final bool compact = constraints.maxWidth < compactBreakpoint;
                   final double tap = compact ? 32 : 36;
                   final double glyph = compact ? 17 : 18.5;
                   return Row(
@@ -515,8 +521,8 @@ class BrowserToolbar extends StatelessWidget {
                       BrowserToolButton(
                         tool: BrowserTool.close,
                         icon: Icons.close_rounded,
-                        tooltip:
-                            MaterialLocalizations.of(context).closeButtonTooltip,
+                        tooltip: MaterialLocalizations.of(context)
+                            .closeButtonTooltip,
                         size: glyph,
                         tap: tap,
                         onTap: onClose,
@@ -935,7 +941,8 @@ class _BrowserError extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(Icons.wifi_off_rounded, size: 26, color: context.colors.primary),
+            Icon(Icons.wifi_off_rounded,
+                size: 26, color: context.colors.primary),
             const SizedBox(height: 12),
             Text(
               context.strings.openFailed,
@@ -965,7 +972,9 @@ class _BrowserError extends StatelessWidget {
                   child: Text(context.strings.retry),
                 ),
                 const SizedBox(width: 10),
-                TextButton(onPressed: onExternal, child: Text(context.strings.openWebsite)),
+                TextButton(
+                    onPressed: onExternal,
+                    child: Text(context.strings.openWebsite)),
               ],
             ),
           ],
@@ -994,8 +1003,10 @@ Future<void> openInBrowser(
       settings: const RouteSettings(name: 'browser'),
       transitionDuration: const Duration(milliseconds: 260),
       reverseTransitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondary) =>
-          BrowserScreen(url: safe, title: title, source: source, article: article),
+      pageBuilder: (BuildContext context, Animation<double> animation,
+              Animation<double> secondary) =>
+          BrowserScreen(
+              url: safe, title: title, source: source, article: article),
       transitionsBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondary, Widget child) {
         if (Motion.of(context).reduce) return child;

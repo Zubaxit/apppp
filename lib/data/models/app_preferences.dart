@@ -106,7 +106,8 @@ class AppPreferences {
       preferredTopics: preferredTopics ?? this.preferredTopics,
       refreshMinutes: refreshMinutes ?? this.refreshMinutes,
       historyEnabled: historyEnabled ?? this.historyEnabled,
-      breakingBannerEnabled: breakingBannerEnabled ?? this.breakingBannerEnabled,
+      breakingBannerEnabled:
+          breakingBannerEnabled ?? this.breakingBannerEnabled,
       newsShieldEnabled: newsShieldEnabled ?? this.newsShieldEnabled,
       newsShieldExceptions: newsShieldExceptions ?? this.newsShieldExceptions,
       searchHistory: searchHistory ?? this.searchHistory,
@@ -138,7 +139,8 @@ class AppPreferences {
     if (trimmed.isEmpty) return this;
     final List<String> next = <String>[
       trimmed,
-      ...searchHistory.where((String item) => item.toLowerCase() != trimmed.toLowerCase()),
+      ...searchHistory
+          .where((String item) => item.toLowerCase() != trimmed.toLowerCase()),
     ].take(8).toList();
     return copyWith(searchHistory: next);
   }
@@ -151,7 +153,8 @@ class AppPreferences {
         'textScale': textScale,
         'defaultFeed': defaultFeed.name,
         'followedSourceIds': followedSourceIds.toList(),
-        'preferredTopics': preferredTopics.map((ArticleTopic t) => t.name).toList(),
+        'preferredTopics':
+            preferredTopics.map((ArticleTopic t) => t.name).toList(),
         'refreshMinutes': refreshMinutes,
         'historyEnabled': historyEnabled,
         'breakingBannerEnabled': breakingBannerEnabled,
@@ -181,13 +184,16 @@ class AppPreferences {
       font: enumOr(AppFontChoice.values, map['font'], AppFontChoice.system),
       motion: enumOr(MotionChoice.values, map['motion'], MotionChoice.system),
       textScale: (map['textScale'] as num?)?.toDouble() ?? 1.0,
-      defaultFeed: enumOr(DefaultFeed.values, map['defaultFeed'], DefaultFeed.latest),
+      defaultFeed:
+          enumOr(DefaultFeed.values, map['defaultFeed'], DefaultFeed.latest),
       followedSourceIds: <String>{
-        for (final dynamic id in (map['followedSourceIds'] as List<dynamic>? ?? const <dynamic>[]))
+        for (final dynamic id in (map['followedSourceIds'] as List<dynamic>? ??
+            const <dynamic>[]))
           '$id',
       },
       preferredTopics: <ArticleTopic>{
-        for (final dynamic topic in (map['preferredTopics'] as List<dynamic>? ?? const <dynamic>[]))
+        for (final dynamic topic
+            in (map['preferredTopics'] as List<dynamic>? ?? const <dynamic>[]))
           ArticleTopicX.fromKey('$topic'),
       }..remove(ArticleTopic.other),
       refreshMinutes: (map['refreshMinutes'] as num?)?.toInt() ?? 30,
@@ -195,12 +201,14 @@ class AppPreferences {
       breakingBannerEnabled: map['breakingBannerEnabled'] != false,
       newsShieldEnabled: map['newsShieldEnabled'] != false,
       newsShieldExceptions: <String>{
-        for (final dynamic host in
-            (map['newsShieldExceptions'] as List<dynamic>? ?? const <dynamic>[]))
+        for (final dynamic host
+            in (map['newsShieldExceptions'] as List<dynamic>? ??
+                const <dynamic>[]))
           '$host',
       },
       searchHistory: <String>[
-        for (final dynamic item in (map['searchHistory'] as List<dynamic>? ?? const <dynamic>[]))
+        for (final dynamic item
+            in (map['searchHistory'] as List<dynamic>? ?? const <dynamic>[]))
           '$item',
       ],
       onboardingComplete: map['onboardingComplete'] == true,
@@ -224,7 +232,13 @@ class AppPreferences {
     return const AppPreferences();
   }
 
-  static const List<double> textScaleSteps = <double>[0.95, 1.0, 1.1, 1.25, 1.4];
+  static const List<double> textScaleSteps = <double>[
+    0.95,
+    1.0,
+    1.1,
+    1.25,
+    1.4
+  ];
 
   static const List<int> refreshOptions = <int>[15, 30, 60, 120, 240];
 

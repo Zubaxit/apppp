@@ -42,8 +42,7 @@ class LanguageDetect {
   /// non-Bengali.
   static const double mixedFloor = 0.05;
 
-  static bool _isBengali(int rune) =>
-      rune >= 0x0980 && rune <= 0x09FF;
+  static bool _isBengali(int rune) => rune >= 0x0980 && rune <= 0x09FF;
 
   static bool _isLatin(int rune) =>
       (rune >= 0x41 && rune <= 0x5A) || (rune >= 0x61 && rune <= 0x7A);

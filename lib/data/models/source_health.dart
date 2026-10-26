@@ -50,7 +50,8 @@ class SourceHealth {
   }
 
   static SourceHealth fromRow(Map<String, Object?> row) {
-    int? asInt(Object? value) => value is int ? value : int.tryParse('${value ?? ''}');
+    int? asInt(Object? value) =>
+        value is int ? value : int.tryParse('${value ?? ''}');
     DateTime? asDate(Object? value) {
       final int? millis = asInt(value);
       if (millis == null || millis == 0) return null;

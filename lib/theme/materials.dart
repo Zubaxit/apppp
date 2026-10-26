@@ -15,7 +15,9 @@ class AppEffectsScope extends InheritedWidget {
   final bool ultraLight;
 
   static bool of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<AppEffectsScope>()?.ultraLight ??
+      context
+          .dependOnInheritedWidgetOfExactType<AppEffectsScope>()
+          ?.ultraLight ??
       false;
 
   @override
@@ -200,8 +202,14 @@ class GlassPanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: <Color>[
-            Theme.of(context).colorScheme.primary.withValues(alpha: dark ? 0.26 : 0.16),
-            Theme.of(context).colorScheme.primary.withValues(alpha: dark ? 0.14 : 0.08),
+            Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: dark ? 0.26 : 0.16),
+            Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: dark ? 0.14 : 0.08),
           ],
         );
       case GlassTone.sheet:
@@ -343,7 +351,10 @@ class GlassChip extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Tokens.radiusPill),
           color: selected
-              ? Theme.of(context).colorScheme.primary.withValues(alpha: dark ? 0.20 : 0.11)
+              ? Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: dark ? 0.20 : 0.11)
               : (dark
                   ? Colors.white.withValues(alpha: 0.045)
                   : Colors.white.withValues(alpha: 0.55)),
@@ -475,7 +486,8 @@ class Eyebrow extends StatelessWidget {
 
 /// A hairline separator drawn as a gradient so it fades out at both ends.
 class SoftRule extends StatelessWidget {
-  const SoftRule({super.key, this.inset = 0, this.opacity = 0.9, this.thickness = 0.9});
+  const SoftRule(
+      {super.key, this.inset = 0, this.opacity = 0.9, this.thickness = 0.9});
 
   final double inset;
   final double opacity;

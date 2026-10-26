@@ -66,7 +66,8 @@ class VocabularyTransferCodec {
     final Map<String, VocabularyEntry> unique = <String, VocabularyEntry>{};
     for (final Object? raw in decoded['entries'] as List<dynamic>) {
       if (raw is! Map<String, dynamic>) {
-        throw const VocabularyTransferException('A vocabulary entry is malformed.');
+        throw const VocabularyTransferException(
+            'A vocabulary entry is malformed.');
       }
       final String word = '${raw['word'] ?? ''}'.trim();
       final String meaning = '${raw['meaningBn'] ?? ''}'.trim();

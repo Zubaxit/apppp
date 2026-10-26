@@ -20,7 +20,10 @@ class FeedQuery {
   final int limit;
 
   bool get isUnfiltered =>
-      sourceIds.isEmpty && topics.isEmpty && languages.isEmpty && text.trim().isEmpty;
+      sourceIds.isEmpty &&
+      topics.isEmpty &&
+      languages.isEmpty &&
+      text.trim().isEmpty;
 
   FeedQuery copyWith({
     Set<String>? sourceIds,

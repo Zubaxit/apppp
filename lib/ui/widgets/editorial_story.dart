@@ -101,7 +101,8 @@ class LeadStory extends StatelessWidget {
                             // cost, so the pill keeps its fill and hairline.
                             blur: 0,
                             radius: Tokens.radiusPill,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
@@ -115,7 +116,8 @@ class LeadStory extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  (source?.localizedName(bengali: context.isBengali) ??
+                                  (source?.localizedName(
+                                              bengali: context.isBengali) ??
                                           article.sourceId)
                                       .toUpperCase(),
                                   style: TextStyle(
@@ -161,11 +163,15 @@ class LeadStory extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                           shadows: const <Shadow>[
-                            Shadow(color: Color(0x66000000), blurRadius: 14, offset: Offset(0, 1)),
+                            Shadow(
+                                color: Color(0x66000000),
+                                blurRadius: 14,
+                                offset: Offset(0, 1)),
                           ],
                         ),
                       ),
-                      if (roomy && (article.excerpt ?? '').isNotEmpty) ...<Widget>[
+                      if (roomy &&
+                          (article.excerpt ?? '').isNotEmpty) ...<Widget>[
                         const SizedBox(height: 8),
                         Text(
                           article.excerpt!,
@@ -259,7 +265,8 @@ class StoryRow extends StatelessWidget {
                         fontSize: 10,
                         letterSpacing: 0.8,
                         fontWeight: FontWeight.w800,
-                        color: context.colors.onSurfaceVariant.withValues(alpha: 0.7),
+                        color: context.colors.onSurfaceVariant
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -268,7 +275,8 @@ class StoryRow extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Attribution(article: article, source: source, compact: true),
+                        Attribution(
+                            article: article, source: source, compact: true),
                         const SizedBox(height: 5),
                         Text(
                           article.title,
@@ -285,7 +293,8 @@ class StoryRow extends StatelessWidget {
                             letterSpacing: -0.05,
                           ),
                         ),
-                        if (!large && (article.excerpt ?? '').isNotEmpty) ...<Widget>[
+                        if (!large &&
+                            (article.excerpt ?? '').isNotEmpty) ...<Widget>[
                           const SizedBox(height: 4),
                           Text(
                             article.excerpt!,
@@ -424,8 +433,8 @@ class _NewsCardState extends State<NewsCard> {
   Widget build(BuildContext context) {
     final bool dark = context.isDark;
     final Article article = widget.article;
-    final List<Article> related = widget.related ??
-        context.read<FeedController>().relatedFor(article);
+    final List<Article> related =
+        widget.related ?? context.read<FeedController>().relatedFor(article);
     final SourceRegistry registry = context.registry;
     final String summary = (article.excerpt ?? '').trim();
 
@@ -644,7 +653,8 @@ class _CoverageReport extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Attribution(article: article, source: source, compact: true),
+                    Attribution(
+                        article: article, source: source, compact: true),
                     const SizedBox(height: 4),
                     Text(
                       article.title,

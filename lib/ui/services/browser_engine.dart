@@ -312,5 +312,6 @@ class WebViewBrowserEngine extends BrowserEngine {
   }
 
   @override
-  Widget buildView(BuildContext context) => WebViewWidget(controller: _controller);
+  Widget buildView(BuildContext context) =>
+      WebViewWidget(controller: _controller);
 }

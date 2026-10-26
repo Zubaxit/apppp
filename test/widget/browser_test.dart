@@ -14,7 +14,8 @@ import '../support/test_app.dart';
 
 /// Stands in for the platform web view so the reader chrome is testable.
 class FakeBrowserEngine extends BrowserEngine {
-  FakeBrowserEngine({String url = 'https://www.prothomalo.com/bangladesh/abcdef'})
+  FakeBrowserEngine(
+      {String url = 'https://www.prothomalo.com/bangladesh/abcdef'})
       : _url = url,
         _domain = Uri.parse(url).host.replaceFirst('www.', '');
 
@@ -121,11 +122,13 @@ class FakeBrowserEngine extends BrowserEngine {
 }
 
 void main() {
-  testWidgets('reader chrome shows the real domain, never a bare title', (WidgetTester tester) async {
+  testWidgets('reader chrome shows the real domain, never a bare title',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness();
     final FakeBrowserEngine engine = FakeBrowserEngine();
     await tester.pumpWidget(h.wrap(
-      BrowserScreen(url: engine.url, title: 'নির্বাচনী প্রস্তুতি', engine: engine),
+      BrowserScreen(
+          url: engine.url, title: 'নির্বাচনী প্রস্তুতি', engine: engine),
     ));
     engine.finishLoading();
     await tester.pumpAndSettle();
@@ -135,7 +138,8 @@ void main() {
     expect(find.text('publisher-page'), findsOneWidget);
   });
 
-  testWidgets('back is disabled until the page has history', (WidgetTester tester) async {
+  testWidgets('back is disabled until the page has history',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness();
     final FakeBrowserEngine engine = FakeBrowserEngine();
     await tester.pumpWidget(h.wrap(
@@ -165,7 +169,8 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(412, 892));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(h.wrap(
-      BrowserScreen(url: engine.url, title: 'নির্বাচনী প্রস্তুতি', engine: engine),
+      BrowserScreen(
+          url: engine.url, title: 'নির্বাচনী প্রস্তুতি', engine: engine),
     ));
     engine.finishLoading();
     await tester.pumpAndSettle();
@@ -173,9 +178,11 @@ void main() {
     // The bar is a single line of chrome, not a panel with a second row.
     expect(tester.getSize(find.byType(BrowserToolbar)).height, lessThan(72));
 
-    final double rowY = tester.getCenter(
-      find.byKey(const ValueKey<String>('browser-close')),
-    ).dy;
+    final double rowY = tester
+        .getCenter(
+          find.byKey(const ValueKey<String>('browser-close')),
+        )
+        .dy;
     for (final BrowserTool tool in BrowserTool.values) {
       final Finder disc = find.byKey(ValueKey<String>('browser-${tool.name}'));
       expect(disc, findsOneWidget, reason: '${tool.name} missing');
@@ -202,7 +209,10 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(320, 640));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(h.wrap(
-      BrowserScreen(url: engine.url, title: 'খুব দীর্ঘ একটি শিরোনাম যা কখনই পুরোটা দেখানো উচিত নয়', engine: engine),
+      BrowserScreen(
+          url: engine.url,
+          title: 'খুব দীর্ঘ একটি শিরোনাম যা কখনই পুরোটা দেখানো উচিত নয়',
+          engine: engine),
     ));
     engine.finishLoading();
     await tester.pumpAndSettle();
@@ -221,7 +231,8 @@ void main() {
     expect(headline.overflow, TextOverflow.ellipsis);
   });
 
-  testWidgets('load failure offers retry instead of a blank page', (WidgetTester tester) async {
+  testWidgets('load failure offers retry instead of a blank page',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness();
     final FakeBrowserEngine engine = FakeBrowserEngine();
     await tester.pumpWidget(h.wrap(
@@ -233,17 +244,23 @@ void main() {
     expect(find.text('publisher-page'), findsNothing);
     expect(find.textContaining('ERR_NAME_NOT_RESOLVED'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, h.settings.strings.retry));
+    await tester
+        .tap(find.widgetWithText(FilledButton, h.settings.strings.retry));
     await tester.pumpAndSettle();
     expect(engine.reloads, 1);
   });
 
-  testWidgets('saving asks first and stores only a headline link', (WidgetTester tester) async {
+  testWidgets('saving asks first and stores only a headline link',
+      (WidgetTester tester) async {
     final Article article = sampleArticle();
     final TestHarness h = TestHarness();
     final FakeBrowserEngine engine = FakeBrowserEngine(url: article.link);
     await tester.pumpWidget(h.wrap(
-      BrowserScreen(url: article.link, title: article.title, engine: engine, article: article),
+      BrowserScreen(
+          url: article.link,
+          title: article.title,
+          engine: engine,
+          article: article),
     ));
     engine.finishLoading();
     await tester.pumpAndSettle();
@@ -253,7 +270,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(h.settings.strings.saveLinkOnlyNotice), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, h.settings.strings.savedLabel));
+    await tester
+        .tap(find.widgetWithText(FilledButton, h.settings.strings.savedLabel));
     await tester.pumpAndSettle();
 
     expect(h.saved.count, 1);
@@ -310,7 +328,8 @@ void main() {
           reason: 'with nothing left in the page the route is the next step');
     });
 
-    testWidgets('a second press while the first is resolving does not navigate twice',
+    testWidgets(
+        'a second press while the first is resolving does not navigate twice',
         (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       final FakeBrowserEngine engine = FakeBrowserEngine();
@@ -331,7 +350,8 @@ void main() {
   });
 
   group('reader mode', () {
-    testWidgets('the reader control reads the page and shows English with Bengali',
+    testWidgets(
+        'the reader control reads the page and shows English with Bengali',
         (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       final FakeBrowserEngine engine = FakeBrowserEngine()
@@ -342,11 +362,15 @@ void main() {
           'site': 'thedailystar.net',
           'blocks': <Map<String, Object>>[
             <String, Object>{
-              'text': 'The first paragraph of the article explains the situation. ' * 4,
+              'text':
+                  'The first paragraph of the article explains the situation. ' *
+                      4,
               'heading': false,
             },
             <String, Object>{
-              'text': 'The second paragraph adds the reaction of the officials. ' * 4,
+              'text':
+                  'The second paragraph adds the reaction of the officials. ' *
+                      4,
               'heading': false,
             },
           ],
@@ -380,7 +404,8 @@ void main() {
       final TestHarness h = TestHarness();
       final FakeBrowserEngine engine = FakeBrowserEngine()..extraction = null;
       await tester.pumpWidget(h.wrap(
-        BrowserScreen(url: engine.url, engine: engine, translator: FakeTranslator()),
+        BrowserScreen(
+            url: engine.url, engine: engine, translator: FakeTranslator()),
       ));
       engine.finishLoading();
       await tester.pumpAndSettle();
@@ -388,19 +413,23 @@ void main() {
       await tester.tap(find.byKey(const ValueKey<String>('browser-reader')));
       await tester.pumpAndSettle();
 
-      expect(find.text(h.settings.strings.readerExtractionFailed), findsOneWidget);
-      expect(find.text(h.settings.strings.readerExtractionFailedBody), findsOneWidget);
+      expect(
+          find.text(h.settings.strings.readerExtractionFailed), findsOneWidget);
+      expect(find.text(h.settings.strings.readerExtractionFailedBody),
+          findsOneWidget);
       expect(find.byType(ReaderModeScreen), findsNothing);
     });
   });
 
   group('word and sentence translation', () {
-    testWidgets('a selection offers বাংলা অর্থ and the sheet keeps the original',
+    testWidgets(
+        'a selection offers বাংলা অর্থ and the sheet keeps the original',
         (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       final FakeBrowserEngine engine = FakeBrowserEngine();
       await tester.pumpWidget(h.wrap(
-        BrowserScreen(url: engine.url, engine: engine, translator: FakeTranslator()),
+        BrowserScreen(
+            url: engine.url, engine: engine, translator: FakeTranslator()),
       ));
       engine.finishLoading();
       await tester.pumpAndSettle();
@@ -422,11 +451,13 @@ void main() {
       expect(find.textContaining('Fake'), findsWidgets);
     });
 
-    testWidgets('clearing the selection puts the action away', (WidgetTester tester) async {
+    testWidgets('clearing the selection puts the action away',
+        (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       final FakeBrowserEngine engine = FakeBrowserEngine();
       await tester.pumpWidget(h.wrap(
-        BrowserScreen(url: engine.url, engine: engine, translator: FakeTranslator()),
+        BrowserScreen(
+            url: engine.url, engine: engine, translator: FakeTranslator()),
       ));
       engine.finishLoading();
       await tester.pumpAndSettle();
@@ -440,5 +471,4 @@ void main() {
       expect(find.text(h.settings.strings.bengaliMeaning), findsNothing);
     });
   });
-
 }

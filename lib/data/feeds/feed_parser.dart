@@ -66,8 +66,9 @@ class _PreparedXml {
 class FeedParser {
   const FeedParser();
 
-  static final RegExp _itemBlockRe =
-      RegExp(r'<(item|entry)(?:\s[^>]*)?>([\s\S]*?)</\1>', caseSensitive: false);
+  static final RegExp _itemBlockRe = RegExp(
+      r'<(item|entry)(?:\s[^>]*)?>([\s\S]*?)</\1>',
+      caseSensitive: false);
   static final RegExp _titleRe =
       RegExp(r'<title[^>]*>([\s\S]*?)</title>', caseSensitive: false);
   static final RegExp _linkTextRe =
@@ -158,7 +159,8 @@ class FeedParser {
   }
 
   String? _nextPage(XmlDocument document) {
-    for (final XmlElement link in document.descendants.whereType<XmlElement>()) {
+    for (final XmlElement link
+        in document.descendants.whereType<XmlElement>()) {
       if (link.name.local.toLowerCase() != 'link') {
         continue;
       }
@@ -244,7 +246,8 @@ class FeedParser {
     ]);
     final List<String> categories = <String>[
       for (final XmlElement element in node.findAllElements('category'))
-        if (_cleanText(_textOf(element)).isNotEmpty) _cleanText(_textOf(element)),
+        if (_cleanText(_textOf(element)).isNotEmpty)
+          _cleanText(_textOf(element)),
     ];
     for (final XmlElement element in node.findAllElements('category')) {
       final String? term = _attr(element, <String>['term', 'label']);
@@ -292,11 +295,13 @@ class FeedParser {
       final String? linkHref = _firstGroup(_linkHrefRe, block);
       final String? dateRaw = _firstGroup(_dateRe, block);
       final String? description = _firstGroup(
-        RegExp(r'<description[^>]*>([\s\S]*?)</description>', caseSensitive: false),
+        RegExp(r'<description[^>]*>([\s\S]*?)</description>',
+            caseSensitive: false),
         block,
       );
       final String? content = _firstGroup(
-        RegExp(r'<content:encoded[^>]*>([\s\S]*?)</content:encoded>', caseSensitive: false),
+        RegExp(r'<content:encoded[^>]*>([\s\S]*?)</content:encoded>',
+            caseSensitive: false),
         block,
       );
       final String? guid = _firstGroup(
@@ -304,9 +309,10 @@ class FeedParser {
         block,
       );
       final List<String> categories = <String>[
-        for (final RegExpMatch m
-            in RegExp(r'<category[^>]*>([\s\S]*?)</category>', caseSensitive: false)
-                .allMatches(block))
+        for (final RegExpMatch m in RegExp(
+                r'<category[^>]*>([\s\S]*?)</category>',
+                caseSensitive: false)
+            .allMatches(block))
           _cleanText(m.group(1) ?? ''),
       ];
       final String? imageHint = _firstGroup(_imgSrcRe, block);
@@ -316,7 +322,9 @@ class FeedParser {
         config: config,
         warnings: warnings,
         rawTitle: _cleanText(rawTitle ?? ''),
-        link: (linkText != null && linkText.trim().isNotEmpty) ? linkText.trim() : linkHref,
+        link: (linkText != null && linkText.trim().isNotEmpty)
+            ? linkText.trim()
+            : linkHref,
         description: description,
         contentRaw: content,
         dateRaw: _cleanText(dateRaw ?? ''),
@@ -366,9 +374,9 @@ class FeedParser {
         breaking = true;
       }
     }
-    final RegExp breakingPrefix =
-        RegExp(r'^\s*(ব্রেকিং\s*নিউজ|ব্রেকিং|breaking news|breaking)\s*[:\-–|]\s*',
-            caseSensitive: false);
+    final RegExp breakingPrefix = RegExp(
+        r'^\s*(ব্রেকিং\s*নিউজ|ব্রেকিং|breaking news|breaking)\s*[:\-–|]\s*',
+        caseSensitive: false);
     if (breakingPrefix.hasMatch(title)) {
       breaking = true;
       if (config.stripBreakingPrefix) {
@@ -380,9 +388,14 @@ class FeedParser {
     final DateTime? publishedAt = _parseDate(dateRaw, config);
     final String? excerptSource = _pickExcerpt(description, contentRaw);
     final String? image = UrlSafety.sanitize(
-      _firstNonEmpty(<String?>[imageHint, _firstImageIn(description), _firstImageIn(contentRaw)]),
+      _firstNonEmpty(<String?>[
+        imageHint,
+        _firstImageIn(description),
+        _firstImageIn(contentRaw)
+      ]),
     );
-    final String? publisherCategory = categories.isEmpty ? null : categories.first;
+    final String? publisherCategory =
+        categories.isEmpty ? null : categories.first;
     final ArticleTopic topic = TopicClassifier.classify(
       title: title,
       categories: categories,
@@ -432,7 +445,8 @@ class FeedParser {
     final Set<String> seenTitles = <String>{};
     final List<Article> output = <Article>[];
     for (final Article article in input) {
-      final String titleKey = '${article.sourceId}|${article.title.toLowerCase()}';
+      final String titleKey =
+          '${article.sourceId}|${article.title.toLowerCase()}';
       if (seenIds.contains(article.id) || seenTitles.contains(titleKey)) {
         continue;
       }
@@ -448,8 +462,18 @@ class FeedParser {
   // ---------------------------------------------------------------------------
 
   static const Map<String, int> _months = <String, int>{
-    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+    'jan': 1,
+    'feb': 2,
+    'mar': 3,
+    'apr': 4,
+    'may': 5,
+    'jun': 6,
+    'jul': 7,
+    'aug': 8,
+    'sep': 9,
+    'oct': 10,
+    'nov': 11,
+    'dec': 12,
   };
 
   static final RegExp _rfc822 = RegExp(
@@ -541,7 +565,8 @@ class FeedParser {
     if (value == 'Z' || value == 'GMT' || value == 'UT' || value == 'UTC') {
       return 0;
     }
-    final RegExpMatch? match = RegExp(r'^([+-])(\d{2}):?(\d{2})$').firstMatch(value);
+    final RegExpMatch? match =
+        RegExp(r'^([+-])(\d{2}):?(\d{2})$').firstMatch(value);
     if (match != null) {
       final int hours = int.parse(match.group(2)!);
       final int minutes = int.parse(match.group(3)!);
@@ -549,9 +574,18 @@ class FeedParser {
       return match.group(1) == '-' ? -total : total;
     }
     const Map<String, int> zones = <String, int>{
-      'EST': -300, 'EDT': -240, 'CST': -360, 'CDT': -300,
-      'MST': -420, 'MDT': -360, 'PST': -480, 'PDT': -420,
-      'BST': 60, 'CET': 60, 'CEST': 120, 'IST': 330,
+      'EST': -300,
+      'EDT': -240,
+      'CST': -360,
+      'CDT': -300,
+      'MST': -420,
+      'MDT': -360,
+      'PST': -480,
+      'PDT': -420,
+      'BST': 60,
+      'CET': 60,
+      'CEST': 120,
+      'IST': 330,
     };
     return zones[value];
   }
@@ -572,18 +606,31 @@ class FeedParser {
     // are the most common cause of otherwise unparseable publisher feeds.
     final String beforeAmpersand = value;
     value = value.replaceAllMapped(
-      RegExp(r'&(?!(?:#[0-9]{1,7}|#x[0-9a-fA-F]{1,6}|[a-zA-Z][a-zA-Z0-9]{1,10});)'),
+      RegExp(
+          r'&(?!(?:#[0-9]{1,7}|#x[0-9a-fA-F]{1,6}|[a-zA-Z][a-zA-Z0-9]{1,10});)'),
       (Match _) => '&amp;',
     );
     if (value != beforeAmpersand) repaired = true;
     // Repair the most common entity problems without touching valid entities.
     const Map<String, String> named = <String, String>{
-      'nbsp': '&#160;', 'mdash': '&#8212;', 'ndash': '&#8211;',
-      'lsquo': '&#8216;', 'rsquo': '&#8217;', 'ldquo': '&#8220;',
-      'rdquo': '&#8221;', 'hellip': '&#8230;', 'bull': '&#8226;',
-      'middot': '&#183;', 'copy': '&#169;', 'reg': '&#174;',
-      'trade': '&#8482;', 'euro': '&#8364;', 'pound': '&#163;',
-      'laquo': '&#171;', 'raquo': '&#187;', 'deg': '&#176;',
+      'nbsp': '&#160;',
+      'mdash': '&#8212;',
+      'ndash': '&#8211;',
+      'lsquo': '&#8216;',
+      'rsquo': '&#8217;',
+      'ldquo': '&#8220;',
+      'rdquo': '&#8221;',
+      'hellip': '&#8230;',
+      'bull': '&#8226;',
+      'middot': '&#183;',
+      'copy': '&#169;',
+      'reg': '&#174;',
+      'trade': '&#8482;',
+      'euro': '&#8364;',
+      'pound': '&#163;',
+      'laquo': '&#171;',
+      'raquo': '&#187;',
+      'deg': '&#176;',
     };
     value = value.replaceAllMapped(
       RegExp(r'&([a-zA-Z][a-zA-Z0-9]{1,10});'),
@@ -602,7 +649,8 @@ class FeedParser {
   String _cleanText(String input) {
     var value = input;
     if (value.contains('CDATA[')) {
-      value = value.replaceAll(RegExp(r'<!\[CDATA\['), '').replaceAll(']]>', '');
+      value =
+          value.replaceAll(RegExp(r'<!\[CDATA\['), '').replaceAll(']]>', '');
     }
     return TextUtilsStrip.strip(value) ?? '';
   }
@@ -626,7 +674,8 @@ class FeedParser {
   }
 
   String _childText(XmlElement parent, List<String> localNames) {
-    final List<String> wanted = localNames.map((String n) => n.toLowerCase()).toList();
+    final List<String> wanted =
+        localNames.map((String n) => n.toLowerCase()).toList();
     for (final XmlElement child in parent.childElements) {
       if (wanted.contains(child.name.local.toLowerCase())) {
         return _textOf(child);
@@ -661,7 +710,8 @@ class FeedParser {
     for (final XmlElement child in node.childElements) {
       if (child.name.local.toLowerCase() != 'guid') continue;
       final String text = _textOf(child).trim();
-      final bool isPerma = (_attr(child, <String>['isPermaLink']) ?? 'true') != 'false';
+      final bool isPerma =
+          (_attr(child, <String>['isPermaLink']) ?? 'true') != 'false';
       if (isPerma && text.startsWith('http')) return text;
     }
     return null;
@@ -670,12 +720,16 @@ class FeedParser {
   String? _imageFromMedia(XmlElement node) {
     for (final XmlElement element in node.findAllElements('*')) {
       final String local = element.name.local.toLowerCase();
-      if (local == 'thumbnail' || local == 'content' || local == 'enclosure' || local == 'image') {
+      if (local == 'thumbnail' ||
+          local == 'content' ||
+          local == 'enclosure' ||
+          local == 'image') {
         final String? url = _attr(element, <String>['url', 'href']);
         if (url == null || url.isEmpty) continue;
         final String? type = _attr(element, <String>['type', 'medium']);
         if (type != null &&
-            (type.toLowerCase().contains('video') || type.toLowerCase().contains('audio'))) {
+            (type.toLowerCase().contains('video') ||
+                type.toLowerCase().contains('audio'))) {
           continue;
         }
         return url;
@@ -694,7 +748,8 @@ class FeedParser {
   }
 
   String? _attr(XmlElement element, List<String> localNames) {
-    final List<String> wanted = localNames.map((String n) => n.toLowerCase()).toList();
+    final List<String> wanted =
+        localNames.map((String n) => n.toLowerCase()).toList();
     for (final XmlAttribute attribute in element.attributes) {
       if (wanted.contains(attribute.name.local.toLowerCase())) {
         final String value = attribute.value.trim();

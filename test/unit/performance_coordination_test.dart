@@ -19,7 +19,8 @@ void main() {
     expect(harness.feed.isRefreshing, isFalse);
   });
 
-  test('cold start refreshes once even when cached metadata is fresh', () async {
+  test('cold start refreshes once even when cached metadata is fresh',
+      () async {
     final FakeFeedGateway gateway = FakeFeedGateway();
     final stores = fakeStores();
     await stores.meta.set(

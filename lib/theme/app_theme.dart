@@ -109,7 +109,8 @@ class AppTheme {
       scaffoldBackgroundColor: background,
       canvasColor: background,
       dividerColor: divider,
-      dividerTheme: DividerThemeData(color: divider, thickness: 0.9, space: 0.9),
+      dividerTheme:
+          DividerThemeData(color: divider, thickness: 0.9, space: 0.9),
       fontFamily: Tokens.sans,
       textTheme: text,
       splashFactory: NoSplash.splashFactory,
@@ -128,7 +129,8 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        systemOverlayStyle:
+            dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         titleTextStyle: text.titleLarge?.copyWith(
           fontFamily: Tokens.serif,
           fontWeight: FontWeight.w700,
@@ -153,12 +155,15 @@ class AppTheme {
         height: 68,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStatePropertyAll<TextStyle?>(
-          text.labelMedium?.copyWith(fontSize: 11.5, fontWeight: FontWeight.w600),
+          text.labelMedium
+              ?.copyWith(fontSize: 11.5, fontWeight: FontWeight.w600),
         ),
         iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
           (Set<WidgetState> states) => IconThemeData(
             size: 23,
-            color: states.contains(WidgetState.selected) ? scheme.primary : inkSoft,
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : inkSoft,
           ),
         ),
       ),
@@ -167,7 +172,8 @@ class AppTheme {
         fillColor: dark
             ? Colors.white.withValues(alpha: 0.05)
             : Colors.white.withValues(alpha: 0.66),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: text.bodyMedium?.copyWith(color: inkSoft),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Tokens.radiusMd),
@@ -207,7 +213,8 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         modalBackgroundColor: dark ? Tokens.nightRaised : Tokens.paperRaised,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(Tokens.radiusXl)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(Tokens.radiusXl)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -274,7 +281,8 @@ class AppTheme {
           color: ink,
           letterSpacing: -0.1,
         );
-    TextStyle sans(double size, FontWeight weight, double height, {Color? color}) =>
+    TextStyle sans(double size, FontWeight weight, double height,
+            {Color? color}) =>
         TextStyle(
           fontFamily: Tokens.sans,
           fontSize: size,
@@ -303,7 +311,8 @@ class AppTheme {
   }
 
   /// Serif style used by headline widgets, honouring the user's text scale.
-  static TextStyle headlineStyle(ThemeData theme, {double scale = 1, bool hero = false}) {
+  static TextStyle headlineStyle(ThemeData theme,
+      {double scale = 1, bool hero = false}) {
     final TextStyle base =
         (hero ? theme.textTheme.displaySmall : theme.textTheme.headlineSmall) ??
             const TextStyle();
@@ -325,7 +334,8 @@ class _JellyPageTransitionBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    final bool reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final bool reduceMotion =
+        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     if (reduceMotion) return child;
 
     final CurvedAnimation entering = CurvedAnimation(

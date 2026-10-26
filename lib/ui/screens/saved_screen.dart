@@ -35,7 +35,8 @@ class SavedScreen extends StatefulWidget {
 class _SavedScreenState extends State<SavedScreen> {
   int _tab = 0;
   _SavedFilter _filter = _SavedFilter.all;
-  late final MachineTranslator _vocabularyTranslator = FallbackMachineTranslator(
+  late final MachineTranslator _vocabularyTranslator =
+      FallbackMachineTranslator(
     primary: MyMemoryTranslator(),
     fallback: MlKitOnDeviceTranslationEngine(),
   );
@@ -72,9 +73,10 @@ class _SavedScreenState extends State<SavedScreen> {
                         : saved.count,
                 historyTab: historyTab,
                 vocabularyTab: vocabularyTab,
-                onClearHistory: settings.historyEnabled && saved.history.isNotEmpty
-                    ? () => _confirmClearHistory(context)
-                    : null,
+                onClearHistory:
+                    settings.historyEnabled && saved.history.isNotEmpty
+                        ? () => _confirmClearHistory(context)
+                        : null,
               ),
               _SavedTabs(
                 index: _tab,
@@ -84,7 +86,8 @@ class _SavedScreenState extends State<SavedScreen> {
               ),
               if (!historyTab && !vocabularyTab)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter, 2),
+                  padding: const EdgeInsets.fromLTRB(
+                      Tokens.gutter, 12, Tokens.gutter, 2),
                   child: Row(
                     children: <Widget>[
                       GlassChip(
@@ -99,7 +102,8 @@ class _SavedScreenState extends State<SavedScreen> {
                         dense: true,
                         icon: Icons.notes_rounded,
                         selected: _filter == _SavedFilter.excerpt,
-                        onTap: () => setState(() => _filter = _SavedFilter.excerpt),
+                        onTap: () =>
+                            setState(() => _filter = _SavedFilter.excerpt),
                       ),
                       const SizedBox(width: 7),
                       GlassChip(
@@ -107,7 +111,8 @@ class _SavedScreenState extends State<SavedScreen> {
                         dense: true,
                         icon: Icons.link_rounded,
                         selected: _filter == _SavedFilter.link,
-                        onTap: () => setState(() => _filter = _SavedFilter.link),
+                        onTap: () =>
+                            setState(() => _filter = _SavedFilter.link),
                       ),
                     ],
                   ),
@@ -116,28 +121,30 @@ class _SavedScreenState extends State<SavedScreen> {
                 child: vocabularyTab
                     ? VocabularyList(translator: _vocabularyTranslator)
                     : AnimatedSwitcher(
-                  duration: Motion.of(context).standard,
-                  switchInCurve: Tokens.easeStandard,
-                  child: _SavedList(
-                    key: ValueKey<String>('$_tab-$_filter'),
-                    loading: saved.isLoading,
-                    items: items,
-                    emptyIcon: historyTab
-                        ? Icons.history_rounded
-                        : Icons.bookmark_border_rounded,
-                    emptyTitle: historyTab
-                        ? context.strings.historyEmptyTitle
-                        : context.strings.savedEmptyTitle,
-                    emptyBody: historyTab
-                        ? context.strings.historyEmptyBody
-                        : context.strings.savedEmptyBody,
-                    registry: registry,
-                    note: historyTab ? null : context.strings.savedKindsNote,
-                    onRemove: (String id) =>
-                        context.read<SavedController>().remove(id),
-                    showSavedAt: historyTab,
-                  ),
-                ),
+                        duration: Motion.of(context).standard,
+                        switchInCurve: Tokens.easeStandard,
+                        child: _SavedList(
+                          key: ValueKey<String>('$_tab-$_filter'),
+                          loading: saved.isLoading,
+                          items: items,
+                          emptyIcon: historyTab
+                              ? Icons.history_rounded
+                              : Icons.bookmark_border_rounded,
+                          emptyTitle: historyTab
+                              ? context.strings.historyEmptyTitle
+                              : context.strings.savedEmptyTitle,
+                          emptyBody: historyTab
+                              ? context.strings.historyEmptyBody
+                              : context.strings.savedEmptyBody,
+                          registry: registry,
+                          note: historyTab
+                              ? null
+                              : context.strings.savedKindsNote,
+                          onRemove: (String id) =>
+                              context.read<SavedController>().remove(id),
+                          showSavedAt: historyTab,
+                        ),
+                      ),
               ),
             ],
           ),
@@ -198,7 +205,8 @@ class _SavedHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter - 6, 6),
+      padding:
+          const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter - 6, 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: <Widget>[
@@ -207,9 +215,9 @@ class _SavedHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                    vocabularyTab
-                        ? (context.isBengali ? 'শব্দভান্ডার' : 'Vocabulary')
-                        : context.strings.savedTitle,
+                  vocabularyTab
+                      ? (context.isBengali ? 'শব্দভান্ডার' : 'Vocabulary')
+                      : context.strings.savedTitle,
                   style: context.texts.headlineMedium?.copyWith(
                     fontFamily: Tokens.serif,
                     fontSize: 27,
@@ -439,7 +447,8 @@ class _SavedList extends StatelessWidget {
                 onTap: () => openArticle(context, item.article),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter + 12, 0, Tokens.gutter, 12),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter + 12, 0, Tokens.gutter, 12),
                 child: Row(
                   children: <Widget>[
                     Icon(

@@ -87,7 +87,8 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
           child: Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 4),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 8, Tokens.gutter, 4),
                 child: Row(
                   children: <Widget>[
                     GlassIconButton(
@@ -204,7 +205,8 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                       ),
                       child: Row(
                         children: <Widget>[
-                          Expanded(child: Kicker(context.strings.latestHeadlines)),
+                          Expanded(
+                              child: Kicker(context.strings.latestHeadlines)),
                           if (source.hasFeed)
                             JellySurface(
                               onTap: _fetching ? null : _fetchNow,
@@ -232,8 +234,8 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                                           const SizedBox(width: 4),
                                           Text(
                                             context.strings.refresh,
-                                            style:
-                                                context.texts.labelSmall?.copyWith(
+                                            style: context.texts.labelSmall
+                                                ?.copyWith(
                                               fontSize: 10.5,
                                               color: context.colors.primary,
                                               fontWeight: FontWeight.w700,
@@ -285,7 +287,8 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                                   onPressed: () => openInBrowser(
                                     context,
                                     url: source.website,
-                                    title: source.localizedName(bengali: bengali),
+                                    title:
+                                        source.localizedName(bengali: bengali),
                                     source: source,
                                   ),
                                 ),
@@ -366,8 +369,10 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                                           CrossAxisAlignment.start,
                                       children: <Widget>[
                                         Text(
-                                          edition.localizedName(bengali: bengali),
-                                          style: context.texts.titleSmall?.copyWith(
+                                          edition.localizedName(
+                                              bengali: bengali),
+                                          style: context.texts.titleSmall
+                                              ?.copyWith(
                                             fontFamily: Tokens.serif,
                                             fontSize: 13.5,
                                           ),
@@ -428,8 +433,8 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                             ),
                             _InfoRow(
                               label: context.strings.filterLanguage,
-                              value:
-                                  Labels.language(source.language, bengali: bengali),
+                              value: Labels.language(source.language,
+                                  bengali: bengali),
                             ),
                             if (source.division != null)
                               _InfoRow(
@@ -458,8 +463,8 @@ class _SourceDetailScreenState extends State<SourceDetailScreen> {
                                       bengali: bengali,
                                     ),
                             ),
-                            if (source.categories
-                                .contains(SourceCategory.broadcast)) ...<Widget>[
+                            if (source.categories.contains(
+                                SourceCategory.broadcast)) ...<Widget>[
                               const SizedBox(height: 10),
                               Text(
                                 context.strings.broadcastNotice,
@@ -514,12 +519,15 @@ class _Identity extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: <Color>[
-                      Colors.white.withValues(alpha: context.isDark ? 0.22 : 0.9),
-                      Colors.white.withValues(alpha: context.isDark ? 0.04 : 0.35),
+                      Colors.white
+                          .withValues(alpha: context.isDark ? 0.22 : 0.9),
+                      Colors.white
+                          .withValues(alpha: context.isDark ? 0.04 : 0.35),
                     ],
                   ),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: context.isDark ? 0.14 : 0.8),
+                    color: Colors.white
+                        .withValues(alpha: context.isDark ? 0.14 : 0.8),
                     width: 0.9,
                   ),
                   boxShadow: Tokens.shadow(context, lift: 0.8),
@@ -544,7 +552,8 @@ class _Identity extends StatelessWidget {
                     if (secondary != null)
                       Text(
                         secondary,
-                        style: context.texts.bodySmall?.copyWith(fontSize: 11.5),
+                        style:
+                            context.texts.bodySmall?.copyWith(fontSize: 11.5),
                       ),
                     const SizedBox(height: 5),
                     Text(
@@ -567,7 +576,9 @@ class _Identity extends StatelessWidget {
                   label: Labels.category(category, bengali: bengali),
                 ),
               _Tag(
-                icon: source.hasFeed ? Icons.rss_feed_rounded : Icons.public_rounded,
+                icon: source.hasFeed
+                    ? Icons.rss_feed_rounded
+                    : Icons.public_rounded,
                 label: source.hasFeed
                     ? Labels.feedHealth(
                         health?.status ?? SourceHealthStatus.unknown,

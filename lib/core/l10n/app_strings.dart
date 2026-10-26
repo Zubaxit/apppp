@@ -14,7 +14,9 @@ abstract class AppStrings {
       AppStringsScope.of(context) ?? const BanglaStrings();
 
   static AppStrings forLanguage(AppLanguage language) =>
-      language == AppLanguage.en ? const EnglishStrings() : const BanglaStrings();
+      language == AppLanguage.en
+          ? const EnglishStrings()
+          : const BanglaStrings();
 
   String get languageCode;
 
@@ -438,7 +440,8 @@ class BanglaStrings extends AppStrings {
   @override
   String get savedEmptyTitle => 'কোনো খবর সংরক্ষিত নেই';
   @override
-  String get savedEmptyBody => 'খবরের পাশে বুকমার্ক আইকনে চাপ দিলে খবরটি এখানে জমা হবে।';
+  String get savedEmptyBody =>
+      'খবরের পাশে বুকমার্ক আইকনে চাপ দিলে খবরটি এখানে জমা হবে।';
   @override
   String get historyTitle => 'পড়ার ইতিহাস';
   @override
@@ -498,7 +501,8 @@ class BanglaStrings extends AppStrings {
   @override
   String get breakingBannerToggle => 'ব্রেকিং নিউজ ব্যানার';
   @override
-  String get breakingBannerBody => 'পত্রিকা নিজে ব্রেকিং হিসেবে চিহ্নিত করলে দেখানো হবে';
+  String get breakingBannerBody =>
+      'পত্রিকা নিজে ব্রেকিং হিসেবে চিহ্নিত করলে দেখানো হবে';
   @override
   String get newsShield => 'নিউজ শিল্ড';
   @override
@@ -677,7 +681,8 @@ class BanglaStrings extends AppStrings {
   @override
   String get profileReset => 'আগের অবস্থায় ফিরিয়ে নিন';
   @override
-  String get profileResetBody => 'সংরক্ষিত পরিবর্তন মুছে প্রাথমিক প্রোফাইল ফিরে আসবে।';
+  String get profileResetBody =>
+      'সংরক্ষিত পরিবর্তন মুছে প্রাথমিক প্রোফাইল ফিরে আসবে।';
   @override
   String get translateTitle => 'বাংলা অর্থ';
   @override
@@ -696,7 +701,8 @@ class BanglaStrings extends AppStrings {
   @override
   String get translateCopy => 'অর্থ কপি করুন';
   @override
-  String get translateSelectionHint => 'ইংরেজি শব্দ বা বাক্য নির্বাচন করে বাংলা অর্থ দেখুন';
+  String get translateSelectionHint =>
+      'ইংরেজি শব্দ বা বাক্য নির্বাচন করে বাংলা অর্থ দেখুন';
   @override
   String get savedKindsNote =>
       'সংরক্ষিত আইটেম দুই রকম: শুধু লিংক, অথবা লিংকের সঙ্গে প্রকাশকের দেওয়া সারাংশ। '
@@ -708,9 +714,11 @@ class BanglaStrings extends AppStrings {
   @override
   String get noFollowedPapers => 'এখনও কোনো পত্রিকা অনুসরণ করছেন না';
   @override
-  String get noFollowedBody => 'পত্রিকা নির্দেশিকা থেকে পছন্দের পত্রিকা অনুসরণ করুন।';
+  String get noFollowedBody =>
+      'পত্রিকা নির্দেশিকা থেকে পছন্দের পত্রিকা অনুসরণ করুন।';
   @override
-  String get regionalEmpty => 'এই বিভাগের কোনো আঞ্চলিক পত্রিকা এখনও তালিকাভুক্ত নয়';
+  String get regionalEmpty =>
+      'এই বিভাগের কোনো আঞ্চলিক পত্রিকা এখনও তালিকাভুক্ত নয়';
 }
 
 class EnglishStrings extends AppStrings {
@@ -897,7 +905,8 @@ class EnglishStrings extends AppStrings {
   @override
   String get savedEmptyTitle => 'Nothing saved yet';
   @override
-  String get savedEmptyBody => 'Tap the bookmark icon on any story to keep it here.';
+  String get savedEmptyBody =>
+      'Tap the bookmark icon on any story to keep it here.';
   @override
   String get historyTitle => 'Reading history';
   @override
@@ -953,15 +962,18 @@ class EnglishStrings extends AppStrings {
   @override
   String get historyToggle => 'Reading history';
   @override
-  String get historyToggleBody => 'Keep a list of opened stories on this device';
+  String get historyToggleBody =>
+      'Keep a list of opened stories on this device';
   @override
   String get breakingBannerToggle => 'Breaking news banner';
   @override
-  String get breakingBannerBody => 'Only shown when a publisher labels a story as breaking';
+  String get breakingBannerBody =>
+      'Only shown when a publisher labels a story as breaking';
   @override
   String get newsShield => 'News Shield';
   @override
-  String get newsShieldBody => 'Limits known ads and trackers in the in-app browser';
+  String get newsShieldBody =>
+      'Limits known ads and trackers in the in-app browser';
   @override
   String get reduceMotion => 'Reduce motion';
   @override
@@ -1017,7 +1029,8 @@ class EnglishStrings extends AppStrings {
   @override
   String get sourcesWithEpaper => 'With e-paper';
   @override
-  String get licence => 'Fonts: Noto Sans/Serif Bengali (SIL Open Font License)';
+  String get licence =>
+      'Fonts: Noto Sans/Serif Bengali (SIL Open Font License)';
 
   @override
   String get searchTitle => 'Search';
@@ -1032,7 +1045,8 @@ class EnglishStrings extends AppStrings {
   @override
   String get searchInArticles => 'Headlines';
   @override
-  String get searchBothHint => 'Search publications and headlines in Bengali or English';
+  String get searchBothHint =>
+      'Search publications and headlines in Bengali or English';
 
   @override
   String get loadError => 'Could not load';
@@ -1139,7 +1153,8 @@ class EnglishStrings extends AppStrings {
   @override
   String get profileReset => 'Restore the starting profile';
   @override
-  String get profileResetBody => 'Your edits are removed and the starting profile returns.';
+  String get profileResetBody =>
+      'Your edits are removed and the starting profile returns.';
   @override
   String get translateTitle => 'Bengali meaning';
   @override
@@ -1158,7 +1173,8 @@ class EnglishStrings extends AppStrings {
   @override
   String get translateCopy => 'Copy meaning';
   @override
-  String get translateSelectionHint => 'Select English text to see a Bengali meaning';
+  String get translateSelectionHint =>
+      'Select English text to see a Bengali meaning';
   @override
   String get savedKindsNote =>
       'Saved items are either a link alone, or a link with the excerpt the publisher provided. '
@@ -1170,14 +1186,17 @@ class EnglishStrings extends AppStrings {
   @override
   String get noFollowedPapers => 'You are not following any publication yet';
   @override
-  String get noFollowedBody => 'Browse the directory and follow the papers you read.';
+  String get noFollowedBody =>
+      'Browse the directory and follow the papers you read.';
   @override
-  String get regionalEmpty => 'No regional publications listed for this division yet';
+  String get regionalEmpty =>
+      'No regional publications listed for this division yet';
 }
 
 /// Provides [AppStrings] to the widget tree without a heavyweight i18n package.
 class AppStringsScope extends InheritedWidget {
-  const AppStringsScope({super.key, required this.strings, required super.child});
+  const AppStringsScope(
+      {super.key, required this.strings, required super.child});
 
   final AppStrings strings;
 
@@ -1185,5 +1204,6 @@ class AppStringsScope extends InheritedWidget {
       context.dependOnInheritedWidgetOfExactType<AppStringsScope>()?.strings;
 
   @override
-  bool updateShouldNotify(AppStringsScope oldWidget) => oldWidget.strings != strings;
+  bool updateShouldNotify(AppStringsScope oldWidget) =>
+      oldWidget.strings != strings;
 }

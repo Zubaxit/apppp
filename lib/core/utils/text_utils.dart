@@ -64,7 +64,8 @@ class TextUtils {
     if (clean.length <= maxLength) return clean;
     final String cut = clean.substring(0, maxLength);
     final int lastSpace = cut.lastIndexOf(' ');
-    final String base = lastSpace > maxLength * 0.6 ? cut.substring(0, lastSpace) : cut;
+    final String base =
+        lastSpace > maxLength * 0.6 ? cut.substring(0, lastSpace) : cut;
     return '${base.trimRight()}…';
   }
 
@@ -79,7 +80,18 @@ class TextUtils {
       searchNormalize(input).replaceAll(' ', '');
 
   static String _asciiDigits(String input) {
-    const List<String> bn = <String>['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    const List<String> bn = <String>[
+      '০',
+      '১',
+      '২',
+      '৩',
+      '৪',
+      '৫',
+      '৬',
+      '৭',
+      '৮',
+      '৯'
+    ];
     var out = input;
     for (var i = 0; i < bn.length; i++) {
       out = out.replaceAll(bn[i], '$i');

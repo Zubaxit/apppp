@@ -154,7 +154,8 @@ class NewsSource {
     final Uri? site = Uri.tryParse(website);
     final String host = site?.host ?? '';
     if (host.isNotEmpty) {
-      final String origin = '${site!.scheme.isEmpty ? 'https' : site.scheme}://$host';
+      final String origin =
+          '${site!.scheme.isEmpty ? 'https' : site.scheme}://$host';
       urls.add('$origin/apple-touch-icon.png');
       urls.add('$origin/favicon.ico');
     }
@@ -177,7 +178,8 @@ class NewsSource {
 
   /// The other-language name, used as a subtitle in the directory.
   String? secondaryName({required bool bengali}) {
-    final String? other = bengali ? TextUtils.nullIfBlank(name) : TextUtils.nullIfBlank(nameBn);
+    final String? other =
+        bengali ? TextUtils.nullIfBlank(name) : TextUtils.nullIfBlank(nameBn);
     if (other == null) return null;
     return other == localizedName(bengali: bengali) ? null : other;
   }
@@ -187,7 +189,8 @@ class NewsSource {
     final String base = TextUtils.nullIfBlank(nameBn) ?? name;
     final List<String> words = base
         .split(RegExp(r'\s+'))
-        .where((String w) => w.isNotEmpty && w != 'The' && w != 'Daily' && w != 'দৈনিক')
+        .where((String w) =>
+            w.isNotEmpty && w != 'The' && w != 'Daily' && w != 'দৈনিক')
         .toList();
     if (words.isEmpty) return base.isEmpty ? '?' : base.substring(0, 1);
     if (words.length == 1) {
@@ -212,7 +215,8 @@ class NewsSource {
         keys.add(normalized.replaceAll(' ', ''));
       }
       if (BengaliText.containsBengali(value)) {
-        final String latin = TextUtils.searchNormalize(BengaliText.transliterateToLatin(value));
+        final String latin =
+            TextUtils.searchNormalize(BengaliText.transliterateToLatin(value));
         if (latin.isNotEmpty) keys.add(latin);
       }
     }
@@ -359,12 +363,15 @@ class SourceRegistry {
 
   List<NewsSource> byCategory(SourceCategory category) =>
       sources.where((NewsSource s) => s.categories.contains(category)).toList()
-        ..sort((NewsSource a, NewsSource b) =>
-            a.localizedName(bengali: true).compareTo(b.localizedName(bengali: true)));
+        ..sort((NewsSource a, NewsSource b) => a
+            .localizedName(bengali: true)
+            .compareTo(b.localizedName(bengali: true)));
 
   /// The curated reading set, in editorial order.
-  List<NewsSource> get curated => sources.where((NewsSource s) => s.curated).toList()
-    ..sort((NewsSource a, NewsSource b) => a.curationOrder.compareTo(b.curationOrder));
+  List<NewsSource> get curated =>
+      sources.where((NewsSource s) => s.curated).toList()
+        ..sort((NewsSource a, NewsSource b) =>
+            a.curationOrder.compareTo(b.curationOrder));
 
   /// Curated publications that can actually contribute to the unified feed.
   List<NewsSource> get curatedWithFeeds =>
@@ -463,7 +470,8 @@ class SourceRegistry {
         } else if (key.contains(query)) {
           best = best < 70 ? 70 : best;
         } else {
-          final int distance = TextUtils.editDistance(compact, compactKey, cap: 3);
+          final int distance =
+              TextUtils.editDistance(compact, compactKey, cap: 3);
           if (distance <= 2) {
             final int score = 60 - distance * 10;
             if (score > best) best = score;
@@ -479,7 +487,8 @@ class SourceRegistry {
                 final bool hit = keyTokens.any((String keyToken) =>
                     keyToken == queryToken ||
                     (queryToken.length >= 4 &&
-                        TextUtils.editDistance(queryToken, keyToken, cap: 1) <= 1));
+                        TextUtils.editDistance(queryToken, keyToken, cap: 1) <=
+                            1));
                 if (hit) matched++;
               }
               if (matched == queryTokens.length) {
@@ -510,7 +519,8 @@ class SourceRegistry {
     final List<NewsSource> sources = (map['sources'] as List<dynamic>)
         .map((dynamic e) => NewsSource.fromMap(e as Map<String, dynamic>))
         .toList();
-    final List<EpaperEdition> epapers = (map['epapers'] as List<dynamic>? ?? const <dynamic>[])
+    final List<EpaperEdition> epapers = (map['epapers'] as List<dynamic>? ??
+            const <dynamic>[])
         .map((dynamic e) => EpaperEdition.fromMap(e as Map<String, dynamic>))
         .toList();
     final String updated = (map['updatedAt'] as String?) ?? '';

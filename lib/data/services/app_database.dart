@@ -16,10 +16,11 @@ class AppDatabase {
   static const int schemaVersion = 2;
   static const String fileName = 'bangladesh_newspaper_hub.db';
 
-  static Future<AppDatabase> open({String? path, DatabaseFactory? factory}) async {
+  static Future<AppDatabase> open(
+      {String? path, DatabaseFactory? factory}) async {
     final DatabaseFactory dbFactory = factory ?? databaseFactory;
-    final String resolvedPath = path ??
-        p.join(await dbFactory.getDatabasesPath(), fileName);
+    final String resolvedPath =
+        path ?? p.join(await dbFactory.getDatabasesPath(), fileName);
     final Database database = await dbFactory.openDatabase(
       resolvedPath,
       options: OpenDatabaseOptions(
@@ -76,8 +77,10 @@ class AppDatabase {
         'CREATE INDEX idx_articles_published ON articles (published_at DESC)');
     await db.execute(
         'CREATE INDEX idx_articles_fetched ON articles (fetched_at DESC)');
-    await db.execute('CREATE INDEX idx_articles_source ON articles (source_id)');
-    await db.execute('CREATE INDEX idx_articles_cluster ON articles (cluster_key)');
+    await db
+        .execute('CREATE INDEX idx_articles_source ON articles (source_id)');
+    await db
+        .execute('CREATE INDEX idx_articles_cluster ON articles (cluster_key)');
 
     await db.execute('''
       CREATE TABLE saved_articles (

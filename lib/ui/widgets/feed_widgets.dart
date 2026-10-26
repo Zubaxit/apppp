@@ -104,7 +104,8 @@ class TopicRail extends StatelessWidget {
 /// The band is a tinted glass strip with a red signal dot, and it slides in
 /// rather than popping.
 class BreakingBanner extends StatelessWidget {
-  const BreakingBanner({super.key, required this.articles, required this.onOpen});
+  const BreakingBanner(
+      {super.key, required this.articles, required this.onOpen});
 
   final List<Article> articles;
   final ValueChanged<Article> onOpen;
@@ -216,7 +217,8 @@ class PublicationTile extends StatelessWidget {
       onTap: onTap,
       scale: 0.99,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 10),
+        padding:
+            const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 10),
         child: Row(
           children: <Widget>[
             SourceAvatar(source: source, size: 42),
@@ -252,7 +254,9 @@ class PublicationTile extends StatelessWidget {
             if (onFollow != null)
               Semantics(
                 button: true,
-                label: following ? context.strings.followingLabel : context.strings.follow,
+                label: following
+                    ? context.strings.followingLabel
+                    : context.strings.follow,
                 child: JellySurface(
                   onTap: onFollow,
                   scale: 0.88,
@@ -270,7 +274,9 @@ class PublicationTile extends StatelessWidget {
                       border: Border.all(
                         color: following
                             ? context.colors.primary.withValues(alpha: 0.4)
-                            : (context.isDark ? Tokens.nightHairline : Tokens.hairline),
+                            : (context.isDark
+                                ? Tokens.nightHairline
+                                : Tokens.hairline),
                         width: 0.9,
                       ),
                     ),
@@ -486,7 +492,8 @@ class PrimaryActionCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: tint.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(Tokens.radiusSm),
-                  border: Border.all(color: tint.withValues(alpha: 0.2), width: 0.9),
+                  border: Border.all(
+                      color: tint.withValues(alpha: 0.2), width: 0.9),
                 ),
                 child: Icon(icon, size: 19, color: tint),
               ),
@@ -542,7 +549,8 @@ class PrimaryActionCard extends StatelessWidget {
 
 /// A number with a caption, used in About and the directory header.
 class StatBlock extends StatelessWidget {
-  const StatBlock({super.key, required this.value, required this.label, this.accent});
+  const StatBlock(
+      {super.key, required this.value, required this.label, this.accent});
 
   final String value;
   final String label;
@@ -635,7 +643,9 @@ class CategoryCircle extends StatelessWidget {
                   border: Border.all(
                     color: selected
                         ? accent.withValues(alpha: 0.55)
-                        : (dark ? Colors.white.withValues(alpha: 0.14) : Tokens.hairline),
+                        : (dark
+                            ? Colors.white.withValues(alpha: 0.14)
+                            : Tokens.hairline),
                     width: 0.9,
                   ),
                   // No blurred shadow: thirteen of these sit in one strip and
@@ -644,7 +654,8 @@ class CategoryCircle extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: 21,
-                  color: selected ? accent : (dark ? Tokens.nightInk : Tokens.ink),
+                  color:
+                      selected ? accent : (dark ? Tokens.nightInk : Tokens.ink),
                 ),
               ),
               const SizedBox(height: 6),
@@ -713,7 +724,8 @@ class CategoryStrip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
         physics: const BouncingScrollPhysics(),
         itemCount: topics.length + 1,
-        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: 10),
+        separatorBuilder: (BuildContext context, int index) =>
+            const SizedBox(width: 10),
         itemBuilder: (BuildContext context, int index) {
           if (index == 0) {
             return CategoryCircle(

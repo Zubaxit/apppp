@@ -9,9 +9,22 @@ class Ids {
   const Ids._();
 
   static const Set<String> _trackingParams = <String>{
-    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-    'utm_id', 'fbclid', 'gclid', 'amp', 'output', 'ref', 'referrer',
-    'wt_mc', 'at_medium', 'at_campaign', 's_cid',
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_term',
+    'utm_content',
+    'utm_id',
+    'fbclid',
+    'gclid',
+    'amp',
+    'output',
+    'ref',
+    'referrer',
+    'wt_mc',
+    'at_medium',
+    'at_campaign',
+    's_cid',
   };
 
   /// Removes tracking parameters, fragments and trailing slashes.
@@ -22,7 +35,8 @@ class Ids {
     uri.queryParameters.forEach((String key, String value) {
       if (!_trackingParams.contains(key.toLowerCase())) kept[key] = value;
     });
-    final String host = uri.host.toLowerCase().replaceFirst(RegExp(r'^www\.'), '');
+    final String host =
+        uri.host.toLowerCase().replaceFirst(RegExp(r'^www\.'), '');
     var path = uri.path;
     while (path.length > 1 && path.endsWith('/')) {
       path = path.substring(0, path.length - 1);
@@ -30,7 +44,8 @@ class Ids {
     final String query = kept.isEmpty
         ? ''
         : '?${(kept.keys.toList()..sort()).map((String k) => '$k=${kept[k]}').join('&')}';
-    final String scheme = uri.scheme.isEmpty ? 'https' : uri.scheme.toLowerCase();
+    final String scheme =
+        uri.scheme.isEmpty ? 'https' : uri.scheme.toLowerCase();
     return '$scheme://$host$path$query';
   }
 
@@ -51,7 +66,8 @@ class Ids {
   static String stableHash64(String input) =>
       '${_fnv32(input, 0x811c9dc5)}${_fnv32(input, 0x01000193)}';
 
-  static String articleId({required String sourceId, required String link, required String title}) {
+  static String articleId(
+      {required String sourceId, required String link, required String title}) {
     final String canonical = link.trim().isEmpty
         ? 'title:${TextUtils.compactKey(title)}'
         : canonicalUrl(link);

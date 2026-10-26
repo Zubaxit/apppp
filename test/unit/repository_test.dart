@@ -52,17 +52,19 @@ void main() {
       },
     );
     final AppStores stores = fakeStores();
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: stores, feedService: gateway);
+    final ArticleRepository repository = ArticleRepository(
+        registry: registry, stores: stores, feedService: gateway);
 
     final RefreshReport report = await repository.refresh(force: true);
 
-    expect(report.sourcesAttempted, 2, reason: 'only sources with feeds are fetched');
+    expect(report.sourcesAttempted, 2,
+        reason: 'only sources with feeds are fetched');
     expect(report.sourcesSucceeded, 2);
     expect(report.sourcesFailed, 0);
     expect(report.newArticles, 2);
     expect(await stores.articles.count(), 2);
-    expect((await repository.healthMap())['prothomalo']?.status, SourceHealthStatus.ok);
+    expect((await repository.healthMap())['prothomalo']?.status,
+        SourceHealthStatus.ok);
     expect(gateway.fetchedSources, isNot(contains('no_feed')));
     expect(await repository.lastRefreshAt(), isNotNull);
   });
@@ -78,8 +80,8 @@ void main() {
       failing: <String>{'prothomalo'},
     );
     final AppStores stores = fakeStores();
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: stores, feedService: gateway);
+    final ArticleRepository repository = ArticleRepository(
+        registry: registry, stores: stores, feedService: gateway);
 
     final RefreshReport report = await repository.refresh(force: true);
 
@@ -95,14 +97,17 @@ void main() {
 
   test('a gateway that throws is reported as a failing source', () async {
     final AppStores stores = fakeStores();
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: stores, feedService: _ThrowingGateway());
+    final ArticleRepository repository = ArticleRepository(
+        registry: registry, stores: stores, feedService: _ThrowingGateway());
 
     final RefreshReport report = await repository.refresh(force: true);
     expect(report.sourcesFailed, 2);
     expect(report.newArticles, 0);
     final List<SourceHealth> health = await stores.health.all();
-    expect(health.every((SourceHealth h) => h.status == SourceHealthStatus.failing), isTrue);
+    expect(
+        health
+            .every((SourceHealth h) => h.status == SourceHealthStatus.failing),
+        isTrue);
   });
 
   test('second refresh within the minimum gap is skipped', () async {
@@ -111,8 +116,8 @@ void main() {
         'prothomalo': <Article>[sampleArticle()],
       },
     );
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: fakeStores(), feedService: gateway);
+    final ArticleRepository repository = ArticleRepository(
+        registry: registry, stores: fakeStores(), feedService: gateway);
 
     await repository.refresh(force: true);
     final int firstCount = gateway.calls;
@@ -124,8 +129,8 @@ void main() {
 
   test('force refresh bypasses the minimum gap', () async {
     final FakeFeedGateway gateway = FakeFeedGateway();
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: fakeStores(), feedService: gateway);
+    final ArticleRepository repository = ArticleRepository(
+        registry: registry, stores: fakeStores(), feedService: gateway);
 
     await repository.refresh(force: true);
     final int first = gateway.calls;
@@ -133,7 +138,8 @@ void main() {
     expect(gateway.calls, greaterThan(first));
   });
 
-  test('a storage failure is reported instead of looking like a success', () async {
+  test('a storage failure is reported instead of looking like a success',
+      () async {
     final ArticleRepository repository = ArticleRepository(
       registry: registry,
       stores: fakeStores(articles: _BrokenArticleStore()),
@@ -155,7 +161,9 @@ void main() {
   test('feed filters by source, topic, language and text', () async {
     final AppStores stores = fakeStores(
       seed: <Article>[
-        sampleArticle(title: 'বাংলাদেশের রাজনীতি নিয়ে খবর', topic: ArticleTopic.politics),
+        sampleArticle(
+            title: 'বাংলাদেশের রাজনীতি নিয়ে খবর',
+            topic: ArticleTopic.politics),
         sampleArticle(
           sourceId: 'daily_star',
           title: 'Exports rise sharply',
@@ -171,13 +179,22 @@ void main() {
       feedService: FakeFeedGateway(),
     );
 
-    expect((await repository.loadFeed(queryOf(sources: <String>{'daily_star'}))).length, 1);
     expect(
-      (await repository.loadFeed(queryOf(topics: <ArticleTopic>{ArticleTopic.sports}))).single.title,
+        (await repository.loadFeed(queryOf(sources: <String>{'daily_star'})))
+            .length,
+        1);
+    expect(
+      (await repository
+              .loadFeed(queryOf(topics: <ArticleTopic>{ArticleTopic.sports})))
+          .single
+          .title,
       'খেলার খবর',
     );
     expect(
-      (await repository.loadFeed(queryOf(languages: <SourceLanguage>{SourceLanguage.en}))).single.title,
+      (await repository.loadFeed(
+              queryOf(languages: <SourceLanguage>{SourceLanguage.en})))
+          .single
+          .title,
       'Exports rise sharply',
     );
     expect(
@@ -207,7 +224,8 @@ void main() {
     );
   });
 
-  test('live feed sorts publisher times and excludes undated records', () async {
+  test('live feed sorts publisher times and excludes undated records',
+      () async {
     final DateTime now = DateTime.utc(2026, 10, 24, 12);
     final Article newer = sampleArticle(
       title: 'নতুন খবর',
@@ -262,8 +280,8 @@ void main() {
 
   test('reading history is recorded and can be cleared', () async {
     final AppStores stores = fakeStores();
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: stores, feedService: FakeFeedGateway());
+    final ArticleRepository repository = ArticleRepository(
+        registry: registry, stores: stores, feedService: FakeFeedGateway());
     final Article article = sampleArticle();
 
     await repository.recordHistory(article);
@@ -272,7 +290,8 @@ void main() {
     expect(await repository.history(), isEmpty);
   });
 
-  test('related coverage keeps separate publishers and excludes self', () async {
+  test('related coverage keeps separate publishers and excludes self',
+      () async {
     final DateTime at = DateTime.utc(2026, 10, 24, 6);
     const String title = 'Bangladesh exports rise sharply this quarter';
     final Article a = Article.create(
@@ -307,8 +326,8 @@ void main() {
 
   test('clearing the cache keeps bookmarks', () async {
     final AppStores stores = fakeStores(seed: <Article>[sampleArticle()]);
-    final ArticleRepository repository =
-        ArticleRepository(registry: registry, stores: stores, feedService: FakeFeedGateway());
+    final ArticleRepository repository = ArticleRepository(
+        registry: registry, stores: stores, feedService: FakeFeedGateway());
     final Article article = (await repository.loadFeed(queryOf())).single;
     await repository.saveArticle(article);
     await repository.recordHistory(article);

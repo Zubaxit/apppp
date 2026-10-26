@@ -35,7 +35,8 @@ class FeaturedCarousel extends StatefulWidget {
   final String? label;
 
   static bool qualifies(List<Article> articles, {int minimumStories = 3}) =>
-      articles.where((Article a) => a.imageUrl != null).length >= minimumStories;
+      articles.where((Article a) => a.imageUrl != null).length >=
+      minimumStories;
 
   @override
   State<FeaturedCarousel> createState() => _FeaturedCarouselState();
@@ -106,7 +107,8 @@ class _FeaturedCarouselState extends State<FeaturedCarousel> {
                   ),
                   scale: 0.8,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
                     child: AnimatedContainer(
                       duration: Motion.of(context).standard,
                       curve: Tokens.easeStandard,
@@ -115,7 +117,8 @@ class _FeaturedCarouselState extends State<FeaturedCarousel> {
                       decoration: BoxDecoration(
                         color: i == _page
                             ? context.colors.primary
-                            : context.colors.onSurfaceVariant.withValues(alpha: 0.32),
+                            : context.colors.onSurfaceVariant
+                                .withValues(alpha: 0.32),
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -208,11 +211,12 @@ class _FeaturedCard extends StatelessWidget {
                     children: <Widget>[
                       if (article.breaking)
                         Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 3.5),
                           decoration: BoxDecoration(
                             color: context.colors.error,
-                            borderRadius: BorderRadius.circular(Tokens.radiusXs),
+                            borderRadius:
+                                BorderRadius.circular(Tokens.radiusXs),
                           ),
                           child: Text(
                             context.strings.breakingShort,

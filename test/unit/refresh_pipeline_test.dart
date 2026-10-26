@@ -24,7 +24,8 @@ import '../support/fakes.dart';
 /// exactly like SQLite does. If the mapping regresses, this fails the same way
 /// the phone did.
 class SchemaStrictArticleStore extends FakeArticleStore {
-  SchemaStrictArticleStore(this.columns, [Iterable<Article> seed = const <Article>[]])
+  SchemaStrictArticleStore(this.columns,
+      [Iterable<Article> seed = const <Article>[]])
       : super(seed);
 
   final Set<String> columns;
@@ -49,8 +50,10 @@ class SchemaStrictArticleStore extends FakeArticleStore {
 /// Parsed lazily inside a test: reading the file and asserting at the top of
 /// `main` would run outside the test zone and fail the whole suite.
 Set<String> articleColumns() {
-  final String schema = File('lib/data/services/app_database.dart').readAsStringSync();
-  final RegExp create = RegExp(r"CREATE TABLE articles \((.*?)\)\s*'", dotAll: true);
+  final String schema =
+      File('lib/data/services/app_database.dart').readAsStringSync();
+  final RegExp create =
+      RegExp(r"CREATE TABLE articles \((.*?)\)\s*'", dotAll: true);
   final RegExpMatch? match = create.firstMatch(schema);
   expect(match, isNotNull, reason: 'articles DDL not found');
   final Set<String> columns = <String>{};
@@ -58,7 +61,8 @@ Set<String> articleColumns() {
     final String trimmed = line.trim().replaceAll(RegExp(r',$'), '');
     if (trimmed.isEmpty || trimmed.startsWith('--')) continue;
     final String first = trimmed.split(RegExp(r'\s+')).first;
-    if (<String>{'PRIMARY', 'FOREIGN', 'UNIQUE', 'CONSTRAINT', 'CHECK'}.contains(first)) {
+    if (<String>{'PRIMARY', 'FOREIGN', 'UNIQUE', 'CONSTRAINT', 'CHECK'}
+        .contains(first)) {
       continue;
     }
     columns.add(first);
@@ -132,7 +136,8 @@ void main() {
   // Computed per test, never during collection.
   Set<String> columns() => articleColumns();
 
-  NewsSource source(String id, String name, String feed, SourceLanguage language) {
+  NewsSource source(
+      String id, String name, String feed, SourceLanguage language) {
     return NewsSource(
       id: id,
       name: name,
@@ -146,18 +151,22 @@ void main() {
     );
   }
 
-  test('a live-shaped refresh persists articles through the real schema', () async {
+  test('a live-shaped refresh persists articles through the real schema',
+      () async {
     final SourceRegistry registry = SourceRegistry(
       sources: <NewsSource>[
-        source('prothomalo', 'Prothom Alo', 'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
-        source('bbc_bangla', 'BBC Bangla', 'https://feeds.bbci.co.uk/bengali/rss.xml', SourceLanguage.bn),
+        source('prothomalo', 'Prothom Alo',
+            'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
+        source('bbc_bangla', 'BBC Bangla',
+            'https://feeds.bbci.co.uk/bengali/rss.xml', SourceLanguage.bn),
       ],
       epapers: const <EpaperEdition>[],
       updatedAt: DateTime.utc(2026, 10, 25),
       about: 'pipeline test',
     );
 
-    final SchemaStrictArticleStore articles = SchemaStrictArticleStore(columns());
+    final SchemaStrictArticleStore articles =
+        SchemaStrictArticleStore(columns());
     final AppStores stores = fakeStores(articles: articles);
     final DateTime clock = DateTime.utc(2026, 10, 25, 10);
     final NewsHttpClient httpClient = NewsHttpClient(
@@ -178,7 +187,8 @@ void main() {
     final ArticleRepository repository = ArticleRepository(
       registry: registry,
       stores: stores,
-      feedService: FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
+      feedService:
+          FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
       clock: () => clock,
     );
 
@@ -196,17 +206,20 @@ void main() {
     final List<Article> feed = await repository.loadFeed(const FeedQuery());
     expect(feed, hasLength(4));
     expect(feed.first.title, 'নির্বাচন কমিশনের নতুন তফসিল ঘোষণা');
-    expect(feed.first.link, 'https://www.prothomalo.com/bangladesh/politics/abc123');
+    expect(feed.first.link,
+        'https://www.prothomalo.com/bangladesh/politics/abc123');
     expect(feed.first.sourceId, 'prothomalo');
-    expect(feed.first.imageUrl, 'https://images.prothomalo.com/thumb/abc123.jpg');
+    expect(
+        feed.first.imageUrl, 'https://images.prothomalo.com/thumb/abc123.jpg');
     expect(feed.first.topic, ArticleTopic.politics);
     // Publication order, newest first, with the +0600 date converted to UTC.
     expect(feed.first.publishedAt, DateTime.utc(2026, 10, 25, 3, 15));
-    expect(feed.map((Article a) => a.title), everyElement(isNot(contains('à¦'))));
+    expect(
+        feed.map((Article a) => a.title), everyElement(isNot(contains('à¦'))));
 
     // Category browsing reaches the same rows.
-    final List<Article> sports =
-        await repository.loadFeed(const FeedQuery(topics: <ArticleTopic>{ArticleTopic.sports}));
+    final List<Article> sports = await repository
+        .loadFeed(const FeedQuery(topics: <ArticleTopic>{ArticleTopic.sports}));
     expect(sports, hasLength(1));
     expect(sports.single.title, contains('ক্রিকেট'));
   });
@@ -214,15 +227,19 @@ void main() {
   test('one failing publisher never blocks the others', () async {
     final SourceRegistry registry = SourceRegistry(
       sources: <NewsSource>[
-        source('prothomalo', 'Prothom Alo', 'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
-        source('jugantor', 'Jugantor', 'https://www.jugantor.com/rss', SourceLanguage.bn),
-        source('bbc_bangla', 'BBC Bangla', 'https://feeds.bbci.co.uk/bengali/rss.xml', SourceLanguage.bn),
+        source('prothomalo', 'Prothom Alo',
+            'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
+        source('jugantor', 'Jugantor', 'https://www.jugantor.com/rss',
+            SourceLanguage.bn),
+        source('bbc_bangla', 'BBC Bangla',
+            'https://feeds.bbci.co.uk/bengali/rss.xml', SourceLanguage.bn),
       ],
       epapers: const <EpaperEdition>[],
       updatedAt: DateTime.utc(2026, 10, 25),
       about: 'pipeline test',
     );
-    final SchemaStrictArticleStore articles = SchemaStrictArticleStore(columns());
+    final SchemaStrictArticleStore articles =
+        SchemaStrictArticleStore(columns());
     final AppStores stores = fakeStores(articles: articles);
     final NewsHttpClient httpClient = NewsHttpClient(
       client: MockClient((http.Request request) async {
@@ -241,7 +258,8 @@ void main() {
     final ArticleRepository repository = ArticleRepository(
       registry: registry,
       stores: stores,
-      feedService: FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
+      feedService:
+          FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
       clock: () => DateTime.utc(2026, 10, 25, 10),
     );
 
@@ -254,20 +272,23 @@ void main() {
     expect(await repository.searchArchiveCandidates(), hasLength(6));
     final List<Article> feed = await repository.loadFeed(const FeedQuery());
     expect(feed, hasLength(4));
-    expect(feed.map((Article a) => a.sourceId).toSet(), <String>{'prothomalo', 'bbc_bangla'});
+    expect(feed.map((Article a) => a.sourceId).toSet(),
+        <String>{'prothomalo', 'bbc_bangla'});
   });
 
   test('a second refresh inside the minimum gap does not re-fetch', () async {
     final SourceRegistry registry = SourceRegistry(
       sources: <NewsSource>[
-        source('prothomalo', 'Prothom Alo', 'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
+        source('prothomalo', 'Prothom Alo',
+            'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
       ],
       epapers: const <EpaperEdition>[],
       updatedAt: DateTime.utc(2026, 10, 25),
       about: 'pipeline test',
     );
     var calls = 0;
-    final AppStores stores = fakeStores(articles: SchemaStrictArticleStore(columns()));
+    final AppStores stores =
+        fakeStores(articles: SchemaStrictArticleStore(columns()));
     final NewsHttpClient httpClient = NewsHttpClient(
       client: MockClient((http.Request request) async {
         calls += 1;
@@ -279,7 +300,8 @@ void main() {
     final ArticleRepository repository = ArticleRepository(
       registry: registry,
       stores: stores,
-      feedService: FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
+      feedService:
+          FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
       clock: () => now,
     );
 
@@ -294,10 +316,12 @@ void main() {
     expect(calls, 2);
   });
 
-  test('a broken store is reported instead of silently emptying the feed', () async {
+  test('a broken store is reported instead of silently emptying the feed',
+      () async {
     final SourceRegistry registry = SourceRegistry(
       sources: <NewsSource>[
-        source('prothomalo', 'Prothom Alo', 'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
+        source('prothomalo', 'Prothom Alo',
+            'https://www.prothomalo.com/stories.rss', SourceLanguage.bn),
       ],
       epapers: const <EpaperEdition>[],
       updatedAt: DateTime.utc(2026, 10, 25),
@@ -314,7 +338,8 @@ void main() {
     final ArticleRepository repository = ArticleRepository(
       registry: registry,
       stores: stores,
-      feedService: FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
+      feedService:
+          FeedService(httpClient: httpClient, metaStore: stores.feedMeta),
       clock: () => DateTime.utc(2026, 10, 25, 10),
     );
 

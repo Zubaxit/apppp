@@ -30,12 +30,14 @@ void main() {
 
       // Every block is stateless: it listens to the scope's single controller
       // instead of owning a repeating one.
-      for (final Element element in tester.elementList(find.byType(ShimmerBox))) {
+      for (final Element element
+          in tester.elementList(find.byType(ShimmerBox))) {
         expect(element, isA<StatelessElement>());
       }
     });
 
-    testWidgets('without a scope the blocks are inert rather than animating alone',
+    testWidgets(
+        'without a scope the blocks are inert rather than animating alone',
         (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       await tester.pumpWidget(h.wrap(
@@ -48,7 +50,8 @@ void main() {
   });
 
   group('glass budget', () {
-    testWidgets('a river row costs no backdrop filter', (WidgetTester tester) async {
+    testWidgets('a river row costs no backdrop filter',
+        (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       await tester.pumpWidget(h.wrap(
         NewsCard(

@@ -10,9 +10,11 @@ class ConnectivityService {
 
   Future<bool> isOnline() async {
     try {
-      final List<ConnectivityResult> results = await _connectivity.checkConnectivity();
+      final List<ConnectivityResult> results =
+          await _connectivity.checkConnectivity();
       if (results.isEmpty) return false;
-      return results.any((ConnectivityResult r) => r != ConnectivityResult.none);
+      return results
+          .any((ConnectivityResult r) => r != ConnectivityResult.none);
     } catch (_) {
       // If the platform call fails, assume online and let the HTTP layer decide.
       return true;

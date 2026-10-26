@@ -28,10 +28,16 @@ class HttpFetchResult {
   final String? contentType;
 
   bool get isSuccess =>
-      !notModified && body != null && statusCode != null && statusCode! >= 200 && statusCode! < 300;
+      !notModified &&
+      body != null &&
+      statusCode != null &&
+      statusCode! >= 200 &&
+      statusCode! < 300;
 
-  static HttpFetchResult failure(String error, {int? statusCode, int latencyMs = 0}) =>
-      HttpFetchResult(error: error, statusCode: statusCode, latencyMs: latencyMs);
+  static HttpFetchResult failure(String error,
+          {int? statusCode, int latencyMs = 0}) =>
+      HttpFetchResult(
+          error: error, statusCode: statusCode, latencyMs: latencyMs);
 }
 
 /// Wraps `package:http` with the policies the app promises publishers:
@@ -87,8 +93,9 @@ class NewsHttpClient {
         await _throttle(uri.host);
         final Map<String, String> headers = <String, String>{
           'User-Agent': userAgent,
-          'Accept': 'application/rss+xml, application/atom+xml, application/xml;q=0.9, '
-              'text/xml;q=0.8, */*;q=0.5',
+          'Accept':
+              'application/rss+xml, application/atom+xml, application/xml;q=0.9, '
+                  'text/xml;q=0.8, */*;q=0.5',
           'Accept-Language': 'bn,en;q=0.8',
           'Cache-Control': 'max-age=0',
           if (etag != null && etag.isNotEmpty) 'If-None-Match': etag,
@@ -122,7 +129,8 @@ class NewsHttpClient {
             // Decoded from the bytes, not from `response.body`, which would
             // fall back to latin-1 for a feed that omits its charset and turn
             // every Bengali headline into mojibake.
-            body: decodeFeedBody(response.bodyBytes, response.headers['content-type']),
+            body: decodeFeedBody(
+                response.bodyBytes, response.headers['content-type']),
             latencyMs: stopwatch.elapsedMilliseconds,
             etag: response.headers['etag'],
             lastModified: response.headers['last-modified'],

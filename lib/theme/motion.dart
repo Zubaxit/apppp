@@ -30,12 +30,16 @@ class Springs {
 
 /// Where the "reduce motion" preference is published to the tree.
 class AppMotionScope extends InheritedWidget {
-  const AppMotionScope({super.key, required this.reduceMotion, required super.child});
+  const AppMotionScope(
+      {super.key, required this.reduceMotion, required super.child});
 
   final bool reduceMotion;
 
   static bool of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<AppMotionScope>()?.reduceMotion ?? false;
+      context
+          .dependOnInheritedWidgetOfExactType<AppMotionScope>()
+          ?.reduceMotion ??
+      false;
 
   @override
   bool updateShouldNotify(AppMotionScope oldWidget) =>
@@ -55,7 +59,8 @@ class Motion {
   final bool reduce;
 
   static Motion of(BuildContext context) {
-    final bool systemReduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final bool systemReduce =
+        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final bool appReduce = AppMotionScope.of(context);
     return Motion(reduce: systemReduce || appReduce);
   }
@@ -139,7 +144,6 @@ class JellySurface extends StatefulWidget {
   final double scale;
   final bool haptic;
   final HitTestBehavior behavior;
-
 
   /// Extra translation (px) applied while held — used sparingly for buttons.
   final double lift;
@@ -291,9 +295,8 @@ class JellyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool dark = Theme.of(context).brightness == Brightness.dark;
-    final Color fg = filled
-        ? Colors.white
-        : (dark ? Tokens.nightInk : Tokens.ink);
+    final Color fg =
+        filled ? Colors.white : (dark ? Tokens.nightInk : Tokens.ink);
     final Widget body = Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 14 : 20,
@@ -393,7 +396,8 @@ class JellySwitch extends StatelessWidget {
           ),
         ),
         child: AnimatedAlign(
-          duration: motion.reduce ? Duration.zero : const Duration(milliseconds: 260),
+          duration:
+              motion.reduce ? Duration.zero : const Duration(milliseconds: 260),
           curve: Curves.easeOutBack,
           alignment: value ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
@@ -534,9 +538,8 @@ class _ShimmerPulse extends InheritedWidget {
 
   final Animation<double>? animation;
 
-  static Animation<double>? of(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<_ShimmerPulse>()
-      ?.animation;
+  static Animation<double>? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_ShimmerPulse>()?.animation;
 
   @override
   bool updateShouldNotify(_ShimmerPulse oldWidget) =>

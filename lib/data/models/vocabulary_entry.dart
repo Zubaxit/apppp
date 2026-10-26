@@ -44,8 +44,6 @@ class VocabularyEntry {
     );
   }
 
-  static String normalizeWord(String value) => value
-      .trim()
-      .toLowerCase()
-      .replaceAll(RegExp(r"^[^a-z]+|[^a-z]+$"), '');
+  static String normalizeWord(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r"^[^a-z]+|[^a-z]+$"), '');
 }

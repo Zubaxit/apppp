@@ -266,44 +266,44 @@ class _DeveloperReveal extends StatelessWidget {
             sheen: false,
             padding: const EdgeInsets.all(16),
             child: Row(
-          children: <Widget>[
-            Semantics(
-              image: true,
-              label: 'Md. Emon',
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/developer/md_emon.jpg',
-                  width: 88,
-                  height: 88,
-                  fit: BoxFit.cover,
-                  cacheWidth: 264,
-                  filterQuality: FilterQuality.medium,
+              children: <Widget>[
+                Semantics(
+                  image: true,
+                  label: 'Md. Emon',
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/developer/md_emon.jpg',
+                      width: 88,
+                      height: 88,
+                      fit: BoxFit.cover,
+                      cacheWidth: 264,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 17),
-            Expanded(
-              child: Text(
-                'Md. Emon',
-                style: context.texts.headlineSmall?.copyWith(
-                  fontFamily: Tokens.serif,
-                  fontSize: 23,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.2,
+                const SizedBox(width: 17),
+                Expanded(
+                  child: Text(
+                    'Md. Emon',
+                    style: context.texts.headlineSmall?.copyWith(
+                      fontFamily: Tokens.serif,
+                      fontSize: 23,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.open_in_new_rounded,
+                  size: 17,
+                  color: context.colors.primary,
+                ),
+              ],
             ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.open_in_new_rounded,
-                size: 17,
-                color: context.colors.primary,
-              ),
-            ],
           ),
         ),
       ),
-    ),
     );
   }
 }

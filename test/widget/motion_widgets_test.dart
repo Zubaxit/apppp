@@ -83,7 +83,8 @@ void main() {
       expect(scaleOf(tester), moreOrLessEquals(1, epsilon: 0.001));
     });
 
-    testWidgets('a disabled surface is not tappable', (WidgetTester tester) async {
+    testWidgets('a disabled surface is not tappable',
+        (WidgetTester tester) async {
       final TestHarness h = TestHarness();
       int taps = 0;
       await tester.pumpWidget(

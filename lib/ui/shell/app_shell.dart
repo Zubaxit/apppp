@@ -239,8 +239,9 @@ class _FloatingNav extends StatelessWidget {
             child: Stack(
               children: <Widget>[
                 AnimatedAlign(
-                  duration:
-                      motion.reduce ? Duration.zero : const Duration(milliseconds: 420),
+                  duration: motion.reduce
+                      ? Duration.zero
+                      : const Duration(milliseconds: 420),
                   curve: Curves.easeOutBack,
                   alignment: Alignment(
                     -1 + (2 / (_icons.length - 1)) * index,
@@ -324,11 +325,13 @@ class _NavItem extends StatelessWidget {
                 children: <Widget>[
                   AnimatedSwitcher(
                     duration: motion.standard,
-                    transitionBuilder: (Widget child, Animation<double> animation) {
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
                       if (motion.reduce) return child;
                       return ScaleTransition(
                         scale: Tween<double>(begin: 0.82, end: 1).animate(
-                          CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+                          CurvedAnimation(
+                              parent: animation, curve: Curves.easeOutBack),
                         ),
                         child: FadeTransition(opacity: animation, child: child),
                       );
@@ -345,7 +348,8 @@ class _NavItem extends StatelessWidget {
                       right: -7,
                       top: -4,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
                           color: context.colors.primary,
                           borderRadius: BorderRadius.circular(6),

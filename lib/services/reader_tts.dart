@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class SentenceRange {
-  const SentenceRange({required this.start, required this.end, required this.text});
+  const SentenceRange(
+      {required this.start, required this.end, required this.text});
   final int start;
   final int end;
   final String text;
@@ -60,7 +61,8 @@ class SpokenDocument {
       start += 1;
     }
     if (start < text.length) {
-      sentences.add(SentenceRange(start: start, end: text.length, text: text.substring(start)));
+      sentences.add(SentenceRange(
+          start: start, end: text.length, text: text.substring(start)));
     }
     return SpokenDocument(
       text: text,
@@ -69,7 +71,8 @@ class SpokenDocument {
     );
   }
 
-  static bool _space(int code) => code == 9 || code == 10 || code == 13 || code == 32;
+  static bool _space(int code) =>
+      code == 9 || code == 10 || code == 13 || code == 32;
 
   int sentenceAt(int offset) {
     for (int i = 0; i < sentences.length; i++) {
@@ -128,16 +131,21 @@ class PlatformReaderTtsEngine implements ReaderTtsEngine {
       if (call.method != 'ttsEvent') {
         return;
       }
-      final Map<Object?, Object?> raw = call.arguments as Map<Object?, Object?>? ?? <Object?, Object?>{};
+      final Map<Object?, Object?> raw =
+          call.arguments as Map<Object?, Object?>? ?? <Object?, Object?>{};
       _events.add(TtsEvent(
         '${raw['type'] ?? ''}',
-        <String, Object?>{for (final MapEntry<Object?, Object?> item in raw.entries) '${item.key}': item.value},
+        <String, Object?>{
+          for (final MapEntry<Object?, Object?> item in raw.entries)
+            '${item.key}': item.value
+        },
       ));
     });
   }
 
   static const MethodChannel _channel = MethodChannel('amar_news/reader_tts');
-  final StreamController<TtsEvent> _events = StreamController<TtsEvent>.broadcast();
+  final StreamController<TtsEvent> _events =
+      StreamController<TtsEvent>.broadcast();
 
   @override
   Stream<TtsEvent> get events => _events.stream;
@@ -145,12 +153,21 @@ class PlatformReaderTtsEngine implements ReaderTtsEngine {
   @override
   Future<Map<String, Object?>> state() async {
     final Map<Object?, Object?> raw =
-        await _channel.invokeMethod<Map<Object?, Object?>>('state') ?? <Object?, Object?>{};
-    return <String, Object?>{for (final MapEntry<Object?, Object?> item in raw.entries) '${item.key}': item.value};
+        await _channel.invokeMethod<Map<Object?, Object?>>('state') ??
+            <Object?, Object?>{};
+    return <String, Object?>{
+      for (final MapEntry<Object?, Object?> item in raw.entries)
+        '${item.key}': item.value
+    };
   }
 
   @override
-  Future<void> speak({required String articleId, required String text, required String language, required double rate, int startOffset = 0}) =>
+  Future<void> speak(
+          {required String articleId,
+          required String text,
+          required String language,
+          required double rate,
+          int startOffset = 0}) =>
       _channel.invokeMethod<void>('speak', <String, Object?>{
         'articleId': articleId,
         'text': text,
@@ -165,15 +182,18 @@ class PlatformReaderTtsEngine implements ReaderTtsEngine {
   @override
   Future<void> stop() => _channel.invokeMethod<void>('stop');
   @override
-  Future<void> seek(int offset) => _channel.invokeMethod<void>('seek', <String, Object?>{'offset': offset});
+  Future<void> seek(int offset) =>
+      _channel.invokeMethod<void>('seek', <String, Object?>{'offset': offset});
   @override
-  Future<void> setRate(double rate) => _channel.invokeMethod<void>('setRate', <String, Object?>{'rate': rate});
+  Future<void> setRate(double rate) =>
+      _channel.invokeMethod<void>('setRate', <String, Object?>{'rate': rate});
 }
 
 /// App-wide owner of the one permitted TTS session. Reader screens attach to it
 /// but never dispose it, allowing Android foreground playback to outlive routes.
 class ReaderTtsController extends ChangeNotifier {
-  ReaderTtsController({ReaderTtsEngine? engine}) : _engine = engine ?? PlatformReaderTtsEngine() {
+  ReaderTtsController({ReaderTtsEngine? engine})
+      : _engine = engine ?? PlatformReaderTtsEngine() {
     _subscription = _engine.events.listen(_onEvent);
     unawaited(_restore());
   }
@@ -198,7 +218,8 @@ class ReaderTtsController extends ChangeNotifier {
   int get activeSentence => _activeSentence;
   double get speed => _speed;
   String? get error => _error;
-  bool get active => _state == TtsPlaybackState.playing || _state == TtsPlaybackState.paused;
+  bool get active =>
+      _state == TtsPlaybackState.playing || _state == TtsPlaybackState.paused;
   double? get progress => _document == null || _document!.text.isEmpty
       ? null
       : (_offset / _document!.text.length).clamp(0, 1);
@@ -222,7 +243,8 @@ class ReaderTtsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> play(String id, List<String> paragraphs, {required String language}) async {
+  Future<void> play(String id, List<String> paragraphs,
+      {required String language}) async {
     final SpokenDocument next = SpokenDocument.fromParagraphs(paragraphs);
     if (next.text.isEmpty) {
       return;
@@ -269,7 +291,8 @@ class ReaderTtsController extends ChangeNotifier {
     if (value == null || value.sentences.isEmpty) {
       return;
     }
-    final int current = _activeSentence < 0 ? value.sentenceAt(_offset) : _activeSentence;
+    final int current =
+        _activeSentence < 0 ? value.sentenceAt(_offset) : _activeSentence;
     final int target = (current + delta).clamp(0, value.sentences.length - 1);
     _activeSentence = target;
     _offset = value.sentences[target].start;

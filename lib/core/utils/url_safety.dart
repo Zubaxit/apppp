@@ -47,11 +47,34 @@ class UrlSafety {
   }
 
   static const Set<String> _trackingParams = <String>{
-    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-    'utm_id', 'utm_name', 'utm_reader', 'utm_brand', 'utm_social',
-    'fbclid', 'gclid', 'dclid', 'msclkid', 'mc_cid', 'mc_eid',
-    'amp', 'output', 'ref', 'referrer', 'wt_mc', 'at_medium', 'at_campaign',
-    's_cid', 'ito', 'share', 'fb_action_ids', 'fb_action_types',
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_term',
+    'utm_content',
+    'utm_id',
+    'utm_name',
+    'utm_reader',
+    'utm_brand',
+    'utm_social',
+    'fbclid',
+    'gclid',
+    'dclid',
+    'msclkid',
+    'mc_cid',
+    'mc_eid',
+    'amp',
+    'output',
+    'ref',
+    'referrer',
+    'wt_mc',
+    'at_medium',
+    'at_campaign',
+    's_cid',
+    'ito',
+    'share',
+    'fb_action_ids',
+    'fb_action_types',
   };
 
   /// Removes campaign/tracking parameters from an already-safe URL while
@@ -60,7 +83,8 @@ class UrlSafety {
     final Uri? uri = Uri.tryParse(url);
     if (uri == null || uri.query.isEmpty) return url;
     final List<MapEntry<String, String>> kept = uri.queryParameters.entries
-        .where((MapEntry<String, String> e) => !_trackingParams.contains(e.key.toLowerCase()))
+        .where((MapEntry<String, String> e) =>
+            !_trackingParams.contains(e.key.toLowerCase()))
         .toList();
     final String query = kept.isEmpty
         ? ''
@@ -93,7 +117,15 @@ class UrlSafety {
   static bool _isAllowedPath(String path) {
     final String lower = path.toLowerCase();
     const List<String> blockedExtensions = <String>[
-      '.exe', '.apk', '.dmg', '.msi', '.bat', '.cmd', '.sh', '.jar', '.scr',
+      '.exe',
+      '.apk',
+      '.dmg',
+      '.msi',
+      '.bat',
+      '.cmd',
+      '.sh',
+      '.jar',
+      '.scr',
     ];
     for (final String ext in blockedExtensions) {
       if (lower.endsWith(ext)) return false;

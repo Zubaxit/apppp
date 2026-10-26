@@ -6,21 +6,56 @@ class BengaliText {
   const BengaliText._();
 
   static const List<String> _bnDigits = <String>[
-    '০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯',
+    '০',
+    '১',
+    '২',
+    '৩',
+    '৪',
+    '৫',
+    '৬',
+    '৭',
+    '৮',
+    '৯',
   ];
 
   static const List<String> monthNamesBn = <String>[
-    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
-    'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর',
+    'জানুয়ারি',
+    'ফেব্রুয়ারি',
+    'মার্চ',
+    'এপ্রিল',
+    'মে',
+    'জুন',
+    'জুলাই',
+    'আগস্ট',
+    'সেপ্টেম্বর',
+    'অক্টোবর',
+    'নভেম্বর',
+    'ডিসেম্বর',
   ];
 
   static const List<String> monthNamesEn = <String>[
-    'January', 'February', 'March', 'April', 'May', 'June', 'July',
-    'August', 'September', 'October', 'November', 'December',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   static const List<String> weekdayNamesBn = <String>[
-    'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার', 'রবিবার',
+    'সোমবার',
+    'মঙ্গলবার',
+    'বুধবার',
+    'বৃহস্পতিবার',
+    'শুক্রবার',
+    'শনিবার',
+    'রবিবার',
   ];
 
   /// Converts ASCII digits to Bengali digits.
@@ -53,7 +88,8 @@ class BengaliText {
   }
 
   /// "২ ঘণ্টা আগে" / "2 hours ago". Returns null when [when] is null.
-  static String? relative(DateTime? when, {required bool bengali, DateTime? now}) {
+  static String? relative(DateTime? when,
+      {required bool bengali, DateTime? now}) {
     if (when == null) return null;
     final DateTime reference = (now ?? DateTime.now()).toUtc();
     final Duration diff = reference.difference(when.toUtc());
@@ -67,7 +103,8 @@ class BengaliText {
 
     if (diff.inMinutes < 1) return bengali ? 'এইমাত্র' : 'Just now';
     if (diff.inMinutes < 60) {
-      return value(diff.inMinutes, 'মিনিট', diff.inMinutes == 1 ? 'minute' : 'minutes');
+      return value(
+          diff.inMinutes, 'মিনিট', diff.inMinutes == 1 ? 'minute' : 'minutes');
     }
     if (diff.inHours < 24) {
       return value(diff.inHours, 'ঘণ্টা', diff.inHours == 1 ? 'hour' : 'hours');
@@ -82,7 +119,8 @@ class BengaliText {
   static String absolute(DateTime when, {required bool bengali}) {
     final DateTime local = when.toUtc().add(const Duration(hours: 6));
     final String day = bengali ? toBengaliDigits(local.day) : '${local.day}';
-    final String month = (bengali ? monthNamesBn : monthNamesEn)[local.month - 1];
+    final String month =
+        (bengali ? monthNamesBn : monthNamesEn)[local.month - 1];
     final String year = bengali ? toBengaliDigits(local.year) : '${local.year}';
     return '$day $month $year';
   }
@@ -91,7 +129,8 @@ class BengaliText {
   static String dateTime(DateTime when, {required bool bengali}) {
     final DateTime local = when.toUtc().add(const Duration(hours: 6));
     final String day = bengali ? toBengaliDigits(local.day) : '${local.day}';
-    final String month = (bengali ? monthNamesBn : monthNamesEn)[local.month - 1];
+    final String month =
+        (bengali ? monthNamesBn : monthNamesEn)[local.month - 1];
     final int hour12 = local.hour % 12 == 0 ? 12 : local.hour % 12;
     final String hour = bengali ? toBengaliDigits(hour12) : '$hour12';
     final String minute = bengali
@@ -102,24 +141,73 @@ class BengaliText {
   }
 
   static const Map<String, String> _consonants = <String, String>{
-    'ক': 'k', 'খ': 'kh', 'গ': 'g', 'ঘ': 'gh', 'ঙ': 'ng',
-    'চ': 'ch', 'ছ': 'chh', 'জ': 'j', 'ঝ': 'jh', 'ঞ': 'n',
-    'ট': 't', 'ঠ': 'th', 'ড': 'd', 'ঢ': 'dh', 'ণ': 'n',
-    'ত': 't', 'থ': 'th', 'দ': 'd', 'ধ': 'dh', 'ন': 'n',
-    'প': 'p', 'ফ': 'ph', 'ব': 'b', 'ভ': 'bh', 'ম': 'm',
-    'য': 'j', 'র': 'r', 'ল': 'l', 'শ': 'sh', 'ষ': 'sh',
-    'স': 's', 'হ': 'h', 'ড়': 'r', 'ঢ়': 'rh', 'য়': 'y',
-    'ৎ': 't', 'ং': 'ng', 'ঃ': 'h', 'ঁ': '',
+    'ক': 'k',
+    'খ': 'kh',
+    'গ': 'g',
+    'ঘ': 'gh',
+    'ঙ': 'ng',
+    'চ': 'ch',
+    'ছ': 'chh',
+    'জ': 'j',
+    'ঝ': 'jh',
+    'ঞ': 'n',
+    'ট': 't',
+    'ঠ': 'th',
+    'ড': 'd',
+    'ঢ': 'dh',
+    'ণ': 'n',
+    'ত': 't',
+    'থ': 'th',
+    'দ': 'd',
+    'ধ': 'dh',
+    'ন': 'n',
+    'প': 'p',
+    'ফ': 'ph',
+    'ব': 'b',
+    'ভ': 'bh',
+    'ম': 'm',
+    'য': 'j',
+    'র': 'r',
+    'ল': 'l',
+    'শ': 'sh',
+    'ষ': 'sh',
+    'স': 's',
+    'হ': 'h',
+    'ড়': 'r',
+    'ঢ়': 'rh',
+    'য়': 'y',
+    'ৎ': 't',
+    'ং': 'ng',
+    'ঃ': 'h',
+    'ঁ': '',
   };
 
   static const Map<String, String> _independentVowels = <String, String>{
-    'অ': 'o', 'আ': 'a', 'ই': 'i', 'ঈ': 'i', 'উ': 'u', 'ঊ': 'u',
-    'ঋ': 'ri', 'এ': 'e', 'ঐ': 'oi', 'ও': 'o', 'ঔ': 'ou',
+    'অ': 'o',
+    'আ': 'a',
+    'ই': 'i',
+    'ঈ': 'i',
+    'উ': 'u',
+    'ঊ': 'u',
+    'ঋ': 'ri',
+    'এ': 'e',
+    'ঐ': 'oi',
+    'ও': 'o',
+    'ঔ': 'ou',
   };
 
   static const Map<String, String> _vowelSigns = <String, String>{
-    'া': 'a', 'ি': 'i', 'ী': 'i', 'ু': 'u', 'ূ': 'u', 'ৃ': 'ri',
-    'ে': 'e', 'ৈ': 'oi', 'ো': 'o', 'ৌ': 'ou', '্': '',
+    'া': 'a',
+    'ি': 'i',
+    'ী': 'i',
+    'ু': 'u',
+    'ূ': 'u',
+    'ৃ': 'ri',
+    'ে': 'e',
+    'ৈ': 'oi',
+    'ো': 'o',
+    'ৌ': 'ou',
+    '্': '',
   };
 
   /// Rough transliteration, good enough to match "প্রথম আলো" ≈ "prothom alo".

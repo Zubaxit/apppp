@@ -58,12 +58,14 @@ Future<void> showVocabularyEditor(
               const SizedBox(height: 10),
               TextField(
                 controller: definition,
-                decoration: const InputDecoration(labelText: 'English definition · optional'),
+                decoration: const InputDecoration(
+                    labelText: 'English definition · optional'),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: part,
-                decoration: const InputDecoration(labelText: 'Part of speech · optional'),
+                decoration: const InputDecoration(
+                    labelText: 'Part of speech · optional'),
               ),
               const SizedBox(height: 10),
               Text(
@@ -72,7 +74,9 @@ Future<void> showVocabularyEditor(
               ),
               if (suggestionError != null) ...<Widget>[
                 const SizedBox(height: 6),
-                Text(suggestionError!, style: context.texts.labelSmall?.copyWith(color: context.colors.error)),
+                Text(suggestionError!,
+                    style: context.texts.labelSmall
+                        ?.copyWith(color: context.colors.error)),
               ],
               const SizedBox(height: 8),
               TextButton.icon(
@@ -84,12 +88,14 @@ Future<void> showVocabularyEditor(
                           suggestionError = null;
                         });
                         try {
-                          final String value = await translator.translate(normalized);
+                          final String value =
+                              await translator.translate(normalized);
                           meaning.text = value;
                         } on TranslationException catch (error) {
                           suggestionError = error.message;
                         } catch (_) {
-                          suggestionError = 'A suggestion is unavailable. You can still enter a meaning.';
+                          suggestionError =
+                              'A suggestion is unavailable. You can still enter a meaning.';
                         }
                         setState(() => suggesting = false);
                       },
@@ -118,8 +124,11 @@ Future<void> showVocabularyEditor(
               await saved.saveVocabulary(VocabularyEntry(
                 word: existing?.word ?? word.trim(),
                 meaningBn: meaning.text.trim(),
-                definitionEn: definition.text.trim().isEmpty ? null : definition.text.trim(),
-                partOfSpeech: part.text.trim().isEmpty ? null : part.text.trim(),
+                definitionEn: definition.text.trim().isEmpty
+                    ? null
+                    : definition.text.trim(),
+                partOfSpeech:
+                    part.text.trim().isEmpty ? null : part.text.trim(),
                 articleTitle: existing?.articleTitle ?? articleTitle,
                 articleUrl: existing?.articleUrl ?? articleUrl,
                 sourceName: existing?.sourceName ?? sourceName,
@@ -176,7 +185,8 @@ class _VocabularyListState extends State<VocabularyList> {
 
   Future<void> _export(SavedController saved) async {
     try {
-      final bool written = await VocabularyFileTransfer.export(saved.vocabulary);
+      final bool written =
+          await VocabularyFileTransfer.export(saved.vocabulary);
       if (mounted && written) context.showSnack('Vocabulary exported.');
     } on Object {
       if (mounted) context.showSnack('Vocabulary could not be exported.');
@@ -232,7 +242,8 @@ class _VocabularyListState extends State<VocabularyList> {
   @override
   Widget build(BuildContext context) {
     final SavedController saved = context.watch<SavedController>();
-    final List<VocabularyEntry> entries = saved.vocabulary.where((VocabularyEntry entry) {
+    final List<VocabularyEntry> entries =
+        saved.vocabulary.where((VocabularyEntry entry) {
       final String query = _query.trim().toLowerCase();
       return query.isEmpty ||
           entry.word.toLowerCase().contains(query) ||
@@ -241,14 +252,14 @@ class _VocabularyListState extends State<VocabularyList> {
     return Column(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 0),
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 0),
           child: Row(
             children: <Widget>[
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: saved.vocabulary.isEmpty
-                      ? null
-                      : () => _export(saved),
+                  onPressed:
+                      saved.vocabulary.isEmpty ? null : () => _export(saved),
                   icon: const Icon(Icons.file_upload_outlined),
                   label: const Text('Export'),
                 ),
@@ -265,7 +276,8 @@ class _VocabularyListState extends State<VocabularyList> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 4),
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 4),
           child: TextField(
             onChanged: (String value) => setState(() => _query = value),
             decoration: const InputDecoration(
@@ -279,10 +291,12 @@ class _VocabularyListState extends State<VocabularyList> {
               ? const EmptyState(
                   icon: Icons.spellcheck_rounded,
                   title: 'No saved vocabulary',
-                  body: 'Select an English word on a webpage or in Reading Mode to save a confirmed Bengali meaning.',
+                  body:
+                      'Select an English word on a webpage or in Reading Mode to save a confirmed Bengali meaning.',
                 )
               : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 130),
+                  padding: const EdgeInsets.fromLTRB(
+                      Tokens.gutter, 8, Tokens.gutter, 130),
                   itemCount: entries.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (BuildContext context, int index) {
@@ -295,18 +309,24 @@ class _VocabularyListState extends State<VocabularyList> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Text(entry.word, style: context.texts.titleMedium),
+                                Text(entry.word,
+                                    style: context.texts.titleMedium),
                                 const SizedBox(height: 3),
-                                Text(entry.meaningBn, style: context.texts.bodyMedium),
+                                Text(entry.meaningBn,
+                                    style: context.texts.bodyMedium),
                                 if (entry.partOfSpeech != null)
-                                  Text(entry.partOfSpeech!, style: context.texts.labelSmall),
-                                if (entry.sourceName != null || entry.articleTitle != null)
+                                  Text(entry.partOfSpeech!,
+                                      style: context.texts.labelSmall),
+                                if (entry.sourceName != null ||
+                                    entry.articleTitle != null)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 5),
                                     child: Text(
                                       <String>[
-                                        if (entry.sourceName != null) entry.sourceName!,
-                                        if (entry.articleTitle != null) entry.articleTitle!,
+                                        if (entry.sourceName != null)
+                                          entry.sourceName!,
+                                        if (entry.articleTitle != null)
+                                          entry.articleTitle!,
                                       ].join(' · '),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,

@@ -33,7 +33,8 @@ void main() {
       entry('Policy', 'নীতি'),
       entry('policy', 'নীতিমালা'),
     ]);
-    final List<VocabularyEntry> decoded = VocabularyTransferCodec.decode(payload);
+    final List<VocabularyEntry> decoded =
+        VocabularyTransferCodec.decode(payload);
     expect(decoded, hasLength(1));
     expect(decoded.single.meaningBn, 'নীতিমালা');
   });

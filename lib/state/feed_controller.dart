@@ -91,7 +91,8 @@ class FeedController extends ChangeNotifier {
   RefreshReport? get lastReport => _lastReport;
   int get progressDone => _progressDone;
   int get progressTotal => _progressTotal;
-  double get progress => _progressTotal == 0 ? 0 : _progressDone / _progressTotal;
+  double get progress =>
+      _progressTotal == 0 ? 0 : _progressDone / _progressTotal;
   bool get updatesPending => _updatesPending;
 
   /// True when the newest cached article was fetched before the last update.
@@ -106,7 +107,8 @@ class FeedController extends ChangeNotifier {
   bool get isStale {
     final DateTime? last = _lastRefreshAt;
     if (last == null) return true;
-    return DateTime.now().toUtc().difference(last).inMinutes >= settings.refreshMinutes;
+    return DateTime.now().toUtc().difference(last).inMinutes >=
+        settings.refreshMinutes;
   }
 
   List<Article> get breakingArticles {
@@ -119,7 +121,9 @@ class FeedController extends ChangeNotifier {
   List<Article> get followedArticles {
     final Set<String> followed = settings.followedSourceIds;
     if (followed.isEmpty) return const <Article>[];
-    return _articles.where((Article a) => followed.contains(a.sourceId)).toList();
+    return _articles
+        .where((Article a) => followed.contains(a.sourceId))
+        .toList();
   }
 
   Future<void> start() async {
@@ -223,7 +227,8 @@ class FeedController extends ChangeNotifier {
     if (!isStale || _busy) return;
     final DateTime? lastAttempt = _lastAttemptAt;
     if (lastAttempt != null) {
-      final Duration sinceAttempt = DateTime.now().toUtc().difference(lastAttempt);
+      final Duration sinceAttempt =
+          DateTime.now().toUtc().difference(lastAttempt);
       // Guards against the user flipping between tabs in a tight loop.
       if (sinceAttempt.inSeconds < 90) return;
     }

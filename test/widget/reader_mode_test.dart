@@ -23,7 +23,8 @@ ReaderDocument document({int paragraphs = 2, bool bengali = false}) {
 }
 
 void main() {
-  test('reader block mapping is deterministic for out-of-order lazy builds', () {
+  test('reader block mapping is deterministic for out-of-order lazy builds',
+      () {
     final List<ReaderBlock> blocks = <ReaderBlock>[
       const ReaderBlock(text: 'Heading', heading: true),
       const ReaderBlock(text: 'First paragraph'),
@@ -104,7 +105,8 @@ void main() {
     final TestHarness h = TestHarness();
     final FakeTranslator translator = FakeTranslator();
     await tester.pumpWidget(h.wrap(
-      ReaderModeScreen(document: document(bengali: true), translator: translator),
+      ReaderModeScreen(
+          document: document(bengali: true), translator: translator),
     ));
     await tester.pumpAndSettle();
 
@@ -143,7 +145,8 @@ void main() {
     final ReaderDocument different = ReaderDocument(
       title: 'An English headline',
       blocks: <ReaderBlock>[
-        ReaderBlock(text: 'A healthy English paragraph about public policy. ' * 5),
+        ReaderBlock(
+            text: 'A healthy English paragraph about public policy. ' * 5),
         ReaderBlock(text: 'A poison English paragraph about the economy. ' * 5),
       ],
     );

@@ -52,7 +52,9 @@ class _FeedFilterSheet extends StatefulWidget {
 
 class _FeedFilterSheetState extends State<_FeedFilterSheet> {
   late Set<String> _sources = <String>{...widget.initial.sourceIds};
-  late Set<SourceLanguage> _languages = <SourceLanguage>{...widget.initial.languages};
+  late Set<SourceLanguage> _languages = <SourceLanguage>{
+    ...widget.initial.languages
+  };
   final TextEditingController _search = TextEditingController();
   String _query = '';
 
@@ -193,8 +195,8 @@ class _FeedFilterSheetState extends State<_FeedFilterSheet> {
                           contentPadding:
                               const EdgeInsets.symmetric(vertical: 13),
                           hintText: context.strings.searchInPapers,
-                          hintStyle:
-                              context.texts.bodyMedium?.copyWith(fontSize: 12.5),
+                          hintStyle: context.texts.bodyMedium
+                              ?.copyWith(fontSize: 12.5),
                         ),
                       ),
                     ),
@@ -244,7 +246,8 @@ class _FeedFilterSheetState extends State<_FeedFilterSheet> {
                                     children: <Widget>[
                                       Text(
                                         source.localizedName(bengali: bengali),
-                                        style: context.texts.titleSmall?.copyWith(
+                                        style:
+                                            context.texts.titleSmall?.copyWith(
                                           fontFamily: Tokens.serif,
                                           fontSize: 13.5,
                                           fontWeight: FontWeight.w600,
@@ -300,14 +303,16 @@ class _FeedFilterSheetState extends State<_FeedFilterSheet> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 12),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 8, Tokens.gutter, 12),
                 child: Row(
                   children: <Widget>[
                     Expanded(
                       child: Text(
                         '${_sources.length} ${context.strings.sourceCountShort} · '
                         '${_languages.length} ${bengali ? 'ভাষা' : 'languages'}',
-                        style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
+                        style:
+                            context.texts.labelSmall?.copyWith(fontSize: 10.5),
                       ),
                     ),
                     JellyButton(

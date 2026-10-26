@@ -99,7 +99,8 @@ class SectionHeader extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onAction,
-    this.padding = const EdgeInsets.fromLTRB(Tokens.gutter, 22, Tokens.gutter, 10),
+    this.padding =
+        const EdgeInsets.fromLTRB(Tokens.gutter, 22, Tokens.gutter, 10),
   });
 
   final String title;
@@ -131,7 +132,8 @@ class SectionHeader extends StatelessWidget {
                 Pressable(
                   onTap: onAction,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
                     child: Text(
                       actionLabel!,
                       style: context.texts.labelSmall?.copyWith(
@@ -218,7 +220,8 @@ class EmptyState extends StatelessWidget {
           const SizedBox(height: 7),
           Text(
             body,
-            style: context.texts.bodySmall?.copyWith(fontSize: 12.5, height: 1.65),
+            style:
+                context.texts.bodySmall?.copyWith(fontSize: 12.5, height: 1.65),
           ),
           if (actionLabel != null) ...<Widget>[
             const SizedBox(height: 18),
@@ -266,39 +269,40 @@ class ArticleSkeleton extends StatelessWidget {
     // One pulse for every block in the list instead of one ticker per block.
     return ShimmerScope(
       child: ListView(
-      // Skeletons are dropped into existing scroll views as well, so they size
-      // to their rows instead of demanding a viewport of their own.
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 24),
-      children: <Widget>[
-        const ShimmerBox(height: 132, radius: Tokens.radiusLg),
-        const SizedBox(height: 22),
-        for (int i = 0; i < count; i++) ...<Widget>[
-          const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    ShimmerBox(height: 9, width: 70),
-                    SizedBox(height: 9),
-                    ShimmerBox(height: 15),
-                    SizedBox(height: 7),
-                    ShimmerBox(height: 15, width: 190),
-                  ],
+        // Skeletons are dropped into existing scroll views as well, so they size
+        // to their rows instead of demanding a viewport of their own.
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding:
+            const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 24),
+        children: <Widget>[
+          const ShimmerBox(height: 132, radius: Tokens.radiusLg),
+          const SizedBox(height: 22),
+          for (int i = 0; i < count; i++) ...<Widget>[
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      ShimmerBox(height: 9, width: 70),
+                      SizedBox(height: 9),
+                      ShimmerBox(height: 15),
+                      SizedBox(height: 7),
+                      ShimmerBox(height: 15, width: 190),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(width: 14),
-              ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
-            ],
-          ),
-          const SizedBox(height: 18),
-          const SoftRule(opacity: 0.7),
-          const SizedBox(height: 18),
+                SizedBox(width: 14),
+                ShimmerBox(height: 72, width: 72, radius: Tokens.radiusSm),
+              ],
+            ),
+            const SizedBox(height: 18),
+            const SoftRule(opacity: 0.7),
+            const SizedBox(height: 18),
+          ],
         ],
-      ],
       ),
     );
   }

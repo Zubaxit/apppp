@@ -31,25 +31,25 @@ class NewspaperHubApp extends StatelessWidget {
           child: MaterialApp(
             title: 'Amar News',
             debugShowCheckedModeBanner: false,
-          themeMode: settings.themeMode,
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          home: const AppShell(),
-          builder: (BuildContext context, Widget? child) {
-            // Apply the app preference at the root so every native Text widget
-            // scales once: headlines, metadata, controls, dialogs and pages.
-            // Publisher WebViews remain independent third-party documents.
-            final MediaQueryData data = MediaQuery.of(context);
-            final double systemScale = data.textScaler.scale(14) / 14;
-            final double effectiveScale =
-                (systemScale * settings.textScale).clamp(0.85, 2.0);
-            return MediaQuery(
-              data: data.copyWith(
-                textScaler: TextScaler.linear(effectiveScale),
-              ),
-              child: child ?? const SizedBox.shrink(),
-            );
-          },
+            themeMode: settings.themeMode,
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            home: const AppShell(),
+            builder: (BuildContext context, Widget? child) {
+              // Apply the app preference at the root so every native Text widget
+              // scales once: headlines, metadata, controls, dialogs and pages.
+              // Publisher WebViews remain independent third-party documents.
+              final MediaQueryData data = MediaQuery.of(context);
+              final double systemScale = data.textScaler.scale(14) / 14;
+              final double effectiveScale =
+                  (systemScale * settings.textScale).clamp(0.85, 2.0);
+              return MediaQuery(
+                data: data.copyWith(
+                  textScaler: TextScaler.linear(effectiveScale),
+                ),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           ),
         ),
       ),

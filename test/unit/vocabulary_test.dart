@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import '../support/fakes.dart';
 import '../support/test_app.dart';
 
-VocabularyEntry entry(String word, [String meaning = 'অর্থ']) => VocabularyEntry(
+VocabularyEntry entry(String word, [String meaning = 'অর্থ']) =>
+    VocabularyEntry(
       word: word,
       meaningBn: meaning,
       savedAt: DateTime.utc(2026, 10, 26),
@@ -14,13 +15,17 @@ VocabularyEntry entry(String word, [String meaning = 'অর্থ']) => Vocabul
 
 void main() {
   test('whole-word matching is case-insensitive and handles punctuation', () {
-    final VocabularyMatcher matcher = VocabularyMatcher(<VocabularyEntry>[entry('impose')]);
-    final List<VocabularyMatch> matches = matcher.find('IMPOSE, then impose; do not decompose.');
+    final VocabularyMatcher matcher =
+        VocabularyMatcher(<VocabularyEntry>[entry('impose')]);
+    final List<VocabularyMatch> matches =
+        matcher.find('IMPOSE, then impose; do not decompose.');
     expect(matches, hasLength(2));
-    expect(matches.map((VocabularyMatch item) => item.entry.word), everyElement('impose'));
+    expect(matches.map((VocabularyMatch item) => item.entry.word),
+        everyElement('impose'));
   });
 
-  test('matches conservative common forms and avoids substring false positives', () {
+  test('matches conservative common forms and avoids substring false positives',
+      () {
     final VocabularyMatcher matcher = VocabularyMatcher(<VocabularyEntry>[
       entry('impose'),
       entry('president'),
@@ -28,8 +33,11 @@ void main() {
     final List<VocabularyMatch> matches = matcher.find(
       'They imposed rules, impose fines, and are imposing limits. Presidential offices differ.',
     );
-    expect(matches.where((VocabularyMatch item) => item.entry.word == 'impose'), hasLength(3));
-    expect(matches.where((VocabularyMatch item) => item.entry.word == 'president'), isEmpty);
+    expect(matches.where((VocabularyMatch item) => item.entry.word == 'impose'),
+        hasLength(3));
+    expect(
+        matches.where((VocabularyMatch item) => item.entry.word == 'president'),
+        isEmpty);
   });
 
   test('finds multiple occurrences efficiently in a larger vocabulary', () {
@@ -41,7 +49,8 @@ void main() {
     expect(matcher.find('Policy changes require policy debate.'), hasLength(2));
   });
 
-  test('controller creates, edits, retrieves and deletes without duplicates', () async {
+  test('controller creates, edits, retrieves and deletes without duplicates',
+      () async {
     final TestHarness harness = TestHarness(stores: fakeStores());
     await harness.saved.load();
     await harness.saved.saveVocabulary(entry('Policy', 'নীতি'));
@@ -72,7 +81,8 @@ void main() {
     expect(harness.saved.vocabularyFor('policy')?.meaningBn, 'আমদানি');
   });
 
-  test('failed atomic import leaves controller and storage unchanged', () async {
+  test('failed atomic import leaves controller and storage unchanged',
+      () async {
     final _FailingVocabularyStore store = _FailingVocabularyStore();
     final TestHarness harness = TestHarness(
       stores: fakeStores(vocabulary: store),

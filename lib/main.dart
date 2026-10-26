@@ -51,7 +51,8 @@ class _BootstrapGateState extends State<BootstrapGate> {
           if (kDebugMode) {
             debugPrint('Bootstrap failed: ${snapshot.error}');
           }
-          return _BootstrapError(message: '${snapshot.error ?? 'Unknown error'}', onRetry: _retry);
+          return _BootstrapError(
+              message: '${snapshot.error ?? 'Unknown error'}', onRetry: _retry);
         }
         return snapshot.data!.buildRoot();
       },
@@ -174,7 +175,8 @@ class _BootstrapError extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Icon(Icons.error_outline_rounded, size: 40, color: AppColors.flagRed),
+                  const Icon(Icons.error_outline_rounded,
+                      size: 40, color: AppColors.flagRed),
                   const SizedBox(height: 14),
                   Text(strings.loadError, style: theme.textTheme.titleLarge),
                   const SizedBox(height: 8),

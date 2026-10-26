@@ -93,7 +93,8 @@ class CategoriesScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 16),
+                    padding: const EdgeInsets.fromLTRB(
+                        Tokens.gutter, 4, Tokens.gutter, 16),
                     child: Text(
                       context.strings.categoriesSubtitle,
                       style: context.texts.bodySmall?.copyWith(
@@ -103,7 +104,8 @@ class CategoriesScreen extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                     child: GridView.builder(
                       shrinkWrap: true,
                       padding: EdgeInsets.zero,
@@ -147,7 +149,8 @@ class CategoriesScreen extends StatelessWidget {
                   ),
                   if (divisions.isEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                       child: Text(
                         context.strings.regionalEmpty,
                         style: context.texts.bodySmall,
@@ -158,7 +161,8 @@ class CategoriesScreen extends StatelessWidget {
                       height: 40,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Tokens.gutter),
                         physics: const BouncingScrollPhysics(),
                         children: <Widget>[
                           for (final String division in divisions) ...<Widget>[
@@ -198,7 +202,8 @@ class CategoriesScreen extends StatelessWidget {
                         ? 'পত্রিকার ই-পেপার সংস্করণ'
                         : 'Publisher e-paper editions',
                     onTap: () => Navigator.of(context).push<void>(
-                      editorialRoute<void>(const EpaperDirectoryScreen(), name: 'epapers'),
+                      editorialRoute<void>(const EpaperDirectoryScreen(),
+                          name: 'epapers'),
                     ),
                   ),
                   const SizedBox(height: 120),
@@ -262,7 +267,8 @@ class _TopicTile extends StatelessWidget {
                   fontSize: 46,
                   height: 1,
                   fontWeight: FontWeight.w700,
-                  color: (dark ? Colors.white : Tokens.ink).withValues(alpha: 0.045),
+                  color: (dark ? Colors.white : Tokens.ink)
+                      .withValues(alpha: 0.045),
                 ),
               ),
             ),
@@ -274,7 +280,8 @@ class _TopicTile extends StatelessWidget {
                   height: 34,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: context.colors.primary.withValues(alpha: dark ? 0.18 : 0.09),
+                    color: context.colors.primary
+                        .withValues(alpha: dark ? 0.18 : 0.09),
                     borderRadius: BorderRadius.circular(Tokens.radiusXs),
                   ),
                   child: Icon(

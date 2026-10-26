@@ -11,7 +11,8 @@ class RegistryLoader {
   static const String assetPath = 'assets/data/sources.json';
   static SourceRegistry? _cached;
 
-  static Future<SourceRegistry> load({AssetBundle? bundle, bool forceReload = false}) async {
+  static Future<SourceRegistry> load(
+      {AssetBundle? bundle, bool forceReload = false}) async {
     if (!forceReload && _cached != null) return _cached!;
     final String raw = await (bundle ?? rootBundle).loadString(assetPath);
     final SourceRegistry registry = SourceRegistry.fromJsonString(raw);

@@ -16,7 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// These tests compare the row mappers against the real DDL, without needing a
 /// SQLite plugin, so the mismatch can never come back silently.
 void main() {
-  final String schema = File('lib/data/services/app_database.dart').readAsStringSync();
+  final String schema =
+      File('lib/data/services/app_database.dart').readAsStringSync();
 
   /// Column names declared in `CREATE TABLE <name> ( ... )`.
   Set<String> columnsOf(String table) {
@@ -31,7 +32,8 @@ void main() {
       final String trimmed = line.trim().replaceAll(RegExp(r',$'), '');
       if (trimmed.isEmpty || trimmed.startsWith('--')) continue;
       final String first = trimmed.split(RegExp(r'\s+')).first;
-      if (<String>{'PRIMARY', 'FOREIGN', 'UNIQUE', 'CONSTRAINT', 'CHECK'}.contains(first)) {
+      if (<String>{'PRIMARY', 'FOREIGN', 'UNIQUE', 'CONSTRAINT', 'CHECK'}
+          .contains(first)) {
         continue;
       }
       columns.add(first);
@@ -50,7 +52,8 @@ void main() {
       expect(table.difference(mapped), isEmpty,
           reason: 'columns the app never writes: ${table.difference(mapped)}');
       expect(mapped.difference(table), isEmpty,
-          reason: 'keys with no column (the original bug): ${mapped.difference(table)}');
+          reason:
+              'keys with no column (the original bug): ${mapped.difference(table)}');
     });
 
     test('source_health table matches SourceHealth.toRow exactly', () {

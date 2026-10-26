@@ -138,7 +138,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                 surfaceTintColor: Colors.transparent,
                 leadingWidth: Tokens.gutter + 42,
                 leading: Padding(
-                  padding: const EdgeInsetsDirectional.only(start: Tokens.gutter),
+                  padding:
+                      const EdgeInsetsDirectional.only(start: Tokens.gutter),
                   child: Center(
                     child: GlassIconButton(
                       icon: Icons.arrow_back_rounded,
@@ -157,7 +158,8 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                       context,
                       text: <String>[
                         article.title,
-                        if ((article.excerpt ?? '').isNotEmpty) article.excerpt!,
+                        if ((article.excerpt ?? '').isNotEmpty)
+                          article.excerpt!,
                       ].join(' '),
                     ),
                   ),
@@ -188,7 +190,8 @@ class _ArticleScrollBehavior extends MaterialScrollBehavior {
     BuildContext context,
     Widget child,
     ScrollableDetails details,
-  ) => child;
+  ) =>
+      child;
 }
 
 class _ArticleBody extends StatelessWidget {
@@ -216,7 +219,8 @@ class _ArticleBody extends StatelessWidget {
       children: <Widget>[
         if (article.imageUrl != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 18),
+            padding:
+                const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 18),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(Tokens.radiusLg),
               child: AspectRatio(
@@ -229,7 +233,7 @@ class _ArticleBody extends StatelessWidget {
             ),
           ),
         Padding(
-padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+          padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -442,7 +446,8 @@ class _SourceLine extends StatelessWidget {
                                 article.publishedAt!,
                                 bengali: bengali,
                               ),
-                        style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
+                        style:
+                            context.texts.labelSmall?.copyWith(fontSize: 10.5),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -636,15 +641,12 @@ class _SourceFooter extends StatelessWidget {
                     : context.strings.follow,
                 dense: true,
                 selected: following,
-                icon: following
-                    ? Icons.check_rounded
-                    : Icons.add_rounded,
+                icon: following ? Icons.check_rounded : Icons.add_rounded,
                 onTap: () =>
                     context.read<SettingsController>().toggleFollow(source.id),
               ),
             ],
           ),
-
         ],
       ),
     );

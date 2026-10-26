@@ -52,8 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
   SearchMode _mode = SearchMode.app;
   ArchiveSearchService? _archive;
   List<String> _archiveWarnings = const <String>[];
-  Map<String, List<Article>> _archiveRelated =
-      const <String, List<Article>>{};
+  Map<String, List<Article>> _archiveRelated = const <String, List<Article>>{};
   int _requestGeneration = 0;
 
   @override
@@ -174,7 +173,8 @@ class _SearchScreenState extends State<SearchScreen> {
           child: Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 8),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 8, Tokens.gutter, 8),
                 child: Row(
                   children: <Widget>[
                     GlassIconButton(
@@ -207,9 +207,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: GlassChip(
-                        label: bengali
-                            ? 'পুরোনো খবর খুঁজুন'
-                            : 'Archive search',
+                        label: bengali ? 'পুরোনো খবর খুঁজুন' : 'Archive search',
                         icon: Icons.manage_search_rounded,
                         selected: _mode == SearchMode.archive,
                         onTap: () => _setMode(SearchMode.archive),
@@ -312,7 +310,8 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         if (history.isNotEmpty) ...<Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(Tokens.gutter, 26, Tokens.gutter, 10),
+            padding:
+                const EdgeInsets.fromLTRB(Tokens.gutter, 26, Tokens.gutter, 10),
             child: Eyebrow(context.strings.recentSearches),
           ),
           Padding(
@@ -336,7 +335,8 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
         Padding(
-          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 30, Tokens.gutter, 10),
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.gutter, 30, Tokens.gutter, 10),
           child: Eyebrow(context.strings.browseDirectory),
         ),
         Padding(
@@ -405,14 +405,16 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
         if (_sources.isNotEmpty) ...<Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
+            padding:
+                const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
             child: Eyebrow(context.strings.searchInPapers),
           ),
           ..._sources.map(
             (NewsSource source) => PublicationTile(
               source: source,
               health: feed.healthFor(source.id),
-              following: context.read<SettingsController>().isFollowing(source.id),
+              following:
+                  context.read<SettingsController>().isFollowing(source.id),
               onTap: () => openSource(context, source),
               onFollow: () =>
                   context.read<SettingsController>().toggleFollow(source.id),
@@ -422,7 +424,8 @@ class _SearchScreenState extends State<SearchScreen> {
         if (_articles.isNotEmpty) ...<Widget>[
           const SizedBox(height: 16),
           Padding(
-            padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 8),
+            padding:
+                const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 8),
             child: Eyebrow(_mode == SearchMode.archive
                 ? (context.isBengali ? 'আর্কাইভ ফলাফল' : 'Archive results')
                 : context.strings.searchInArticles),

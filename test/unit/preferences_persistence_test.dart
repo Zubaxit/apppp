@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('theme and language persistence', () {
-    test('fresh install is English and explicit saved languages are preserved', () {
+    test('fresh install is English and explicit saved languages are preserved',
+        () {
       expect(AppPreferences.decode(null).language, AppLanguage.en);
       expect(
         AppPreferences.decode(
@@ -55,13 +56,15 @@ void main() {
       await controller.setTheme(AppThemeChoice.dark);
       await controller.setFont(AppFontChoice.notoSerif);
 
-      final AppPreferences restarted = AppPreferences.decode(await store.read());
+      final AppPreferences restarted =
+          AppPreferences.decode(await store.read());
       expect(restarted.theme, AppThemeChoice.dark);
       expect(restarted.font, AppFontChoice.notoSerif);
       controller.dispose();
     });
 
-    test('language, motion, text scale and followed sources all persist', () async {
+    test('language, motion, text scale and followed sources all persist',
+        () async {
       final InMemoryPreferencesStore store = InMemoryPreferencesStore();
       final SettingsController controller =
           SettingsController(initial: const AppPreferences(), store: store);
@@ -93,7 +96,8 @@ void main() {
       await controller.setTranslationIntegrationEnabled(false);
       await controller.setUltraLightMode(true);
 
-      final AppPreferences restarted = AppPreferences.decode(await store.read());
+      final AppPreferences restarted =
+          AppPreferences.decode(await store.read());
       expect(restarted.vocabularyIntegrationEnabled, isFalse);
       expect(restarted.ttsIntegrationEnabled, isFalse);
       expect(restarted.translationIntegrationEnabled, isFalse);
@@ -101,7 +105,8 @@ void main() {
       controller.dispose();
     });
 
-    test('News Shield global policy and site exceptions survive restart', () async {
+    test('News Shield global policy and site exceptions survive restart',
+        () async {
       final InMemoryPreferencesStore store = InMemoryPreferencesStore();
       final SettingsController controller =
           SettingsController(initial: const AppPreferences(), store: store);
@@ -140,5 +145,6 @@ class _FailingStore implements PreferencesStore {
   Future<String?> read() async => throw StateError('disk unavailable');
 
   @override
-  Future<void> write(String value) async => throw StateError('disk unavailable');
+  Future<void> write(String value) async =>
+      throw StateError('disk unavailable');
 }

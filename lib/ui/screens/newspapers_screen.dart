@@ -19,7 +19,8 @@ import '../widgets/editorial.dart';
 /// The curated set leads. Everything else in the registry stays reachable
 /// behind "all publications" so nothing is hidden, only prioritised.
 class NewspapersScreen extends StatefulWidget {
-  const NewspapersScreen({super.key, this.standalone = false, this.initialDivision});
+  const NewspapersScreen(
+      {super.key, this.standalone = false, this.initialDivision});
 
   final bool standalone;
 
@@ -58,19 +59,23 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
     final SettingsController settings = context.watch<SettingsController>();
     final FeedController feed = context.watch<FeedController>();
 
-    bool kept(NewsSource source) => _language == null || source.language == _language;
-    final List<NewsSource> matches = _searching ? registry.search(_query) : const <NewsSource>[];
+    bool kept(NewsSource source) =>
+        _language == null || source.language == _language;
+    final List<NewsSource> matches =
+        _searching ? registry.search(_query) : const <NewsSource>[];
     final List<NewsSource> curatedFeeds =
         registry.curatedWithFeeds.where(kept).toList();
-    final List<NewsSource> curatedWeb = registry.curatedWebOnly.where(kept).toList();
+    final List<NewsSource> curatedWeb =
+        registry.curatedWebOnly.where(kept).toList();
     final List<NewsSource> rest = (registry.sources
-          .where((NewsSource s) => !s.curated && kept(s))
-          .toList())
+        .where((NewsSource s) => !s.curated && kept(s))
+        .toList())
       ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name));
 
     // With nothing curated the directory opens fully instead of showing an
     // empty front page with everything hidden behind a toggle.
-    final bool showAll = _showAll || (curatedFeeds.isEmpty && curatedWeb.isEmpty);
+    final bool showAll =
+        _showAll || (curatedFeeds.isEmpty && curatedWeb.isEmpty);
 
     final List<String> divisions = <String>{
       ...registry.divisionsWithSources,
@@ -84,12 +89,12 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
     final List<NewsSource> regional = _division == null
         ? const <NewsSource>[]
         : (registry.sources
-              .where((NewsSource s) =>
-                  s.division == _division &&
-                  (_district == null || s.district == _district) &&
-                  kept(s))
-              .toList()
-            ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name)));
+            .where((NewsSource s) =>
+                s.division == _division &&
+                (_district == null || s.district == _district) &&
+                kept(s))
+            .toList()
+          ..sort((NewsSource a, NewsSource b) => a.name.compareTo(b.name)));
     final List<String> districts =
         _division == null ? const <String>[] : registry.districtsIn(_division!);
 
@@ -118,31 +123,32 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
           ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(Tokens.gutter, 6, Tokens.gutter, 8),
+            padding:
+                const EdgeInsets.fromLTRB(Tokens.gutter, 6, Tokens.gutter, 8),
             child: GlassPanel(
               radius: Tokens.radiusMd,
               blur: 0,
               elevation: 0.4,
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               child: TextField(
-              controller: _search,
-              onChanged: (String value) => setState(() => _query = value),
-              textInputAction: TextInputAction.search,
-              style: context.texts.bodyMedium?.copyWith(fontSize: 14),
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: context.strings.searchHint,
-                prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                suffixIcon: _searching
-                    ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 16),
-                        onPressed: () {
-                          _search.clear();
-                          setState(() => _query = '');
-                        },
-                      )
-                    : null,
-              ),
+                controller: _search,
+                onChanged: (String value) => setState(() => _query = value),
+                textInputAction: TextInputAction.search,
+                style: context.texts.bodyMedium?.copyWith(fontSize: 14),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: context.strings.searchHint,
+                  prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                  suffixIcon: _searching
+                      ? IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 16),
+                          onPressed: () {
+                            _search.clear();
+                            setState(() => _query = '');
+                          },
+                        )
+                      : null,
+                ),
               ),
             ),
           ),
@@ -150,7 +156,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
         if (divisions.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 2),
+              padding:
+                  const EdgeInsets.fromLTRB(Tokens.gutter, 4, Tokens.gutter, 2),
               child: Wrap(
                 spacing: 7,
                 runSpacing: 7,
@@ -166,7 +173,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                   ),
                   for (final String division in divisions)
                     GlassChip(
-                      label: Labels.division(division, bengali: context.isBengali),
+                      label:
+                          Labels.division(division, bengali: context.isBengali),
                       selected: _division == division,
                       dense: true,
                       onTap: () => setState(() {
@@ -180,7 +188,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
           ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 2),
+            padding:
+                const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 2),
             child: Wrap(
               spacing: 7,
               runSpacing: 7,
@@ -193,7 +202,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                 ),
                 for (final SourceLanguage language in SourceLanguage.values)
                   GlassChip(
-                    label: Labels.language(language, bengali: context.isBengali),
+                    label:
+                        Labels.language(language, bengali: context.isBengali),
                     selected: _language == language,
                     dense: true,
                     onTap: () => setState(
@@ -207,7 +217,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
         if (_division != null && districts.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 2),
+              padding:
+                  const EdgeInsets.fromLTRB(Tokens.gutter, 2, Tokens.gutter, 2),
               child: Wrap(
                 spacing: 7,
                 runSpacing: 7,
@@ -224,7 +235,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                       selected: _district == district,
                       dense: true,
                       onTap: () => setState(
-                        () => _district = _district == district ? null : district,
+                        () =>
+                            _district = _district == district ? null : district,
                       ),
                     ),
                 ],
@@ -236,7 +248,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
         else if (_division != null) ...<Widget>[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
+              padding:
+                  const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 6),
               child: Kicker(
                 '${context.strings.regionalSources} · '
                 '${Labels.division(_division!, bengali: context.isBengali)}',
@@ -246,8 +259,10 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
           if (regional.isEmpty)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 0),
-                child: Text(context.strings.regionalEmpty, style: context.texts.bodySmall),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 8, Tokens.gutter, 0),
+                child: Text(context.strings.regionalEmpty,
+                    style: context.texts.bodySmall),
               ),
             )
           else
@@ -260,17 +275,18 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                   webOnly: !regional[index].hasFeed,
                   last: index == regional.length - 1,
                   onTap: () => openSource(context, regional[index]),
-                  onToggleFollow: () => settings.toggleFollow(regional[index].id),
+                  onToggleFollow: () =>
+                      settings.toggleFollow(regional[index].id),
                 ),
                 childCount: regional.length,
               ),
             ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
-        ]
-        else ...<Widget>[
+        ] else ...<Widget>[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(Tokens.gutter, 14, Tokens.gutter, 0),
+              padding: const EdgeInsets.fromLTRB(
+                  Tokens.gutter, 14, Tokens.gutter, 0),
               child: Kicker(context.strings.inYourFeed),
             ),
           ),
@@ -282,7 +298,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                 health: feed.healthFor(curatedFeeds[index].id),
                 last: index == curatedFeeds.length - 1,
                 onTap: () => openSource(context, curatedFeeds[index]),
-                onToggleFollow: () => settings.toggleFollow(curatedFeeds[index].id),
+                onToggleFollow: () =>
+                    settings.toggleFollow(curatedFeeds[index].id),
               ),
               childCount: curatedFeeds.length,
             ),
@@ -291,14 +308,16 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
             const SliverPadding(padding: EdgeInsets.only(top: 26)),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 0),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 0, Tokens.gutter, 0),
                 child: Kicker(context.strings.readOnWeb),
               ),
             ),
             const SliverPadding(padding: EdgeInsets.only(top: 6)),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(Tokens.gutter, 0, Tokens.gutter, 6),
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.gutter, 0, Tokens.gutter, 6),
                 child: Text(
                   context.strings.noHeadlinesYet,
                   style: context.texts.labelSmall?.copyWith(fontSize: 10.5),
@@ -314,7 +333,8 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                   webOnly: true,
                   last: index == curatedWeb.length - 1,
                   onTap: () => openSource(context, curatedWeb[index]),
-                  onToggleFollow: () => settings.toggleFollow(curatedWeb[index].id),
+                  onToggleFollow: () =>
+                      settings.toggleFollow(curatedWeb[index].id),
                 ),
                 childCount: curatedWeb.length,
               ),
@@ -330,19 +350,24 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
                   radius: Tokens.radiusMd,
                   blur: 0,
                   elevation: 0.4,
-                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.public_rounded, size: 16, color: context.colors.primary),
+                      Icon(Icons.public_rounded,
+                          size: 16, color: context.colors.primary),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           '${context.strings.allPublications} · ${registry.sources.length}',
-                          style: context.texts.titleSmall?.copyWith(fontSize: 13),
+                          style:
+                              context.texts.titleSmall?.copyWith(fontSize: 13),
                         ),
                       ),
                       Icon(
-                        showAll ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                        showAll
+                            ? Icons.expand_less_rounded
+                            : Icons.expand_more_rounded,
                         size: 18,
                         color: context.colors.onSurfaceVariant,
                       ),
@@ -389,13 +414,16 @@ class _NewspapersScreenState extends State<NewspapersScreen> {
     if (matches.isEmpty) {
       return SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 30, Tokens.gutter, 0),
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.gutter, 30, Tokens.gutter, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(context.strings.noResultsTitle, style: context.texts.headlineSmall),
+              Text(context.strings.noResultsTitle,
+                  style: context.texts.headlineSmall),
               const SizedBox(height: 6),
-              Text(context.strings.noResultsBody, style: context.texts.bodySmall),
+              Text(context.strings.noResultsBody,
+                  style: context.texts.bodySmall),
             ],
           ),
         ),
@@ -481,12 +509,13 @@ class _SourceRow extends StatelessWidget {
                                         )),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style:
-                                    context.texts.labelSmall?.copyWith(fontSize: 10),
+                                style: context.texts.labelSmall
+                                    ?.copyWith(fontSize: 10),
                               ),
                             ),
                             const SizedBox(width: 7),
-                            HealthBadge(health: health, hasFeed: source.hasFeed),
+                            HealthBadge(
+                                health: health, hasFeed: source.hasFeed),
                           ],
                         ),
                       ],

@@ -269,7 +269,8 @@ class Article {
       excerpt: row['excerpt'] as String?,
       imageUrl: row['image_url'] as String?,
       publishedAt: asDate(row['published_at']),
-      fetchedAt: asDate(row['fetched_at']) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      fetchedAt: asDate(row['fetched_at']) ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       guid: row['guid'] as String?,
       author: row['author'] as String?,
       topic: ArticleTopicX.fromKey(row['topic'] as String?),
@@ -291,8 +292,9 @@ class Article {
       link: map['link'] as String,
       excerpt: map['excerpt'] as String?,
       imageUrl: map['imageUrl'] as String?,
-      publishedAt:
-          published == null ? null : DateTime.fromMillisecondsSinceEpoch(published, isUtc: true),
+      publishedAt: published == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(published, isUtc: true),
       fetchedAt: DateTime.fromMillisecondsSinceEpoch(fetched, isUtc: true),
       guid: map['guid'] as String?,
       author: map['author'] as String?,
@@ -346,5 +348,6 @@ class StoryCluster {
   final String key;
   final List<Article> articles;
 
-  int get publisherCount => articles.map((Article a) => a.sourceId).toSet().length;
+  int get publisherCount =>
+      articles.map((Article a) => a.sourceId).toSet().length;
 }

@@ -49,7 +49,8 @@ class AppBootstrap {
     // directory never has to wait for a network icon.
     await PublisherLogos.load(bundle: bundle);
     final AppDatabase db = database ?? await AppDatabase.open();
-    final PreferencesStore store = preferencesStore ?? await SharedPreferencesStore.create();
+    final PreferencesStore store =
+        preferencesStore ?? await SharedPreferencesStore.create();
     final AppPreferences prefs =
         initialPreferences ?? AppPreferences.decode(await store.read());
     await NewsShield.load(

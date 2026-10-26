@@ -62,7 +62,8 @@ class MlKitOnDeviceTranslationEngine implements OnDeviceTranslationEngine {
   }
 
   @override
-  Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
+  Future<String> translate(String text,
+      {String from = 'en', String to = 'bn'}) async {
     if (!await modelsReady(from: from, to: to)) {
       await prepare(from: from, to: to);
     }
@@ -112,7 +113,8 @@ class FallbackMachineTranslator implements MachineTranslator {
       _usingFallback ? 'Google ML Kit · on-device' : _primary.attribution;
 
   @override
-  Future<String> translate(String text, {String from = 'en', String to = 'bn'}) {
+  Future<String> translate(String text,
+      {String from = 'en', String to = 'bn'}) {
     final String source = text.trim();
     if (source.isEmpty) {
       return Future<String>.value('');
@@ -150,7 +152,8 @@ class FallbackMachineTranslator implements MachineTranslator {
   }
 
   @override
-  Future<List<String>> translateAll(List<String> texts, {String from = 'en', String to = 'bn'}) async {
+  Future<List<String>> translateAll(List<String> texts,
+      {String from = 'en', String to = 'bn'}) async {
     final List<String> output = <String>[];
     for (final String text in texts) {
       output.add(await translate(text, from: from, to: to));

@@ -74,19 +74,22 @@ void main() {
       expect(h.settings.prefs.onboardingComplete, isTrue);
     });
 
-    testWidgets('renders aggregated Bengali headlines with source and time', (WidgetTester tester) async {
+    testWidgets('renders aggregated Bengali headlines with source and time',
+        (WidgetTester tester) async {
       final TestHarness h = harness(artwork: <Article>[bnArticle, enArticle]);
       await tester.pumpWidget(h.wrap(const HomeScreen()));
       await h.feed.start();
       await tester.pumpAndSettle();
 
-      expect(find.text('বাংলাদেশে নতুন উদ্যোগ ঘোষণা করেছে সরকার'), findsOneWidget);
+      expect(
+          find.text('বাংলাদেশে নতুন উদ্যোগ ঘোষণা করেছে সরকার'), findsOneWidget);
       expect(find.text('প্রথম আলো'), findsWidgets);
       expect(find.text('২ ঘণ্টা আগে'), findsWidgets);
       expect(find.text('সর্বশেষ খবর'), findsOneWidget);
     });
 
-    testWidgets('shows a useful empty state when no feed is available', (WidgetTester tester) async {
+    testWidgets('shows a useful empty state when no feed is available',
+        (WidgetTester tester) async {
       final TestHarness h = TestHarness(stores: fakeStores(), online: false);
       await tester.pumpWidget(h.wrap(const HomeScreen()));
       await h.feed.start();
@@ -96,7 +99,8 @@ void main() {
       expect(find.text('আবার চেষ্টা করুন'), findsWidgets);
     });
 
-    testWidgets('marks cached content instead of pretending it is live', (WidgetTester tester) async {
+    testWidgets('marks cached content instead of pretending it is live',
+        (WidgetTester tester) async {
       // Every publisher fails: the headlines on screen can only come from the
       // local cache, so the UI must say so rather than claim a live feed.
       final TestHarness h = TestHarness(
@@ -145,7 +149,8 @@ void main() {
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
-    testWidgets('unfollowing the last publication shows the same All-news escape',
+    testWidgets(
+        'unfollowing the last publication shows the same All-news escape',
         (WidgetTester tester) async {
       final TestHarness h = harness(
         artwork: <Article>[bnArticle],
@@ -165,7 +170,8 @@ void main() {
       expect(find.text('সব পত্রিকা'), findsOneWidget);
     });
 
-    testWidgets('real feed metadata exposes Source Comparison without injection',
+    testWidgets(
+        'real feed metadata exposes Source Comparison without injection',
         (WidgetTester tester) async {
       final Article first = sampleArticle(
         title: 'Supreme Court suspends election order after emergency hearing',
@@ -174,7 +180,8 @@ void main() {
       );
       final Article second = sampleArticle(
         sourceId: 'daily_star',
-        title: 'Election order suspended by Supreme Court after emergency hearing',
+        title:
+            'Election order suspended by Supreme Court after emergency hearing',
         link: 'https://www.thedailystar.net/court-report',
         language: SourceLanguage.en,
       );
@@ -188,7 +195,8 @@ void main() {
       expect(h.feed.relatedFor(second), contains(first));
     });
 
-    testWidgets('shows breaking stories only when the publisher flagged one', (WidgetTester tester) async {
+    testWidgets('shows breaking stories only when the publisher flagged one',
+        (WidgetTester tester) async {
       final Article breaking = sampleArticle(
         title: 'জরুরি সিদ্ধান্ত ঘোষণা',
         breaking: true,
@@ -207,7 +215,8 @@ void main() {
   });
 
   group('NewspapersScreen', () {
-    testWidgets('lists publications and filters by search query', (WidgetTester tester) async {
+    testWidgets('lists publications and filters by search query',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
       await tester.pumpAndSettle();
@@ -226,7 +235,8 @@ void main() {
       expect(find.text('The Daily Star'), findsNothing);
     });
 
-    testWidgets('shows no-results state for a nonsense query', (WidgetTester tester) async {
+    testWidgets('shows no-results state for a nonsense query',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
       await tester.pumpAndSettle();
@@ -236,7 +246,8 @@ void main() {
       expect(find.text('কিছু পাওয়া যায়নি'), findsOneWidget);
     });
 
-    testWidgets('language filter narrows the list', (WidgetTester tester) async {
+    testWidgets('language filter narrows the list',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
       await tester.pumpAndSettle();
@@ -247,7 +258,8 @@ void main() {
       expect(find.text('প্রথম আলো'), findsNothing);
     });
 
-    testWidgets('following a publication persists in settings', (WidgetTester tester) async {
+    testWidgets('following a publication persists in settings',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const NewspapersScreen(standalone: true)));
       await tester.pumpAndSettle();
@@ -260,7 +272,8 @@ void main() {
   });
 
   group('SourceDetailScreen', () {
-    testWidgets('website, follow and e-paper actions are present and enabled', (WidgetTester tester) async {
+    testWidgets('website, follow and e-paper actions are present and enabled',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       final NewsSource source = h.registry.byId('prothomalo')!;
       await tester.pumpWidget(h.wrap(SourceDetailScreen(source: source)));
@@ -276,7 +289,8 @@ void main() {
       expect(find.text(source.feedUrl!), findsNothing);
     });
 
-    testWidgets('publication without a feed offers website only', (WidgetTester tester) async {
+    testWidgets('publication without a feed offers website only',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       final NewsSource source = h.registry.byId('bonik_barta')!;
       await tester.pumpWidget(h.wrap(SourceDetailScreen(source: source)));
@@ -301,7 +315,8 @@ void main() {
   });
 
   group('SavedScreen', () {
-    testWidgets('bookmarking from a card adds it to Saved and survives restart', (WidgetTester tester) async {
+    testWidgets('bookmarking from a card adds it to Saved and survives restart',
+        (WidgetTester tester) async {
       final Article article = sampleArticle(title: 'সংরক্ষণের জন্য খবর');
       final TestHarness h = harness(artwork: <Article>[article]);
 
@@ -340,7 +355,8 @@ void main() {
   });
 
   group('ArticleCard', () {
-    testWidgets('shows the missing-date note instead of a fake timestamp', (WidgetTester tester) async {
+    testWidgets('shows the missing-date note instead of a fake timestamp',
+        (WidgetTester tester) async {
       final Article undated = Article.create(
         sourceId: 'prothomalo',
         title: 'তারিখ ছাড়া খবর',
@@ -361,7 +377,8 @@ void main() {
   });
 
   group('SearchScreen', () {
-    testWidgets('finds publications and headlines, and separates the groups', (WidgetTester tester) async {
+    testWidgets('finds publications and headlines, and separates the groups',
+        (WidgetTester tester) async {
       final TestHarness h = harness(artwork: <Article>[enArticle]);
       await tester.pumpWidget(h.wrap(const SearchScreen()));
       await tester.pumpAndSettle();
@@ -374,7 +391,8 @@ void main() {
       expect(find.text(enArticle.title), findsOneWidget);
     });
 
-    testWidgets('archive mode stays visibly separate and returns retained metadata',
+    testWidgets(
+        'archive mode stays visibly separate and returns retained metadata',
         (WidgetTester tester) async {
       final Article retained = sampleArticle(
         title: 'বিশেষ পুরোনো প্রতিবেদন',
@@ -393,11 +411,13 @@ void main() {
       expect(find.text(retained.title), findsOneWidget);
     });
 
-    testWidgets('shows recent searches and empty state', (WidgetTester tester) async {
-      final TestHarness h = harness(prefs: const AppPreferences(
-          language: AppLanguage.bn,
-          searchHistory: <String>['প্রথম আলো'],
-        ));
+    testWidgets('shows recent searches and empty state',
+        (WidgetTester tester) async {
+      final TestHarness h = harness(
+          prefs: const AppPreferences(
+        language: AppLanguage.bn,
+        searchHistory: <String>['প্রথম আলো'],
+      ));
       await tester.pumpWidget(h.wrap(const SearchScreen()));
       await tester.pumpAndSettle();
 
@@ -424,7 +444,8 @@ void main() {
       expect(bar.backgroundColor?.a, 1.0);
     });
 
-    testWidgets('integration toggles change independently without deleting data',
+    testWidgets(
+        'integration toggles change independently without deleting data',
         (WidgetTester tester) async {
       final TestHarness h = harness();
       await h.saved.load();
@@ -446,7 +467,8 @@ void main() {
       expect(h.saved.vocabulary, hasLength(1));
     });
 
-    testWidgets('switching theme and text size updates preferences',  (WidgetTester tester) async {
+    testWidgets('switching theme and text size updates preferences',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const SettingsScreen()));
       await tester.pumpAndSettle();
@@ -461,7 +483,8 @@ void main() {
       expect(h.settings.textScale, greaterThan(1.0));
     });
 
-    testWidgets('language switch changes the UI strings', (WidgetTester tester) async {
+    testWidgets('language switch changes the UI strings',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const SettingsScreen()));
       await tester.pumpAndSettle();
@@ -474,7 +497,8 @@ void main() {
       expect(find.text('APPEARANCE'), findsWidgets);
     });
 
-    testWidgets('font selection applies globally and system default restores it',
+    testWidgets(
+        'font selection applies globally and system default restores it',
         (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const SettingsScreen()));
@@ -501,7 +525,8 @@ void main() {
       expect(Tokens.sans, isNull);
     });
 
-    testWidgets('About is concise and shows only the confirmed developer identity',
+    testWidgets(
+        'About is concise and shows only the confirmed developer identity',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1080, 2000);
       tester.view.devicePixelRatio = 1.0;
@@ -545,7 +570,8 @@ void main() {
   });
 
   group('EpaperDirectoryScreen', () {
-    testWidgets('lists publisher e-paper editions', (WidgetTester tester) async {
+    testWidgets('lists publisher e-paper editions',
+        (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const EpaperDirectoryScreen()));
       await tester.pumpAndSettle();
@@ -554,7 +580,8 @@ void main() {
   });
 
   group('typography', () {
-    testWidgets('global text scale reaches feed, detail, controls, settings and About',
+    testWidgets(
+        'global text scale reaches feed, detail, controls, settings and About',
         (WidgetTester tester) async {
       final Article related = sampleArticle(
         sourceId: 'daily_star',
@@ -566,14 +593,16 @@ void main() {
       await h.feed.start();
       await tester.pumpAndSettle();
       expect(
-        MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title))).scale(10),
+        MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title)))
+            .scale(10),
         closeTo(10, 0.01),
       );
 
       await h.settings.setTextScale(1.4);
       await tester.pumpAndSettle();
       expect(
-        MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title))).scale(10),
+        MediaQuery.textScalerOf(tester.element(find.text(bnArticle.title)))
+            .scale(10),
         greaterThan(12),
       );
 
@@ -595,7 +624,8 @@ void main() {
       await tester.pumpWidget(h.wrap(const SettingsScreen()));
       await tester.pumpAndSettle();
       expect(
-        MediaQuery.textScalerOf(tester.element(find.text('সেটিংস').first)).scale(10),
+        MediaQuery.textScalerOf(tester.element(find.text('সেটিংস').first))
+            .scale(10),
         greaterThan(12),
       );
 
@@ -611,7 +641,8 @@ void main() {
     test('Bengali numerals are used for relative times in the Bengali UI', () {
       final DateTime now = DateTime.utc(2026, 10, 24, 12);
       expect(
-        BengaliText.relative(now.subtract(const Duration(minutes: 5)), bengali: true, now: now),
+        BengaliText.relative(now.subtract(const Duration(minutes: 5)),
+            bengali: true, now: now),
         '৫ মিনিট আগে',
       );
     });
@@ -626,7 +657,8 @@ void main() {
           theme: AppThemeChoice.dark,
         ),
       );
-      await tester.pumpWidget(h.wrap(const HomeScreen(), brightness: Brightness.dark));
+      await tester
+          .pumpWidget(h.wrap(const HomeScreen(), brightness: Brightness.dark));
       await h.feed.start();
       await tester.pumpAndSettle();
       expect(find.text(bnArticle.title), findsOneWidget);
@@ -636,7 +668,8 @@ void main() {
   });
 
   group('ArticleDetailScreen redesign', () {
-    testWidgets('has no native scrollbar and exposes real comparison in freed space',
+    testWidgets(
+        'has no native scrollbar and exposes real comparison in freed space',
         (WidgetTester tester) async {
       final Article primary = sampleArticle(title: 'মূল খবরের শিরোনাম');
       final Article other = sampleArticle(
@@ -672,7 +705,8 @@ void main() {
           .getTopLeft(find.byKey(const ValueKey<String>('read-full-story')))
           .dy;
       final double comparisonY = tester
-          .getTopLeft(find.byKey(const ValueKey<String>('source-comparison-section')))
+          .getTopLeft(
+              find.byKey(const ValueKey<String>('source-comparison-section')))
           .dy;
       final double publisherY = tester
           .getTopLeft(find.byKey(const ValueKey<String>('publisher-identity')))
@@ -694,7 +728,8 @@ void main() {
           reason: 'a comparison row opens that real report in article detail');
     });
 
-    testWidgets('keeps native detail scrolling without painting a progress line',
+    testWidgets(
+        'keeps native detail scrolling without painting a progress line',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(720, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -734,7 +769,8 @@ void main() {
       );
       final Article other = sampleArticle(
         sourceId: 'daily_star',
-        title: 'Election order suspended by Supreme Court after emergency hearing',
+        title:
+            'Election order suspended by Supreme Court after emergency hearing',
         link: 'https://www.thedailystar.net/dynamic-court-report',
         language: SourceLanguage.en,
         publishedAt: now,
@@ -771,14 +807,16 @@ void main() {
         title: 'Brazilian leftist President Lula wins reelection against '
             'conservative challenger Flavio Bolsonaro',
         link: 'https://www.dw.com/en/brazil-election-result/a-123',
-        excerpt: 'Lula won Brazil’s presidential election and secured another term.',
+        excerpt:
+            'Lula won Brazil’s presidential election and secured another term.',
         language: SourceLanguage.en,
         publishedAt: now.subtract(const Duration(hours: 4)),
       );
       final Article prothomAlo = sampleArticle(
         title: 'ব্রাজিলে লুলার নাটকীয় জয়',
         link: 'https://www.prothomalo.com/world/brazil-lula-win',
-        excerpt: 'প্রেসিডেন্ট নির্বাচনে প্রতিদ্বন্দ্বীকে হারিয়ে জয়ী হয়েছেন লুলা।',
+        excerpt:
+            'প্রেসিডেন্ট নির্বাচনে প্রতিদ্বন্দ্বীকে হারিয়ে জয়ী হয়েছেন লুলা।',
         publishedAt: now.subtract(const Duration(hours: 3, minutes: 45)),
       );
       final List<Article> newer = List<Article>.generate(
@@ -900,14 +938,16 @@ void main() {
   });
 
   group('AppShell navigation', () {
-    testWidgets('reselecting Home refreshes once and returns its feed to the top',
+    testWidgets(
+        'reselecting Home refreshes once and returns its feed to the top',
         (WidgetTester tester) async {
       final List<Article> articles = List<Article>.generate(
         35,
         (int index) => sampleArticle(
           title: 'দীর্ঘ সংবাদ তালিকার শিরোনাম $index',
           link: 'https://www.prothomalo.com/reselect-$index',
-          publishedAt: DateTime.now().toUtc().subtract(Duration(minutes: index)),
+          publishedAt:
+              DateTime.now().toUtc().subtract(Duration(minutes: index)),
         ),
       );
       final TestHarness h = harness(artwork: articles);
@@ -916,7 +956,8 @@ void main() {
 
       final CustomScrollView homeScroll =
           tester.widget<CustomScrollView>(find.byType(CustomScrollView).first);
-      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -900));
+      await tester.drag(
+          find.byType(CustomScrollView).first, const Offset(0, -900));
       await tester.pumpAndSettle();
       expect(homeScroll.controller!.offset, greaterThan(100));
       final int callsBefore = h.gateway.calls;
@@ -933,7 +974,8 @@ void main() {
       );
     });
 
-    testWidgets('switches tabs and stays on Home after switching', (WidgetTester tester) async {
+    testWidgets('switches tabs and stays on Home after switching',
+        (WidgetTester tester) async {
       final TestHarness h = harness(artwork: <Article>[bnArticle]);
       await tester.pumpWidget(h.wrap(const AppShell()));
       await tester.pumpAndSettle();
@@ -948,14 +990,16 @@ void main() {
       expect(find.byType(SettingsScreen), findsOneWidget);
 
       // Back from a non-home tab returns to Home instead of exiting.
-      final NavigatorState navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+      final NavigatorState navigator =
+          tester.state<NavigatorState>(find.byType(Navigator).first);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(navigator.canPop(), isFalse);
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
-    testWidgets('pushed article detail can be popped back to the list', (WidgetTester tester) async {
+    testWidgets('pushed article detail can be popped back to the list',
+        (WidgetTester tester) async {
       final TestHarness h = harness(artwork: <Article>[bnArticle]);
       await tester.pumpWidget(h.wrap(const HomeScreen()));
       await h.feed.start();
@@ -1005,7 +1049,8 @@ void main() {
   });
 
   group('responsive layout', () {
-    testWidgets('renders on a small phone without overflow', (WidgetTester tester) async {
+    testWidgets('renders on a small phone without overflow',
+        (WidgetTester tester) async {
       // 360 x 640 dp: a common small Android phone.
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 3;
@@ -1028,7 +1073,8 @@ void main() {
       expect(find.text(bnArticle.title), findsOneWidget);
     });
 
-    testWidgets('survives an ultra-narrow 320dp viewport', (WidgetTester tester) async {
+    testWidgets('survives an ultra-narrow 320dp viewport',
+        (WidgetTester tester) async {
       tester.view.physicalSize = const Size(640, 960);
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);
@@ -1047,7 +1093,8 @@ void main() {
       expect(layoutErrors, isEmpty);
     });
 
-    testWidgets('renders on a tablet width without overflow', (WidgetTester tester) async {
+    testWidgets('renders on a tablet width without overflow',
+        (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1600, 2560);
       tester.view.devicePixelRatio = 2;
       addTearDown(tester.view.reset);

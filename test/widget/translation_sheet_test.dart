@@ -20,13 +20,16 @@ class _PayloadBundle extends CachingAssetBundle {
 
 class _MissingBundle extends CachingAssetBundle {
   @override
-  Future<ByteData> load(String key) async => throw FlutterError('missing asset');
+  Future<ByteData> load(String key) async =>
+      throw FlutterError('missing asset');
 }
 
-const String _payload = '{"words":{"news":"সংবাদ","poem":"কবিতা","report":"প্রতিবেদন"}}';
+const String _payload =
+    '{"words":{"news":"সংবাদ","poem":"কবিতা","report":"প্রতিবেদন"}}';
 
 void main() {
-  testWidgets('a known word shows its glossary meaning', (WidgetTester tester) async {
+  testWidgets('a known word shows its glossary meaning',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness();
     final TranslationService service =
         TranslationService(bundle: _PayloadBundle(_payload));
@@ -61,7 +64,8 @@ void main() {
   testWidgets('a missing glossary asset shows an unavailable state',
       (WidgetTester tester) async {
     final TestHarness h = TestHarness();
-    final TranslationService service = TranslationService(bundle: _MissingBundle());
+    final TranslationService service =
+        TranslationService(bundle: _MissingBundle());
     await tester.pumpWidget(
       h.wrap(TranslationSheet(text: 'news report', service: service)),
     );
@@ -71,7 +75,8 @@ void main() {
     expect(find.byType(TextField), findsNothing);
   });
 
-  testWidgets('word chips look up the tapped word', (WidgetTester tester) async {
+  testWidgets('word chips look up the tapped word',
+      (WidgetTester tester) async {
     final TestHarness h = TestHarness();
     final TranslationService service =
         TranslationService(bundle: _PayloadBundle(_payload));

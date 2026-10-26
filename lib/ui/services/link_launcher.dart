@@ -10,7 +10,9 @@ class LinkLauncher {
 
   static Future<bool> open(String? url, {bool inApp = false}) {
     if (UrlSafety.sanitize(url) == null) return Future<bool>.value(false);
-    return inApp ? LinkService.openInAppBrowser(url) : LinkService.openExternal(url);
+    return inApp
+        ? LinkService.openInAppBrowser(url)
+        : LinkService.openExternal(url);
   }
 
   static Future<void> share(String text, {String? subject}) async {

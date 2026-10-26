@@ -23,7 +23,8 @@ Future<void> _prepareOfflineTranslation(BuildContext context) async {
         ? 'অফলাইন অনুবাদ প্রস্তুত করা হচ্ছে…'
         : 'Preparing offline translation…'),
   ));
-  final MlKitOnDeviceTranslationEngine engine = MlKitOnDeviceTranslationEngine();
+  final MlKitOnDeviceTranslationEngine engine =
+      MlKitOnDeviceTranslationEngine();
   try {
     await engine.prepare();
     messenger.showSnackBar(SnackBar(
@@ -99,7 +100,8 @@ class SettingsScreen extends StatelessWidget {
                           values: AppThemeChoice.values,
                           selected: settings.prefs.theme,
                           labelOf: (AppThemeChoice value) => switch (value) {
-                            AppThemeChoice.system => context.strings.themeSystem,
+                            AppThemeChoice.system =>
+                              context.strings.themeSystem,
                             AppThemeChoice.light => context.strings.themeLight,
                             AppThemeChoice.dark => context.strings.themeDark,
                           },
@@ -112,9 +114,10 @@ class SettingsScreen extends StatelessWidget {
                         child: _Choice<AppLanguage>(
                           values: AppLanguage.values,
                           selected: settings.prefs.language,
-                          labelOf: (AppLanguage value) => value == AppLanguage.bn
-                              ? context.strings.bengali
-                              : 'English',
+                          labelOf: (AppLanguage value) =>
+                              value == AppLanguage.bn
+                                  ? context.strings.bengali
+                                  : 'English',
                           onSelected: settings.setLanguage,
                         ),
                       ),
@@ -159,13 +162,16 @@ class SettingsScreen extends StatelessWidget {
                         child: _Choice<DefaultFeed>(
                           values: DefaultFeed.values,
                           selected: settings.defaultFeed,
-                          labelOf: (DefaultFeed value) => value == DefaultFeed.latest
-                              ? context.strings.latestFeed
-                              : context.strings.followingFeed,
+                          labelOf: (DefaultFeed value) =>
+                              value == DefaultFeed.latest
+                                  ? context.strings.latestFeed
+                                  : context.strings.followingFeed,
                           onSelected: (DefaultFeed value) async {
                             await settings.setDefaultFeed(value);
                             if (context.mounted) {
-                              await context.read<FeedController>().onSettingsChanged();
+                              await context
+                                  .read<FeedController>()
+                                  .onSettingsChanged();
                             }
                           },
                         ),
@@ -182,7 +188,9 @@ class SettingsScreen extends StatelessWidget {
                           onSelected: (int value) async {
                             await settings.setRefreshMinutes(value);
                             if (context.mounted) {
-                              await context.read<FeedController>().onSettingsChanged();
+                              await context
+                                  .read<FeedController>()
+                                  .onSettingsChanged();
                             }
                           },
                         ),
@@ -207,7 +215,8 @@ class SettingsScreen extends StatelessWidget {
                   _Panel(
                     children: <Widget>[
                       _ToggleRow(
-                        title: bengali ? 'শব্দ সংরক্ষণ' : 'Word Save & Vocabulary',
+                        title:
+                            bengali ? 'শব্দ সংরক্ষণ' : 'Word Save & Vocabulary',
                         subtitle: bengali
                             ? 'ওয়েবপৃষ্ঠা ও রিডিং মোডে শব্দ সংরক্ষণ করুন'
                             : 'Save words from webpages and Reading Mode',
@@ -286,7 +295,9 @@ class SettingsScreen extends StatelessWidget {
                         onTap: saved.history.isEmpty
                             ? null
                             : () async {
-                                await context.read<SavedController>().clearHistory();
+                                await context
+                                    .read<SavedController>()
+                                    .clearHistory();
                                 if (!context.mounted) return;
                                 context.showSnack(context.strings.cacheCleared);
                               },
@@ -308,14 +319,16 @@ class SettingsScreen extends StatelessWidget {
                         title: context.strings.aboutPrivacy,
                         subtitle: '${context.strings.version} $appVersion',
                         onTap: () => Navigator.of(context).push<void>(
-                          editorialRoute<void>(const AboutScreen(), name: 'about'),
+                          editorialRoute<void>(const AboutScreen(),
+                              name: 'about'),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 22),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: Tokens.gutter),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: Tokens.gutter),
                     child: Text(
                       context.strings.publisherNotice,
                       style: context.texts.labelSmall?.copyWith(
@@ -382,7 +395,18 @@ class SettingsScreen extends StatelessWidget {
   }
 
   static String _bnNumber(int value) {
-    const List<String> digits = <String>['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    const List<String> digits = <String>[
+      '০',
+      '১',
+      '২',
+      '৩',
+      '৪',
+      '৫',
+      '৬',
+      '৭',
+      '৮',
+      '৯'
+    ];
     return '$value'.split('').map((String c) {
       final int? digit = int.tryParse(c);
       return digit == null ? c : digits[digit];
@@ -398,7 +422,8 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter + 4, 22, Tokens.gutter, 9),
+      padding:
+          const EdgeInsets.fromLTRB(Tokens.gutter + 4, 22, Tokens.gutter, 9),
       child: Eyebrow(title),
     );
   }
@@ -419,7 +444,8 @@ class _Panel extends StatelessWidget {
         blur: 0,
         elevation: 0.5,
         padding: const EdgeInsets.fromLTRB(14, 6, 14, 8),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
       ),
     );
   }
@@ -449,7 +475,9 @@ class _Row extends StatelessWidget {
             child: Text(label, style: context.texts.labelLarge),
           ),
           const SizedBox(width: 8),
-          Flexible(flex: 6, child: Align(alignment: Alignment.centerRight, child: child)),
+          Flexible(
+              flex: 6,
+              child: Align(alignment: Alignment.centerRight, child: child)),
         ],
       ),
     );
@@ -487,8 +515,9 @@ class _Choice<T> extends StatelessWidget {
       child: Stack(
         children: <Widget>[
           AnimatedAlign(
-            duration:
-                motion.reduce ? Duration.zero : const Duration(milliseconds: 340),
+            duration: motion.reduce
+                ? Duration.zero
+                : const Duration(milliseconds: 340),
             curve: Curves.easeOutBack,
             alignment: Alignment(
               values.length == 1 ? 0 : -1 + (2 / (values.length - 1)) * index,
@@ -522,8 +551,9 @@ class _Choice<T> extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: context.texts.labelSmall!.copyWith(
                           fontSize: 10.8,
-                          fontWeight:
-                              value == selected ? FontWeight.w800 : FontWeight.w600,
+                          fontWeight: value == selected
+                              ? FontWeight.w800
+                              : FontWeight.w600,
                           color: value == selected
                               ? context.colors.onSurface
                               : context.colors.onSurfaceVariant,
@@ -576,7 +606,8 @@ class _ToggleRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: context.texts.labelSmall?.copyWith(fontSize: 10, height: 1.4),
+                    style: context.texts.labelSmall
+                        ?.copyWith(fontSize: 10, height: 1.4),
                   ),
                 ],
               ),
@@ -636,7 +667,8 @@ class _ActionRow extends StatelessWidget {
                     subtitle,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: context.texts.labelSmall?.copyWith(fontSize: 10, height: 1.4),
+                    style: context.texts.labelSmall
+                        ?.copyWith(fontSize: 10, height: 1.4),
                   ),
                 ],
               ),
@@ -666,8 +698,7 @@ class _FontRow extends StatelessWidget {
   final bool bengali;
 
   String _label(AppFontChoice value) => switch (value) {
-        AppFontChoice.system =>
-          bengali ? 'সিস্টেমের ডিফল্ট' : 'System default',
+        AppFontChoice.system => bengali ? 'সিস্টেমের ডিফল্ট' : 'System default',
         AppFontChoice.notoSans => 'Noto Sans Bengali',
         AppFontChoice.notoSerif => 'Noto Serif Bengali',
       };
@@ -705,7 +736,8 @@ class _FontRow extends StatelessWidget {
           bengali
               ? 'সিস্টেম ফন্ট না থাকলে Android বাংলা-সমর্থিত নেটিভ ফলব্যাক ব্যবহার করে।'
               : 'Android supplies its native Bengali fallback when the system font needs it.',
-          style: context.texts.labelSmall?.copyWith(fontSize: 9.5, height: 1.45),
+          style:
+              context.texts.labelSmall?.copyWith(fontSize: 9.5, height: 1.45),
         ),
       ],
     );

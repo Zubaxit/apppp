@@ -50,21 +50,22 @@ class ReaderTranslationController extends ChangeNotifier {
   bool get enabled => _enabled;
   bool get showTranslations => _enabled;
   bool get started => _started;
-  bool get busy => _enabled && _units.any((ParagraphTranslation u) => u.loading);
+  bool get busy =>
+      _enabled && _units.any((ParagraphTranslation u) => u.loading);
   bool get hasAnyTranslation => _units.any((ParagraphTranslation u) => u.done);
   bool get hasAnyFailure => _units.any((ParagraphTranslation u) => u.failed);
   bool get allFailed =>
       _units.isNotEmpty && _units.every((ParagraphTranslation u) => u.failed);
-  bool get complete => _units.isNotEmpty &&
+  bool get complete =>
+      _units.isNotEmpty &&
       _units.every((ParagraphTranslation u) => u.done || u.failed);
   String get attribution => _translator.attribution;
   bool get requiresNetwork => _translator.requiresNetwork;
   int get length => _units.length;
 
-  ParagraphTranslation unitAt(int index) =>
-      index >= 0 && index < _units.length
-          ? _units[index]
-          : const ParagraphTranslation();
+  ParagraphTranslation unitAt(int index) => index >= 0 && index < _units.length
+      ? _units[index]
+      : const ParagraphTranslation();
 
   @override
   void dispose() {

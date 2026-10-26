@@ -33,7 +33,8 @@ class PublisherLogos {
 
   /// Loads the manifest once. A missing or broken manifest leaves every lookup
   /// empty, which degrades to the remote/fallback chain rather than failing.
-  static Future<void> load({AssetBundle? bundle, bool forceReload = false}) async {
+  static Future<void> load(
+      {AssetBundle? bundle, bool forceReload = false}) async {
     if (_loaded && !forceReload) return;
     _loaded = true;
     try {
@@ -46,7 +47,8 @@ class PublisherLogos {
             for (final MapEntry<String, dynamic> entry in logos.entries)
               if (entry.value is Map<String, dynamic> &&
                   (entry.value as Map<String, dynamic>)['file'] is String)
-                entry.key: (entry.value as Map<String, dynamic>)['file'] as String,
+                entry.key:
+                    (entry.value as Map<String, dynamic>)['file'] as String,
           };
         }
       }

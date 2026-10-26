@@ -409,7 +409,8 @@ class TopicClassifier {
   };
 
   /// Publisher category strings that should win over keyword guessing.
-  static const Map<String, ArticleTopic> _categoryHints = <String, ArticleTopic>{
+  static const Map<String, ArticleTopic> _categoryHints =
+      <String, ArticleTopic>{
     'editorial': ArticleTopic.editorial,
     'opinion': ArticleTopic.editorial,
     'op-ed': ArticleTopic.editorial,
@@ -460,15 +461,18 @@ class TopicClassifier {
       final String key = category.trim().toLowerCase();
       final ArticleTopic? hint = _categoryHints[key];
       if (hint != null) return hint;
-      for (final MapEntry<String, ArticleTopic> entry in _categoryHints.entries) {
+      for (final MapEntry<String, ArticleTopic> entry
+          in _categoryHints.entries) {
         if (key.contains(entry.key)) return entry.value;
       }
     }
 
-    final String haystack = '${title.toLowerCase()} ${(excerpt ?? '').toLowerCase()}';
+    final String haystack =
+        '${title.toLowerCase()} ${(excerpt ?? '').toLowerCase()}';
     ArticleTopic best = ArticleTopic.other;
     var bestScore = 0;
-    for (final MapEntry<ArticleTopic, Map<String, int>> entry in _keywords.entries) {
+    for (final MapEntry<ArticleTopic, Map<String, int>> entry
+        in _keywords.entries) {
       var score = 0;
       var strongest = 0;
       for (final MapEntry<String, int> keyword in entry.value.entries) {
@@ -476,7 +480,8 @@ class TopicClassifier {
         score += keyword.value;
         if (keyword.value > strongest) strongest = keyword.value;
       }
-      if (entry.key == ArticleTopic.bangladesh && language != SourceLanguage.bn) {
+      if (entry.key == ArticleTopic.bangladesh &&
+          language != SourceLanguage.bn) {
         score -= 1;
       }
       // A section needs either one strong signal or several weak ones; a single

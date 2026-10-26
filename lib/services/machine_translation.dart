@@ -17,7 +17,8 @@ class TranslationException implements Exception {
   final bool retryable;
   final TranslationFailure failure;
 
-  bool get quotaExhausted => failure == TranslationFailure.quotaExhausted ||
+  bool get quotaExhausted =>
+      failure == TranslationFailure.quotaExhausted ||
       message == 'The free translation allowance for today is used up.';
 
   @override
@@ -42,7 +43,8 @@ abstract class MachineTranslator {
 
   /// Translates several paragraphs. Implementations are expected to coalesce
   /// duplicates and to keep the order of [texts].
-  Future<List<String>> translateAll(List<String> texts, {String from = 'en', String to = 'bn'});
+  Future<List<String>> translateAll(List<String> texts,
+      {String from = 'en', String to = 'bn'});
 }
 
 /// Machine translation through MyMemory, the free translation memory service.
@@ -70,7 +72,8 @@ abstract class MachineTranslator {
 class MyMemoryTranslator implements MachineTranslator {
   MyMemoryTranslator({http.Client? client, Uri? endpoint})
       : _client = client ?? http.Client(),
-        _endpoint = endpoint ?? Uri.parse('https://api.mymemory.translated.net/get');
+        _endpoint =
+            endpoint ?? Uri.parse('https://api.mymemory.translated.net/get');
 
   final http.Client _client;
   final Uri _endpoint;
@@ -94,7 +97,8 @@ class MyMemoryTranslator implements MachineTranslator {
   String get attribution => 'MyMemory';
 
   @override
-  Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
+  Future<String> translate(String text,
+      {String from = 'en', String to = 'bn'}) async {
     final String input = text.trim();
     if (input.isEmpty) return '';
     if (input.length <= maxChunkCharacters &&
@@ -125,7 +129,8 @@ class MyMemoryTranslator implements MachineTranslator {
     // Two at a time: enough to keep the reading screen filling in, gentle enough
     // for a free endpoint that rate-limits bursts.
     const int concurrency = 2;
-    final List<MapEntry<String, List<int>>> entries = byText.entries.toList(growable: false);
+    final List<MapEntry<String, List<int>>> entries =
+        byText.entries.toList(growable: false);
     int cursor = 0;
 
     Future<void> worker() async {
@@ -144,7 +149,8 @@ class MyMemoryTranslator implements MachineTranslator {
     return out;
   }
 
-  Future<String> _translateChunk(String text, {required String from, required String to}) async {
+  Future<String> _translateChunk(String text,
+      {required String from, required String to}) async {
     final String key = '${from}_${to}_${text.toLowerCase()}';
     final String? cached = _cache[key];
     if (cached != null) return cached;
@@ -156,9 +162,9 @@ class MyMemoryTranslator implements MachineTranslator {
 
     http.Response response;
     try {
-      response = await _client
-          .get(url, headers: <String, String>{'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 15));
+      response = await _client.get(url, headers: <String, String>{
+        'Accept': 'application/json'
+      }).timeout(const Duration(seconds: 15));
     } on TimeoutException {
       throw const TranslationException(
         'The translation service did not answer in time.',
@@ -171,7 +177,8 @@ class MyMemoryTranslator implements MachineTranslator {
     }
 
     if (response.statusCode != 200) {
-      final bool quota = response.statusCode == 429 || response.statusCode == 403;
+      final bool quota =
+          response.statusCode == 429 || response.statusCode == 403;
       throw TranslationException(
         quota
             ? 'The free translation allowance for today is used up.'
@@ -185,7 +192,8 @@ class MyMemoryTranslator implements MachineTranslator {
 
     final Object? decoded = _decode(response.body);
     if (decoded is! Map<String, dynamic>) {
-      throw const TranslationException('The translation service sent an unreadable answer.');
+      throw const TranslationException(
+          'The translation service sent an unreadable answer.');
     }
     final Object? status = decoded['responseStatus'];
     if (status is num && status >= 400) {
@@ -202,11 +210,13 @@ class MyMemoryTranslator implements MachineTranslator {
     }
     final Object? data = decoded['responseData'];
     if (data is! Map<String, dynamic>) {
-      throw const TranslationException('The translation service sent no translation.');
+      throw const TranslationException(
+          'The translation service sent no translation.');
     }
     final String translated = '${data['translatedText'] ?? ''}'.trim();
     if (translated.isEmpty) {
-      throw const TranslationException('The translation service sent an empty translation.');
+      throw const TranslationException(
+          'The translation service sent an empty translation.');
     }
 
     if (_cache.length >= _cacheEntries) _cache.remove(_cache.keys.first);
@@ -265,7 +275,8 @@ class MyMemoryTranslator implements MachineTranslator {
         .where((String value) => value.isNotEmpty)
         .toList(growable: false);
     for (final String sentence in sentences) {
-      final String candidate = current.isEmpty ? sentence : '$current $sentence';
+      final String candidate =
+          current.isEmpty ? sentence : '$current $sentence';
       if (_fits(candidate, limit)) {
         current = candidate;
         continue;
@@ -287,6 +298,6 @@ class MyMemoryTranslator implements MachineTranslator {
   }
 
   static bool _fits(String value, int characterLimit) =>
-      value.length <= characterLimit && utf8.encode(value).length <= maxChunkBytes;
-
+      value.length <= characterLimit &&
+      utf8.encode(value).length <= maxChunkBytes;
 }

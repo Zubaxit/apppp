@@ -24,7 +24,8 @@ class SharedPreferencesProfileStore implements ProfileStore {
       SharedPreferencesProfileStore(await SharedPreferences.getInstance());
 
   @override
-  Future<AuthorProfile> load() async => AuthorProfile.decode(_prefs.getString(key));
+  Future<AuthorProfile> load() async =>
+      AuthorProfile.decode(_prefs.getString(key));
 
   @override
   Future<void> save(AuthorProfile profile) async {

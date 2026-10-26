@@ -36,17 +36,18 @@ class SettingsController extends ChangeNotifier {
     }
   }
 
-  bool isFollowing(String sourceId) => _prefs.followedSourceIds.contains(sourceId);
+  bool isFollowing(String sourceId) =>
+      _prefs.followedSourceIds.contains(sourceId);
   Set<String> get followedSourceIds => _prefs.followedSourceIds;
   bool get historyEnabled => _prefs.historyEnabled;
   bool get breakingBannerEnabled => _prefs.breakingBannerEnabled;
   bool get newsShieldEnabled => _prefs.newsShieldEnabled;
   Set<String> get newsShieldExceptions => _prefs.newsShieldExceptions;
   bool shieldEnabledFor(String domain) =>
-      _prefs.newsShieldEnabled && !_prefs.newsShieldExceptions.contains(domain.toLowerCase());
+      _prefs.newsShieldEnabled &&
+      !_prefs.newsShieldExceptions.contains(domain.toLowerCase());
   bool get reduceMotion => _prefs.motion == MotionChoice.reduced;
-  bool get vocabularyIntegrationEnabled =>
-      _prefs.vocabularyIntegrationEnabled;
+  bool get vocabularyIntegrationEnabled => _prefs.vocabularyIntegrationEnabled;
   bool get ttsIntegrationEnabled => _prefs.ttsIntegrationEnabled;
   bool get translationIntegrationEnabled =>
       _prefs.translationIntegrationEnabled;
@@ -71,11 +72,14 @@ class SettingsController extends ChangeNotifier {
   Future<void> toggleLanguage() => setLanguage(
       _prefs.language == AppLanguage.bn ? AppLanguage.en : AppLanguage.bn);
 
-  Future<void> setTheme(AppThemeChoice theme) => _update(_prefs.copyWith(theme: theme));
+  Future<void> setTheme(AppThemeChoice theme) =>
+      _update(_prefs.copyWith(theme: theme));
 
-  Future<void> setTextScale(double scale) => _update(_prefs.copyWith(textScale: scale));
+  Future<void> setTextScale(double scale) =>
+      _update(_prefs.copyWith(textScale: scale));
 
-  Future<void> setFont(AppFontChoice font) => _update(_prefs.copyWith(font: font));
+  Future<void> setFont(AppFontChoice font) =>
+      _update(_prefs.copyWith(font: font));
 
   Future<void> setDefaultFeed(DefaultFeed feed) =>
       _update(_prefs.copyWith(defaultFeed: feed));
@@ -113,7 +117,8 @@ class SettingsController extends ChangeNotifier {
   }
 
   Future<void> setReduceMotion(bool reduce) => _update(
-        _prefs.copyWith(motion: reduce ? MotionChoice.reduced : MotionChoice.system),
+        _prefs.copyWith(
+            motion: reduce ? MotionChoice.reduced : MotionChoice.system),
       );
 
   Future<void> setVocabularyIntegrationEnabled(bool enabled) => _update(
@@ -143,10 +148,12 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> rememberSearch(String query) => _update(_prefs.addSearch(query));
 
-  Future<void> clearSearchHistory() => _update(_prefs.copyWith(searchHistory: const <String>[]));
+  Future<void> clearSearchHistory() =>
+      _update(_prefs.copyWith(searchHistory: const <String>[]));
 
   Future<void> completeOnboarding() =>
       _update(_prefs.copyWith(onboardingComplete: true));
 
-  Future<void> applyExtractedPreferences(AppPreferences prefs) => _update(prefs);
+  Future<void> applyExtractedPreferences(AppPreferences prefs) =>
+      _update(prefs);
 }

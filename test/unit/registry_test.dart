@@ -15,7 +15,8 @@ void main() {
     late SourceRegistry registry;
 
     setUpAll(() {
-      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final String contents =
+          File('assets/data/sources.json').readAsStringSync();
       raw = json.decode(contents) as Map<String, dynamic>;
       registry = SourceRegistry.fromJsonString(contents);
     });
@@ -26,7 +27,8 @@ void main() {
     });
 
     test('ids are unique', () {
-      final Set<String> ids = registry.sources.map((NewsSource s) => s.id).toSet();
+      final Set<String> ids =
+          registry.sources.map((NewsSource s) => s.id).toSet();
       expect(ids.length, registry.sources.length);
     });
 
@@ -34,17 +36,20 @@ void main() {
       for (final NewsSource source in registry.sources) {
         final String? safe = UrlSafety.sanitize(source.website);
         expect(safe, isNotNull, reason: '${source.id} has an unusable website');
-        expect(safe, startsWith('https://'), reason: '${source.id} is not https');
+        expect(safe, startsWith('https://'),
+            reason: '${source.id} is not https');
       }
     });
 
     test('every feed and e-paper URL is safe or absent', () {
       for (final NewsSource source in registry.sources) {
         if (source.feedUrl != null) {
-          expect(UrlSafety.sanitize(source.feedUrl), isNotNull, reason: source.id);
+          expect(UrlSafety.sanitize(source.feedUrl), isNotNull,
+              reason: source.id);
         }
         if (source.epaperUrl != null) {
-          expect(UrlSafety.sanitize(source.epaperUrl), isNotNull, reason: source.id);
+          expect(UrlSafety.sanitize(source.epaperUrl), isNotNull,
+              reason: source.id);
         }
       }
       for (final EpaperEdition edition in registry.epapers) {
@@ -64,7 +69,8 @@ void main() {
     });
 
     test('regional sources carry a real division and district', () {
-      for (final NewsSource source in registry.byCategory(SourceCategory.regional)) {
+      for (final NewsSource source
+          in registry.byCategory(SourceCategory.regional)) {
         expect(source.division, isNotNull, reason: source.id);
         expect(source.district, isNotNull, reason: source.id);
         expect(
@@ -100,7 +106,8 @@ void main() {
     });
 
     test('the brief\'s headline publications are present', () {
-      final Set<String> ids = registry.sources.map((NewsSource s) => s.id).toSet();
+      final Set<String> ids =
+          registry.sources.map((NewsSource s) => s.id).toSet();
       for (final String id in <String>[
         'prothomalo',
         'bd_pratidin',
@@ -229,19 +236,23 @@ void main() {
     });
 
     test('no shipped entry silently degrades to an unknown type', () {
-      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final String contents =
+          File('assets/data/sources.json').readAsStringSync();
       final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
       final List<NewsSource> unknown = registry.sources
           .where((NewsSource s) => s.type == PublicationType.unknown)
           .toList();
-      expect(unknown, isEmpty, reason: 'unmapped types: ${unknown.map((NewsSource s) => s.id)}');
+      expect(unknown, isEmpty,
+          reason: 'unmapped types: ${unknown.map((NewsSource s) => s.id)}');
       for (final NewsSource source in registry.sources) {
-        expect(source.categories, isNotEmpty, reason: '${source.id} lost its categories');
+        expect(source.categories, isNotEmpty,
+            reason: '${source.id} lost its categories');
       }
     });
 
     test('only a verified feed ships a feed URL', () {
-      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final String contents =
+          File('assets/data/sources.json').readAsStringSync();
       final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
       // A shipped feed URL is a promise: the app will fetch it and the home
       // screen will present its headlines as news. Unverified hypotheses live in
@@ -253,12 +264,14 @@ void main() {
           contains(source.feedClaim),
           reason: '${source.id} ships an unverified feed URL',
         );
-        expect(source.lastVerifiedAt, isNotNull, reason: '${source.id} has no verification date');
+        expect(source.lastVerifiedAt, isNotNull,
+            reason: '${source.id} has no verification date');
       }
     });
 
     test('an undated feed is only shipped with an explicit exception', () {
-      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final String contents =
+          File('assets/data/sources.json').readAsStringSync();
       final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
       // The Daily Star publishes no item timestamps. Rather than quietly
       // accepting undated feeds everywhere, exactly that entry carries
@@ -273,13 +286,15 @@ void main() {
     });
 
     test('the curated reading set is entirely feed-backed', () {
-      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final String contents =
+          File('assets/data/sources.json').readAsStringSync();
       final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
       expect(registry.curatedWithFeeds.length, greaterThanOrEqualTo(10));
       expect(
         registry.feedSources.map((NewsSource s) => s.id).toSet(),
         registry.curatedWithFeeds.map((NewsSource s) => s.id).toSet(),
-        reason: 'the unified feed must only fetch curated, verified publications',
+        reason:
+            'the unified feed must only fetch curated, verified publications',
       );
       for (final NewsSource source in registry.curatedWithFeeds) {
         expect(source.hasVerifiedFeed, isTrue, reason: source.id);
@@ -287,12 +302,15 @@ void main() {
     });
 
     test('verification claims are explicit and dated', () {
-      final String contents = File('assets/data/sources.json').readAsStringSync();
+      final String contents =
+          File('assets/data/sources.json').readAsStringSync();
       final SourceRegistry registry = SourceRegistry.fromJsonString(contents);
       for (final NewsSource source in registry.sources) {
         if (source.feedClaim == FeedClaim.verifiedWorking) {
-          expect(source.lastVerifiedAt, isNotNull, reason: '${source.id} claims a verified feed');
-          expect(source.feedUrl, isNotNull, reason: '${source.id} claims a verified feed');
+          expect(source.lastVerifiedAt, isNotNull,
+              reason: '${source.id} claims a verified feed');
+          expect(source.feedUrl, isNotNull,
+              reason: '${source.id} claims a verified feed');
           expect(source.hasVerifiedFeed, isTrue);
         }
         if (source.hasFeed) {
@@ -346,9 +364,8 @@ void main() {
         isTrue,
       );
       expect(
-        registry
-            .filter(category: SourceCategory.business)
-            .every((NewsSource s) => s.categories.contains(SourceCategory.business)),
+        registry.filter(category: SourceCategory.business).every(
+            (NewsSource s) => s.categories.contains(SourceCategory.business)),
         isTrue,
       );
     });

@@ -30,10 +30,7 @@ List<int?> readerParagraphIndices(List<ReaderBlock> blocks) {
   int paragraph = 0;
   return <int?>[
     for (final ReaderBlock block in blocks)
-      if (block.isImage || block.heading)
-        null
-      else
-        paragraph++,
+      if (block.isImage || block.heading) null else paragraph++,
   ];
 }
 
@@ -70,7 +67,8 @@ class ReaderModeScreen extends StatefulWidget {
 }
 
 class _ReaderModeScreenState extends State<ReaderModeScreen> {
-  late final ReaderTranslationController _controller = ReaderTranslationController(
+  late final ReaderTranslationController _controller =
+      ReaderTranslationController(
     translator: widget.translator,
     paragraphs: widget.document.paragraphs,
   );
@@ -105,7 +103,8 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
       return;
     }
     _lastAutoSentence = _tts.activeSentence;
-    final int paragraph = _tts.document?.paragraphForSentence(_tts.activeSentence) ?? -1;
+    final int paragraph =
+        _tts.document?.paragraphForSentence(_tts.activeSentence) ?? -1;
     if (paragraph < 0 || paragraph >= _paragraphKeys.length) {
       return;
     }
@@ -172,8 +171,7 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
                     scrollController: _scroll,
                     paragraphKeys: _paragraphKeys,
                     blockParagraphs: _blockParagraphs,
-                    vocabularyEnabled:
-                        settings.vocabularyIntegrationEnabled,
+                    vocabularyEnabled: settings.vocabularyIntegrationEnabled,
                     translator: widget.translator,
                     onRetry: (int index) => unawaited(_controller.retry(index)),
                     onOpenOriginal: _openOriginal,
@@ -182,14 +180,15 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
               ),
               if (settings.ttsIntegrationEnabled)
                 _ListenBar(
-                controller: _tts,
-                currentArticle: _articleId,
-                onPlay: () => unawaited(_tts.play(
-                  _articleId,
-                  document.paragraphs,
-                  language: language == TextLanguage.bengali ? 'bn-BD' : 'en-US',
-                )),
-              ),
+                  controller: _tts,
+                  currentArticle: _articleId,
+                  onPlay: () => unawaited(_tts.play(
+                    _articleId,
+                    document.paragraphs,
+                    language:
+                        language == TextLanguage.bengali ? 'bn-BD' : 'en-US',
+                  )),
+                ),
               if (canTranslate)
                 ListenableBuilder(
                   listenable: _controller,
@@ -210,7 +209,8 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
 }
 
 class _ReaderHeader extends StatelessWidget {
-  const _ReaderHeader({required this.title, required this.site, required this.onBack});
+  const _ReaderHeader(
+      {required this.title, required this.site, required this.onBack});
 
   final String title;
   final String? site;
@@ -219,7 +219,8 @@ class _ReaderHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Tokens.gutter - 6, 6, Tokens.gutter, 4),
+      padding:
+          const EdgeInsets.fromLTRB(Tokens.gutter - 6, 6, Tokens.gutter, 4),
       child: Row(
         children: <Widget>[
           GlassIconButton(
@@ -385,7 +386,8 @@ class _Article extends StatelessWidget {
               if (show)
                 Padding(
                   padding: const EdgeInsets.only(top: 10, left: 14),
-                  child: _Translation(unit: unit, onRetry: () => onRetry(paragraph)),
+                  child: _Translation(
+                      unit: unit, onRetry: () => onRetry(paragraph)),
                 ),
             ],
           ),
@@ -448,7 +450,10 @@ class _ReaderParagraphState extends State<_ReaderParagraph> {
     for (final VocabularyMatch match in widget.matches) {
       boundary.addAll(<int>[match.start, match.end]);
     }
-    final List<int> points = boundary.where((int value) => value >= 0 && value <= widget.text.length).toList()..sort();
+    final List<int> points = boundary
+        .where((int value) => value >= 0 && value <= widget.text.length)
+        .toList()
+      ..sort();
     final List<InlineSpan> spans = <InlineSpan>[];
     for (int i = 0; i + 1 < points.length; i++) {
       final int start = points[i];
@@ -463,7 +468,8 @@ class _ReaderParagraphState extends State<_ReaderParagraph> {
           break;
         }
       }
-      final bool speaking = active != null && start >= active.start && end <= active.end;
+      final bool speaking =
+          active != null && start >= active.start && end <= active.end;
       TapGestureRecognizer? recognizer;
       if (vocabulary != null) {
         final VocabularyMatch selected = vocabulary;
@@ -504,8 +510,7 @@ class _ReaderParagraphState extends State<_ReaderParagraph> {
         final List<ContextMenuButtonItem> items =
             List<ContextMenuButtonItem>.of(state.contextMenuButtonItems);
         if (widget.vocabularyEnabled &&
-            RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
-                .hasMatch(selected)) {
+            RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$").hasMatch(selected)) {
           items.add(ContextMenuButtonItem(
             label: 'Save word',
             onPressed: () {
@@ -581,7 +586,8 @@ class _ListenBar extends StatelessWidget {
                     icon: const Icon(Icons.replay_10_rounded),
                   ),
                   IconButton.filled(
-                    tooltip: state == TtsPlaybackState.playing ? 'Pause' : 'Listen',
+                    tooltip:
+                        state == TtsPlaybackState.playing ? 'Pause' : 'Listen',
                     onPressed: () {
                       if (state == TtsPlaybackState.playing) {
                         unawaited(controller.pause());
@@ -619,7 +625,8 @@ class _ListenBar extends StatelessWidget {
                     initialValue: controller.speed,
                     onSelected: (double value) =>
                         unawaited(controller.setSpeed(value)),
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<double>>[
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<double>>[
                       for (final double speed in ReaderTtsController.speeds)
                         PopupMenuItem<double>(
                           value: speed,
@@ -658,8 +665,10 @@ SentenceRange? _localSentence(
     return null;
   }
   return SentenceRange(
-    start: (sentence.start - paragraphStart).clamp(0, paragraphEnd - paragraphStart),
-    end: (sentence.end - paragraphStart).clamp(0, paragraphEnd - paragraphStart),
+    start: (sentence.start - paragraphStart)
+        .clamp(0, paragraphEnd - paragraphStart),
+    end:
+        (sentence.end - paragraphStart).clamp(0, paragraphEnd - paragraphStart),
     text: sentence.text,
   );
 }
@@ -747,7 +756,8 @@ class _Translation extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           context.strings.translating,
-          style: context.texts.labelSmall?.copyWith(fontSize: 10.5, color: muted),
+          style:
+              context.texts.labelSmall?.copyWith(fontSize: 10.5, color: muted),
         ),
       ],
     );
@@ -820,8 +830,10 @@ class _TranslationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool enabled = controller.enabled;
-    final bool failed = enabled && controller.complete &&
-        !controller.hasAnyTranslation && controller.allFailed;
+    final bool failed = enabled &&
+        controller.complete &&
+        !controller.hasAnyTranslation &&
+        controller.allFailed;
     final String state = enabled
         ? '${context.strings.hideTranslation} · ${controller.attribution}'
         : context.strings.showTranslation;
@@ -939,7 +951,8 @@ class SelectionTranslationSheet extends StatefulWidget {
   final Future<String?> Function(String word) glossary;
 
   @override
-  State<SelectionTranslationSheet> createState() => _SelectionTranslationSheetState();
+  State<SelectionTranslationSheet> createState() =>
+      _SelectionTranslationSheetState();
 }
 
 class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
@@ -964,8 +977,8 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
     try {
       final String value = await widget.translator.translate(widget.selection);
       if (!mounted) {
-      return;
-    }
+        return;
+      }
       setState(() {
         _translation = value;
         _loading = false;
@@ -973,8 +986,8 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
     } on TranslationException catch (error) {
       final String? meaning = await widget.glossary(widget.selection);
       if (!mounted) {
-      return;
-    }
+        return;
+      }
       setState(() {
         _error = error.message;
         _offlineMeaning = meaning;
@@ -983,8 +996,8 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
     } catch (_) {
       final String? meaning = await widget.glossary(widget.selection);
       if (!mounted) {
-      return;
-    }
+        return;
+      }
       setState(() {
         _error = widget.selection.trim().contains(' ')
             ? 'This text could not be translated right now.'
@@ -1023,7 +1036,8 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                Icon(Icons.translate_rounded, size: 15, color: context.colors.primary),
+                Icon(Icons.translate_rounded,
+                    size: 15, color: context.colors.primary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -1115,7 +1129,8 @@ class _SelectionTranslationSheetState extends State<SelectionTranslationSheet> {
                     onPressed: _run,
                   ),
                   const SizedBox(width: 8),
-                  TextButton(onPressed: _copy, child: Text(context.strings.copyText)),
+                  TextButton(
+                      onPressed: _copy, child: Text(context.strings.copyText)),
                 ],
               ),
             ],

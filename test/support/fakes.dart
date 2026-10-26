@@ -53,9 +53,10 @@ class FakeArticleStore implements ArticleStore {
 
   @override
   Future<List<Article>> bySource(String sourceId, {int limit = 60}) async {
-    final List<Article> items =
-        _items.values.where((Article a) => a.sourceId == sourceId).toList()
-          ..sort((Article a, Article b) => b.sortKey.compareTo(a.sortKey));
+    final List<Article> items = _items.values
+        .where((Article a) => a.sourceId == sourceId)
+        .toList()
+      ..sort((Article a, Article b) => b.sortKey.compareTo(a.sortKey));
     return items.take(limit).toList();
   }
 
@@ -102,7 +103,8 @@ class FakeSavedStore implements SavedStore {
 
   @override
   Future<void> save(Article article) async {
-    _items[article.id] = SavedArticle(article: article, savedAt: DateTime.now().toUtc());
+    _items[article.id] =
+        SavedArticle(article: article, savedAt: DateTime.now().toUtc());
   }
 
   @override
@@ -111,12 +113,14 @@ class FakeSavedStore implements SavedStore {
   @override
   Future<List<SavedArticle>> all() async {
     final List<SavedArticle> items = _items.values.toList()
-      ..sort((SavedArticle a, SavedArticle b) => b.savedAt.compareTo(a.savedAt));
+      ..sort(
+          (SavedArticle a, SavedArticle b) => b.savedAt.compareTo(a.savedAt));
     return items;
   }
 
   @override
-  Future<bool> contains(String articleId) async => _items.containsKey(articleId);
+  Future<bool> contains(String articleId) async =>
+      _items.containsKey(articleId);
 
   @override
   Future<void> clear() async => _items.clear();
@@ -127,7 +131,8 @@ class FakeHistoryStore implements HistoryStore {
 
   @override
   Future<void> record(Article article) async {
-    _items[article.id] = SavedArticle(article: article, savedAt: DateTime.now().toUtc());
+    _items[article.id] =
+        SavedArticle(article: article, savedAt: DateTime.now().toUtc());
   }
 
   @override
@@ -187,7 +192,8 @@ class FakeHealthStore implements HealthStore {
   Future<SourceHealth?> bySource(String sourceId) async => _items[sourceId];
 
   @override
-  Future<void> upsert(SourceHealth health) async => _items[health.sourceId] = health;
+  Future<void> upsert(SourceHealth health) async =>
+      _items[health.sourceId] = health;
 
   @override
   Future<void> clear() async => _items.clear();
@@ -296,7 +302,9 @@ NewsSource sampleSource({
   String website = 'https://www.prothomalo.com/',
   String? feedUrl = 'https://www.prothomalo.com/feed',
   SourceLanguage language = SourceLanguage.bn,
-  List<SourceCategory> categories = const <SourceCategory>[SourceCategory.national],
+  List<SourceCategory> categories = const <SourceCategory>[
+    SourceCategory.national
+  ],
   PublicationType type = PublicationType.dailyNewspaper,
   String? epaperUrl,
   String? logoUrl,
@@ -337,9 +345,11 @@ Article sampleArticle({
   return Article.create(
     sourceId: sourceId,
     title: title,
-    link: link ?? 'https://www.prothomalo.com/bangladesh/$sourceId-${title.hashCode}',
+    link: link ??
+        'https://www.prothomalo.com/bangladesh/$sourceId-${title.hashCode}',
     excerpt: excerpt,
-    publishedAt: publishedAt ?? DateTime.now().toUtc().subtract(const Duration(minutes: 20)),
+    publishedAt: publishedAt ??
+        DateTime.now().toUtc().subtract(const Duration(minutes: 20)),
     topic: topic,
     language: language,
     breaking: breaking,
@@ -381,7 +391,8 @@ class FakeTranslator implements MachineTranslator {
   String get attribution => 'Fake';
 
   @override
-  Future<String> translate(String text, {String from = 'en', String to = 'bn'}) async {
+  Future<String> translate(String text,
+      {String from = 'en', String to = 'bn'}) async {
     requests.add(text);
     if (delay != Duration.zero) await Future<void>.delayed(delay);
     for (final String needle in failOn) {
@@ -399,7 +410,8 @@ class FakeTranslator implements MachineTranslator {
     String to = 'bn',
   }) async {
     return <String>[
-      for (final String text in texts) await translate(text, from: from, to: to),
+      for (final String text in texts)
+        await translate(text, from: from, to: to),
     ];
   }
 }

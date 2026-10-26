@@ -36,7 +36,11 @@ void main() {
 
     test('blank fields fall back to the starting profile', () {
       final AuthorProfile restored = AuthorProfile.decode(
-        jsonEncode(<String, dynamic>{'name': '   ', 'bio': '', 'interests': <String>[]}),
+        jsonEncode(<String, dynamic>{
+          'name': '   ',
+          'bio': '',
+          'interests': <String>[]
+        }),
       );
       expect(restored.name, 'মোঃ ইমন');
       expect(restored.bio, AuthorProfile.defaultBio);
@@ -57,7 +61,8 @@ void main() {
       expect(AuthorProfile.isSupportedLink('https://'), isFalse);
     });
 
-    test('the monogram falls back to a Bengali letter when the name is empty', () {
+    test('the monogram falls back to a Bengali letter when the name is empty',
+        () {
       expect(const AuthorProfile().initial, 'ম');
       expect(const AuthorProfile(name: '').initial, 'অ');
     });

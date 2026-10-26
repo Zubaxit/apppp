@@ -38,7 +38,8 @@ void main() {
       for (final String id in PublisherLogos.bundledIds) {
         final String? path = PublisherLogos.assetFor(id);
         expect(path, isNotNull);
-        expect(File(path!).existsSync(), isTrue, reason: '$id -> $path is missing');
+        expect(File(path!).existsSync(), isTrue,
+            reason: '$id -> $path is missing');
         expect(path, startsWith('assets/publishers/'));
       }
     });
@@ -59,14 +60,18 @@ void main() {
       expect(PublisherLogos.bundledIds.difference(known), isEmpty);
     });
 
-    test('no two publishers share one file by accident, except the documented pair', () async {
+    test(
+        'no two publishers share one file by accident, except the documented pair',
+        () async {
       await PublisherLogos.load(
         bundle: DiskAssetBundle(Directory.current.path),
         forceReload: true,
       );
       final Map<String, List<String>> byFile = <String, List<String>>{};
       for (final String id in PublisherLogos.bundledIds) {
-        byFile.putIfAbsent(PublisherLogos.assetFor(id)!, () => <String>[]).add(id);
+        byFile
+            .putIfAbsent(PublisherLogos.assetFor(id)!, () => <String>[])
+            .add(id);
       }
       final List<List<String>> shared = byFile.values
           .where((List<String> ids) => ids.length > 1)
@@ -79,7 +84,8 @@ void main() {
       }
     });
 
-    test('a missing manifest degrades to no bundled marks instead of throwing', () async {
+    test('a missing manifest degrades to no bundled marks instead of throwing',
+        () async {
       await PublisherLogos.load(
         bundle: DiskAssetBundle('/nonexistent'),
         forceReload: true,
@@ -89,12 +95,20 @@ void main() {
       expect(PublisherLogos.assetFor('prothomalo'), isNull);
     });
 
-    test('a publisher with no bundled mark is absent, not mapped to someone else', () async {
+    test(
+        'a publisher with no bundled mark is absent, not mapped to someone else',
+        () async {
       await PublisherLogos.load(
         bundle: DiskAssetBundle(Directory.current.path),
         forceReload: true,
       );
-      for (final String id in <String>['daily_star', 'tbs', 'jagonews24', 'sarabangla', 'suprobhat']) {
+      for (final String id in <String>[
+        'daily_star',
+        'tbs',
+        'jagonews24',
+        'sarabangla',
+        'suprobhat'
+      ]) {
         expect(PublisherLogos.assetFor(id), isNull,
             reason: '$id must not borrow another publisher\'s artwork');
       }

@@ -9,7 +9,8 @@ import '../support/fakes.dart';
 import '../support/test_app.dart';
 
 void main() {
-  testWidgets('every card reserves art space and missing art uses one local fallback',
+  testWidgets(
+      'every card reserves art space and missing art uses one local fallback',
       (WidgetTester tester) async {
     final TestHarness h = TestHarness();
     await tester.pumpWidget(h.wrap(

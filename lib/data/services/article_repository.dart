@@ -88,7 +88,8 @@ class ArticleRepository {
     );
   }
 
-  Future<List<Article>> articlesForSource(String sourceId, {int limit = 40}) async {
+  Future<List<Article>> articlesForSource(String sourceId,
+      {int limit = 40}) async {
     final List<Article> cached =
         await stores.articles.bySource(sourceId, limit: 250);
     return ArticleFreshness.eligible(cached, now: _clock(), limit: limit);
@@ -126,7 +127,8 @@ class ArticleRepository {
   /// Publications that conservatively match [article], excluding the current
   /// report and duplicate publishers. Unlike the live index this scans retained
   /// cache too, so Article Detail opened from Archive can merge older matches.
-  Future<List<Article>> relatedCoverage(Article article, {int limit = 6}) async {
+  Future<List<Article>> relatedCoverage(Article article,
+      {int limit = 6}) async {
     final List<Article> cached = await stores.articles.latest(limit: 5000);
     final Map<String, Article> byPublisher = <String, Article>{};
     for (final Article candidate in cached) {
@@ -151,16 +153,20 @@ class ArticleRepository {
     await stores.meta.set(lastAttemptKey, startedAt.toIso8601String());
 
     final List<NewsSource> candidates = registry.feedSources
-        .where((NewsSource s) => onlySourceIds == null || onlySourceIds.contains(s.id))
+        .where((NewsSource s) =>
+            onlySourceIds == null || onlySourceIds.contains(s.id))
         .toList();
     final Map<String, FeedMeta> metaBySource = <String, FeedMeta>{
-      for (final FeedMeta meta in await stores.feedMeta.all()) meta.sourceId: meta,
+      for (final FeedMeta meta in await stores.feedMeta.all())
+        meta.sourceId: meta,
     };
 
     final List<NewsSource> due = <NewsSource>[];
     for (final NewsSource source in candidates) {
       final DateTime? last = metaBySource[source.id]?.lastFetchAt;
-      if (!force && last != null && startedAt.difference(last) < minimumSourceGap) {
+      if (!force &&
+          last != null &&
+          startedAt.difference(last) < minimumSourceGap) {
         continue;
       }
       due.add(source);
@@ -207,7 +213,8 @@ class ArticleRepository {
         }
       } else {
         failed++;
-        failures[outcome.sourceId] = outcome.health.lastError ?? 'Unknown error';
+        failures[outcome.sourceId] =
+            outcome.health.lastError ?? 'Unknown error';
       }
     }
 
@@ -229,9 +236,8 @@ class ArticleRepository {
       }
     }
 
-    final int countAfter = storageError == null
-        ? await stores.articles.count()
-        : countBefore;
+    final int countAfter =
+        storageError == null ? await stores.articles.count() : countBefore;
     final DateTime finishedAt = _clock();
     if (outcomes.any((FeedFetchOutcome o) => o.health.isOk)) {
       await stores.meta.set(lastRefreshKey, finishedAt.toIso8601String());
@@ -251,7 +257,8 @@ class ArticleRepository {
     );
   }
 
-  Future<void> _recordAttempt(FeedFetchOutcome outcome, DateTime startedAt) async {
+  Future<void> _recordAttempt(
+      FeedFetchOutcome outcome, DateTime startedAt) async {
     final FeedMeta? previous = await stores.feedMeta.get(outcome.sourceId);
     await stores.feedMeta.save(
       FeedMeta(
@@ -269,7 +276,8 @@ class ArticleRepository {
     );
   }
 
-  Future<FeedFetchOutcome> _fetchSafely(NewsSource source, DateTime startedAt) async {
+  Future<FeedFetchOutcome> _fetchSafely(
+      NewsSource source, DateTime startedAt) async {
     try {
       return await feedService.fetch(source, now: startedAt);
     } catch (error) {
@@ -330,5 +338,4 @@ class ArticleRepository {
     await stores.articles.clear();
     await stores.meta.set(lastRefreshKey, null);
   }
-
 }

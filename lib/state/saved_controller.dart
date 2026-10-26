@@ -64,7 +64,8 @@ class SavedController extends ChangeNotifier {
     if (currentlySaved) {
       await repository.unsaveArticle(article.id);
       _ids.remove(article.id);
-      _saved = _saved.where((SavedArticle s) => s.article.id != article.id).toList();
+      _saved =
+          _saved.where((SavedArticle s) => s.article.id != article.id).toList();
     } else {
       await repository.saveArticle(article);
       _ids.add(article.id);
@@ -80,7 +81,8 @@ class SavedController extends ChangeNotifier {
   Future<void> remove(String articleId) async {
     await repository.unsaveArticle(articleId);
     _ids.remove(articleId);
-    _saved = _saved.where((SavedArticle s) => s.article.id != articleId).toList();
+    _saved =
+        _saved.where((SavedArticle s) => s.article.id != articleId).toList();
     notifyListeners();
   }
 
@@ -104,8 +106,7 @@ class SavedController extends ChangeNotifier {
     _vocabulary = <VocabularyEntry>[
       entry,
       ..._vocabulary.where(
-        (VocabularyEntry item) =>
-            item.normalizedWord != entry.normalizedWord,
+        (VocabularyEntry item) => item.normalizedWord != entry.normalizedWord,
       ),
     ];
     _vocabularyRevision += 1;
@@ -155,7 +156,9 @@ class SavedController extends ChangeNotifier {
   }
 
   Future<void> refreshHistory() async {
-    _history = settings.historyEnabled ? await repository.history() : const <SavedArticle>[];
+    _history = settings.historyEnabled
+        ? await repository.history()
+        : const <SavedArticle>[];
     notifyListeners();
   }
 }
