@@ -311,7 +311,7 @@ void main() {
         ArticleRepository(registry: registry, stores: stores, feedService: FakeFeedGateway());
     final Article article = (await repository.loadFeed(queryOf())).single;
     await repository.saveArticle(article);
-    await repository.recordOpen(article);
+    await repository.recordHistory(article);
     await repository.saveVocabulary(VocabularyEntry(
       word: 'policy',
       meaningBn: 'নীতি',

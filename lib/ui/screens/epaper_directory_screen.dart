@@ -5,10 +5,9 @@ import '../../data/models/news_source.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
-import '../helpers/app_nav.dart';
 import '../widgets/actions.dart';
-import 'browser_screen.dart';
 import '../widgets/common.dart';
+import 'browser_screen.dart';
 
 /// Directory of publisher-hosted e-paper editions.
 ///
