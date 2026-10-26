@@ -40,6 +40,7 @@ class AppPreferences {
     this.newsShieldExceptions = const <String>{},
     this.searchHistory = const <String>[],
     this.onboardingComplete = false,
+    this.webViewTourComplete = false,
     this.vocabularyIntegrationEnabled = true,
     this.ttsIntegrationEnabled = true,
     this.translationIntegrationEnabled = true,
@@ -67,6 +68,7 @@ class AppPreferences {
   final Set<String> newsShieldExceptions;
   final List<String> searchHistory;
   final bool onboardingComplete;
+  final bool webViewTourComplete;
   final bool vocabularyIntegrationEnabled;
   final bool ttsIntegrationEnabled;
   final bool translationIntegrationEnabled;
@@ -90,6 +92,7 @@ class AppPreferences {
     Set<String>? newsShieldExceptions,
     List<String>? searchHistory,
     bool? onboardingComplete,
+    bool? webViewTourComplete,
     bool? vocabularyIntegrationEnabled,
     bool? ttsIntegrationEnabled,
     bool? translationIntegrationEnabled,
@@ -112,6 +115,7 @@ class AppPreferences {
       newsShieldExceptions: newsShieldExceptions ?? this.newsShieldExceptions,
       searchHistory: searchHistory ?? this.searchHistory,
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
+      webViewTourComplete: webViewTourComplete ?? this.webViewTourComplete,
       vocabularyIntegrationEnabled:
           vocabularyIntegrationEnabled ?? this.vocabularyIntegrationEnabled,
       ttsIntegrationEnabled:
@@ -162,6 +166,7 @@ class AppPreferences {
         'newsShieldExceptions': newsShieldExceptions.toList(),
         'searchHistory': searchHistory,
         'onboardingComplete': onboardingComplete,
+        'webViewTourComplete': webViewTourComplete,
         'vocabularyIntegrationEnabled': vocabularyIntegrationEnabled,
         'ttsIntegrationEnabled': ttsIntegrationEnabled,
         'translationIntegrationEnabled': translationIntegrationEnabled,
@@ -212,6 +217,7 @@ class AppPreferences {
           '$item',
       ],
       onboardingComplete: map['onboardingComplete'] == true,
+      webViewTourComplete: map['webViewTourComplete'] == true,
       vocabularyIntegrationEnabled:
           map['vocabularyIntegrationEnabled'] != false,
       ttsIntegrationEnabled: map['ttsIntegrationEnabled'] != false,

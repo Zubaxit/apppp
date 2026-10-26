@@ -51,6 +51,9 @@ class TtsPlaybackService : Service(), TextToSpeech.OnInitListener {
     private var initialized = false
     private var queued: Intent? = null
     private var baseOffset = 0
+    private var chunkEnd = 0
+    private var activeUtteranceId: String? = null
+    private var utteranceSequence = 0
     private var resumeAfterFocus = false
 
     override fun onCreate() {
@@ -70,12 +73,19 @@ class TtsPlaybackService : Service(), TextToSpeech.OnInitListener {
         tts = TextToSpeech(this, this)
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {
+                if (utteranceId != activeUtteranceId) return
                 state = "playing"
                 emit("playing")
                 updateSession()
             }
             override fun onDone(utteranceId: String?) {
-                offset = text.length
+                if (utteranceId != activeUtteranceId) return
+                offset = chunkEnd
+                if (offset < text.length) {
+                    speakFrom(offset, requestAudioFocus = false)
+                    return
+                }
+                activeUtteranceId = null
                 state = "completed"
                 emit("completed")
                 updateSession()
@@ -83,10 +93,16 @@ class TtsPlaybackService : Service(), TextToSpeech.OnInitListener {
                 stopForeground(false)
             }
             @Deprecated("Deprecated in Java")
-            override fun onError(utteranceId: String?) = failure("Android TTS could not speak this article.")
-            override fun onError(utteranceId: String?, errorCode: Int) =
-                failure("Android TTS stopped with error $errorCode.")
+            override fun onError(utteranceId: String?) {
+                if (utteranceId == activeUtteranceId) {
+                    failure("Android TTS could not synthesize this text. Try another installed voice.")
+                }
+            }
+            override fun onError(utteranceId: String?, errorCode: Int) {
+                if (utteranceId == activeUtteranceId) failure(ttsErrorMessage(errorCode))
+            }
             override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
+                if (utteranceId != activeUtteranceId) return
                 offset = min(text.length, baseOffset + start)
                 emit("progress", mapOf("end" to min(text.length, baseOffset + end)))
                 updateSession()
@@ -119,10 +135,15 @@ class TtsPlaybackService : Service(), TextToSpeech.OnInitListener {
         when (intent.getStringExtra("command")) {
             "speak" -> {
                 val nextId = intent.getStringExtra("articleId") ?: return
-                val nextText = intent.getStringExtra("text") ?: return
+                val nextText = intent.getStringExtra("text")?.trim().orEmpty()
+                activeUtteranceId = null
                 tts.stop()
                 articleId = nextId
                 text = nextText
+                if (text.isEmpty()) {
+                    failure("This article does not contain readable text.", "invalidText")
+                    return
+                }
                 language = intent.getStringExtra("language") ?: "en-US"
                 rate = intent.getDoubleExtra("rate", 1.0).toFloat()
                 offset = intent.getIntExtra("offset", 0).coerceIn(0, text.length)
@@ -145,34 +166,86 @@ class TtsPlaybackService : Service(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun speakFrom(start: Int) {
-        if (!initialized || text.isEmpty()) return
+    private fun speakFrom(start: Int, requestAudioFocus: Boolean = true) {
+        if (!initialized) {
+            failure("Android's text-to-speech engine is still starting. Try Play again.", "engineNotReady")
+            return
+        }
+        if (text.isEmpty()) {
+            failure("This article does not contain readable text.", "invalidText")
+            return
+        }
         val locale = if (language.startsWith("bn")) Locale("bn", "BD") else Locale.US
-        val availability = tts.isLanguageAvailable(locale)
+        val availability = tts.setLanguage(locale)
         if (availability < TextToSpeech.LANG_AVAILABLE) {
             failure(
                 if (language.startsWith("bn"))
                     "A Bengali voice is not installed. Open Android Settings › Text-to-speech output and install or select Bengali voice data."
-                else "The selected Android text-to-speech voice is unavailable.",
+                else "An English voice is not installed. Open Android Settings › Text-to-speech output and install English voice data.",
                 "voiceUnavailable",
             )
             return
         }
-        requestFocus()
-        tts.language = locale
+        if (requestAudioFocus) requestFocus()
         tts.setSpeechRate(rate)
         baseOffset = start.coerceIn(0, text.length)
+        chunkEnd = findChunkEnd(baseOffset)
         offset = baseOffset
         state = "loading"
+        val utteranceId = "amar-${articleId}-${++utteranceSequence}"
+        activeUtteranceId = utteranceId
         val params = Bundle().apply {
-            putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "amar-$articleId")
+            putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utteranceId)
         }
-        tts.speak(text.substring(baseOffset), TextToSpeech.QUEUE_FLUSH, params, "amar-$articleId")
+        val result = tts.speak(
+            text.substring(baseOffset, chunkEnd),
+            TextToSpeech.QUEUE_FLUSH,
+            params,
+            utteranceId,
+        )
+        if (result == TextToSpeech.ERROR) {
+            activeUtteranceId = null
+            failure("Android TTS rejected this speech request. Check the selected TTS engine and voice data.")
+            return
+        }
         startForeground(notificationId, notification())
+    }
+
+    /** Android engines reject input above their advertised maximum (often 4000
+     * UTF-16 units). Split on a sentence or whitespace boundary and sequence
+     * chunks while preserving article-relative range offsets. */
+    private fun findChunkEnd(start: Int): Int {
+        val hardEnd = min(text.length, start + TextToSpeech.getMaxSpeechInputLength() - 100)
+        if (hardEnd >= text.length) return text.length
+        val floor = start + ((hardEnd - start) * 0.55).toInt()
+        for (index in hardEnd downTo floor) {
+            if (text[index - 1] in charArrayOf('.', '!', '?', '।', '\n')) return index
+        }
+        for (index in hardEnd downTo floor) {
+            if (text[index - 1].isWhitespace()) return index
+        }
+        return hardEnd
+    }
+
+    private fun ttsErrorMessage(errorCode: Int): String = when (errorCode) {
+        TextToSpeech.ERROR_NOT_INSTALLED_YET ->
+            "The selected voice data is not installed yet. Finish its download in Android Text-to-speech settings."
+        TextToSpeech.ERROR_NETWORK, TextToSpeech.ERROR_NETWORK_TIMEOUT ->
+            "The selected voice needs a network connection. Install an offline voice or check the connection."
+        TextToSpeech.ERROR_INVALID_REQUEST ->
+            "Android TTS rejected this text. Try another installed TTS engine or voice."
+        TextToSpeech.ERROR_OUTPUT ->
+            "Android could not open audio output for speech. Check media volume and audio output, then try again."
+        TextToSpeech.ERROR_SERVICE ->
+            "The Android TTS service stopped. Select or restart a text-to-speech engine in Android Settings."
+        TextToSpeech.ERROR_SYNTHESIS ->
+            "The selected TTS engine could not synthesize this passage. Try another installed voice."
+        else -> "Android TTS failed (code $errorCode). Try another installed engine or voice."
     }
 
     private fun pauseSpeech() {
         if (state != "playing" && state != "loading") return
+        activeUtteranceId = null
         tts.stop()
         state = "paused"
         emit("paused")
@@ -187,6 +260,7 @@ class TtsPlaybackService : Service(), TextToSpeech.OnInitListener {
     }
 
     private fun stopSpeech() {
+        activeUtteranceId = null
         tts.stop()
         offset = 0
         state = "idle"
@@ -316,9 +390,10 @@ class TtsPlaybackService : Service(), TextToSpeech.OnInitListener {
         eventSink?.invoke(event)
     }
 
-    private fun failure(message: String, type: String = "error") {
+    private fun failure(message: String, reasonCode: String = "speechError") {
+        activeUtteranceId = null
         state = "error"
-        emit(type, mapOf("message" to message))
+        emit("error", mapOf("message" to message, "reasonCode" to reasonCode))
         updateSession()
     }
 

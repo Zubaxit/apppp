@@ -35,7 +35,10 @@ class FakeConnectivity implements ConnectivityService {
 class TestHarness {
   TestHarness({
     SourceRegistry? registry,
-    AppPreferences prefs = const AppPreferences(language: AppLanguage.bn),
+    AppPreferences prefs = const AppPreferences(
+      language: AppLanguage.bn,
+      webViewTourComplete: true,
+    ),
     AppStores? stores,
     FakeFeedGateway? gateway,
     bool online = true,
@@ -94,7 +97,11 @@ class TestHarness {
       ];
 
   /// Pumps [child] inside the full app chrome (strings, motion, theme).
-  Widget wrap(Widget child, {Brightness brightness = Brightness.light}) {
+  Widget wrap(
+    Widget child, {
+    Brightness brightness = Brightness.light,
+    bool reduceMotion = true,
+  }) {
     return MultiProvider(
       providers: providers,
       child: Builder(
@@ -108,7 +115,7 @@ class TestHarness {
                 child: AppEffectsScope(
                   ultraLight: settings.ultraLightMode,
                   child: AppMotionScope(
-                    reduceMotion: true,
+                    reduceMotion: reduceMotion || settings.reduceMotion,
                     child: MaterialApp(
                       debugShowCheckedModeBanner: false,
                       theme: brightness == Brightness.dark

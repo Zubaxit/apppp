@@ -84,6 +84,22 @@ void main() {
       controller.dispose();
     });
 
+    test('WebView tour claim is persisted and cannot be claimed twice',
+        () async {
+      final InMemoryPreferencesStore store = InMemoryPreferencesStore();
+      final SettingsController controller = SettingsController(
+        initial: const AppPreferences(),
+        store: store,
+      );
+      expect(await controller.claimWebViewTour(), isTrue);
+      expect(await controller.claimWebViewTour(), isFalse);
+      expect(
+        AppPreferences.decode(await store.read()).webViewTourComplete,
+        isTrue,
+      );
+      controller.dispose();
+    });
+
     test('reading integrations and Ultra-Light mode persist independently',
         () async {
       final InMemoryPreferencesStore store = InMemoryPreferencesStore();

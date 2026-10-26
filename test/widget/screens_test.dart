@@ -432,6 +432,35 @@ void main() {
   });
 
   group('SettingsScreen', () {
+    testWidgets('feed choices adapt at 320dp with large text in dark theme',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(320, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(
+          language: AppLanguage.en,
+          theme: AppThemeChoice.dark,
+          textScale: 1.4,
+          webViewTourComplete: true,
+        ),
+      );
+      await tester.pumpWidget(
+        h.wrap(const SettingsScreen(), brightness: Brightness.dark),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Default feed'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Latest news'), findsOneWidget);
+      expect(find.text('Followed publishers'), findsOneWidget);
+      expect(find.text('15m'), findsOneWidget);
+      expect(find.text('240m'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('pinned heading has an opaque surface above scrolling content',
         (WidgetTester tester) async {
       final TestHarness h = harness();
@@ -938,6 +967,64 @@ void main() {
   });
 
   group('AppShell navigation', () {
+    testWidgets('meaningful settled scroll briefly transforms navigation',
+        (WidgetTester tester) async {
+      final List<Article> articles = List<Article>.generate(
+        25,
+        (int index) => sampleArticle(
+          title: 'Bounce story $index',
+          link: 'https://example.com/bounce-$index',
+        ),
+      );
+      final TestHarness h = harness(artwork: articles);
+      await tester.pumpWidget(h.wrap(const AppShell(), reduceMotion: false));
+      await tester.pumpAndSettle();
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(find.byType(CustomScrollView).first),
+      );
+      await gesture.moveBy(const Offset(0, -450));
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 100));
+      final Transform bounce = tester.widget<Transform>(
+        find.byKey(const ValueKey<String>('scroll-nav-bounce')),
+      );
+      expect(bounce.transform.getTranslation().y, isNot(0));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Transform>(
+              find.byKey(const ValueKey<String>('scroll-nav-bounce')),
+            )
+            .transform
+            .getTranslation()
+            .y,
+        0,
+      );
+    });
+
+    testWidgets('reduced motion suppresses scroll navigation bounce',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(
+          language: AppLanguage.bn,
+          motion: MotionChoice.reduced,
+          webViewTourComplete: true,
+        ),
+      );
+      await tester.pumpWidget(h.wrap(const AppShell()));
+      await tester.pumpAndSettle();
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(find.byType(CustomScrollView).first),
+      );
+      await gesture.moveBy(const Offset(0, -200));
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 100));
+      final Transform bounce = tester.widget<Transform>(
+        find.byKey(const ValueKey<String>('scroll-nav-bounce')),
+      );
+      expect(bounce.transform.getTranslation().y, 0);
+    });
+
     testWidgets(
         'reselecting Home refreshes once and returns its feed to the top',
         (WidgetTester tester) async {

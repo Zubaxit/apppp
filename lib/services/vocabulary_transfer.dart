@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/services.dart';
 
 import '../data/models/vocabulary_entry.dart';
 
@@ -67,7 +67,8 @@ class VocabularyTransferCodec {
     for (final Object? raw in decoded['entries'] as List<dynamic>) {
       if (raw is! Map<String, dynamic>) {
         throw const VocabularyTransferException(
-            'A vocabulary entry is malformed.');
+          'A vocabulary entry is malformed.',
+        );
       }
       final String word = '${raw['word'] ?? ''}'.trim();
       final String meaning = '${raw['meaningBn'] ?? ''}'.trim();
@@ -98,26 +99,61 @@ class VocabularyTransferCodec {
   }
 }
 
+/// Injectable document writer so cancellation and platform failures are tested
+/// without opening an Android activity in a widget test.
+abstract class VocabularyDocumentWriter {
+  Future<bool> write({required String suggestedName, required String contents});
+}
+
+/// Uses Android's Storage Access Framework ACTION_CREATE_DOCUMENT flow. The
+/// native side writes and closes the content-resolver stream before returning
+/// success, so a content:// URI is never treated as a normal file path.
+class AndroidVocabularyDocumentWriter implements VocabularyDocumentWriter {
+  const AndroidVocabularyDocumentWriter();
+
+  static const MethodChannel _channel =
+      MethodChannel('amar_news/vocabulary_transfer');
+
+  @override
+  Future<bool> write({
+    required String suggestedName,
+    required String contents,
+  }) async {
+    try {
+      return await _channel.invokeMethod<bool>('export', <String, Object?>{
+            'suggestedName': suggestedName,
+            'contents': contents,
+          }) ??
+          false;
+    } on PlatformException catch (error) {
+      throw VocabularyTransferException(
+        error.code == 'export_busy'
+            ? 'Another export is already open. Finish or cancel it first.'
+            : 'Android could not write the backup. Choose another folder and check available storage.',
+      );
+    } on MissingPluginException {
+      throw const VocabularyTransferException(
+        'Vocabulary export is unavailable on this device build.',
+      );
+    }
+  }
+}
+
 class VocabularyFileTransfer {
   const VocabularyFileTransfer._();
 
-  static Future<bool> export(List<VocabularyEntry> entries) async {
-    final FileSaveLocation? location = await getSaveLocation(
+  static Future<bool> export(
+    List<VocabularyEntry> entries, {
+    VocabularyDocumentWriter writer =
+        const AndroidVocabularyDocumentWriter(),
+  }) {
+    // Encoding happens before launching the picker. Invalid in-memory data can
+    // therefore never create or partially overwrite a destination document.
+    final String contents = VocabularyTransferCodec.encode(entries);
+    return writer.write(
       suggestedName: 'amar-news-vocabulary.json',
-      acceptedTypeGroups: const <XTypeGroup>[
-        XTypeGroup(label: 'JSON', extensions: <String>['json']),
-      ],
+      contents: contents,
     );
-    if (location == null) return false;
-    final Uint8List bytes = Uint8List.fromList(
-      utf8.encode(VocabularyTransferCodec.encode(entries)),
-    );
-    await XFile.fromData(
-      bytes,
-      mimeType: 'application/json',
-      name: 'amar-news-vocabulary.json',
-    ).saveTo(location.path);
-    return true;
   }
 
   static Future<List<VocabularyEntry>?> pickAndDecode() async {

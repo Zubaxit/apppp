@@ -247,6 +247,13 @@ class ReaderTtsController extends ChangeNotifier {
       {required String language}) async {
     final SpokenDocument next = SpokenDocument.fromParagraphs(paragraphs);
     if (next.text.isEmpty) {
+      _articleId = id;
+      _document = next;
+      _offset = 0;
+      _activeSentence = -1;
+      _state = TtsPlaybackState.error;
+      _error = 'This article does not contain readable text.';
+      notifyListeners();
       return;
     }
     if (_articleId != id) {
@@ -269,6 +276,10 @@ class ReaderTtsController extends ChangeNotifier {
     } on PlatformException catch (error) {
       _state = TtsPlaybackState.error;
       _error = error.message ?? 'Text-to-speech could not start.';
+      notifyListeners();
+    } on Object {
+      _state = TtsPlaybackState.error;
+      _error = 'Text-to-speech could not start. Check the Android TTS engine.';
       notifyListeners();
     }
   }

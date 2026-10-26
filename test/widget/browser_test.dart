@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:bangladesh_newspaper_hub/core/utils/reader_extract.dart';
+import 'package:bangladesh_newspaper_hub/data/models/app_preferences.dart';
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/browser_screen.dart';
@@ -418,6 +419,44 @@ void main() {
       expect(find.text(h.settings.strings.readerExtractionFailedBody),
           findsOneWidget);
       expect(find.byType(ReaderModeScreen), findsNothing);
+    });
+  });
+
+  group('first WebView quick tour', () {
+    testWidgets('presents once, persists dismissal, and never duplicates',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(
+          language: AppLanguage.bn,
+          webViewTourComplete: false,
+        ),
+      );
+      final FakeBrowserEngine first = FakeBrowserEngine();
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: first.url, engine: first),
+      ));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('webview-quick-tour')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('webview-tour-skip')),
+      );
+      await tester.pumpAndSettle();
+      expect(h.settings.webViewTourComplete, isTrue);
+
+      final FakeBrowserEngine second = FakeBrowserEngine(
+        url: 'https://www.dw.com/en/news/a-123',
+      );
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: second.url, engine: second),
+      ));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('webview-quick-tour')),
+        findsNothing,
+      );
     });
   });
 

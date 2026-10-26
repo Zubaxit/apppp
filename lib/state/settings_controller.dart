@@ -52,6 +52,7 @@ class SettingsController extends ChangeNotifier {
   bool get translationIntegrationEnabled =>
       _prefs.translationIntegrationEnabled;
   bool get ultraLightMode => _prefs.ultraLightMode;
+  bool get webViewTourComplete => _prefs.webViewTourComplete;
   int get refreshMinutes => _prefs.refreshMinutes;
   DefaultFeed get defaultFeed => _prefs.defaultFeed;
 
@@ -120,6 +121,15 @@ class SettingsController extends ChangeNotifier {
         _prefs.copyWith(
             motion: reduce ? MotionChoice.reduced : MotionChoice.system),
       );
+
+  /// Atomically claims the one automatic WebView tour for this installation.
+  /// [_update] changes the in-memory value before awaiting disk, preventing two
+  /// concurrently opened browser routes from presenting duplicate dialogs.
+  Future<bool> claimWebViewTour() async {
+    if (_prefs.webViewTourComplete) return false;
+    await _update(_prefs.copyWith(webViewTourComplete: true));
+    return true;
+  }
 
   Future<void> setVocabularyIntegrationEnabled(bool enabled) => _update(
         _prefs.copyWith(vocabularyIntegrationEnabled: enabled),

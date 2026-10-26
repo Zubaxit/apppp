@@ -258,8 +258,7 @@ class _VocabularyListState extends State<VocabularyList> {
             children: <Widget>[
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed:
-                      saved.vocabulary.isEmpty ? null : () => _export(saved),
+                  onPressed: () => _export(saved),
                   icon: const Icon(Icons.file_upload_outlined),
                   label: const Text('Export'),
                 ),

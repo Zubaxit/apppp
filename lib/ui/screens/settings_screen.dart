@@ -182,9 +182,9 @@ class SettingsScreen extends StatelessWidget {
                         child: _Choice<int>(
                           values: AppPreferences.refreshOptions,
                           selected: settings.refreshMinutes,
-                          labelOf: (int minutes) =>
-                              '${bengali ? _bnNumber(minutes) : minutes} '
-                              '${context.strings.everyMinutes}',
+                          labelOf: (int minutes) => bengali
+                              ? '${_bnNumber(minutes)} মি.'
+                              : '${minutes}m',
                           onSelected: (int value) async {
                             await settings.setRefreshMinutes(value);
                             if (context.mounted) {
@@ -466,20 +466,36 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            flex: 4,
-            child: Text(label, style: context.texts.labelLarge),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-              flex: 6,
-              child: Align(alignment: Alignment.centerRight, child: child)),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool stacked = constraints.maxWidth < 390 ||
+            MediaQuery.textScalerOf(context).scale(14) > 16.5;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          child: stacked
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    Text(label, style: context.texts.labelLarge),
+                    const SizedBox(height: 8),
+                    child,
+                  ],
+                )
+              : Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 4,
+                      child: Text(label, style: context.texts.labelLarge),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 6,
+                      child: child,
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 }
@@ -504,7 +520,7 @@ class _Choice<T> extends StatelessWidget {
     final bool dark = context.isDark;
     final int index = values.indexOf(selected).clamp(0, values.length - 1);
     return Container(
-      height: 34,
+      constraints: const BoxConstraints(minHeight: 40),
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Tokens.radiusPill),
@@ -560,7 +576,7 @@ class _Choice<T> extends StatelessWidget {
                         ),
                         child: Text(
                           labelOf(value),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                         ),

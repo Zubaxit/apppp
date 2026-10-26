@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -11,6 +12,32 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val channelName = "amar_news/reader_tts"
+    private var pendingVocabularyExport: MethodChannel.Result? = null
+    private var pendingVocabularyContents: String? = null
+    private val createVocabularyDocument = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        val result = pendingVocabularyExport
+        val contents = pendingVocabularyContents
+        pendingVocabularyExport = null
+        pendingVocabularyContents = null
+        if (result == null) return@registerForActivityResult
+        if (uri == null) {
+            result.success(false)
+            return@registerForActivityResult
+        }
+        try {
+            val stream = contentResolver.openOutputStream(uri, "wt")
+                ?: throw IllegalStateException("The selected document cannot be opened for writing.")
+            stream.bufferedWriter(Charsets.UTF_8).use { writer ->
+                writer.write(contents ?: "")
+                writer.flush()
+            }
+            result.success(true)
+        } catch (error: Exception) {
+            result.error("export_write_failed", error.message, null)
+        }
+    }
 
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST = 4102
@@ -21,6 +48,29 @@ class MainActivity : FlutterActivity() {
         val channel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
         TtsPlaybackService.eventSink = { event ->
             runOnUiThread { channel.invokeMethod("ttsEvent", event) }
+        }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "amar_news/vocabulary_transfer",
+        ).setMethodCallHandler { call, result ->
+            if (call.method != "export") {
+                result.notImplemented()
+                return@setMethodCallHandler
+            }
+            if (pendingVocabularyExport != null) {
+                result.error("export_busy", "A document picker is already open.", null)
+                return@setMethodCallHandler
+            }
+            val contents = call.argument<String>("contents")
+            if (contents == null) {
+                result.error("export_invalid", "No vocabulary data was provided.", null)
+                return@setMethodCallHandler
+            }
+            pendingVocabularyExport = result
+            pendingVocabularyContents = contents
+            createVocabularyDocument.launch(
+                call.argument<String>("suggestedName") ?: "amar-news-vocabulary.json",
+            )
         }
         channel.setMethodCallHandler { call, result ->
             if (call.method == "state") {

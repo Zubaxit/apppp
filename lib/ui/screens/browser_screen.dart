@@ -98,6 +98,48 @@ class _BrowserScreenState extends State<BrowserScreen> {
     _canGoBack = _engine.canGoBack;
     _engine.addListener(_onEngine);
     _engine.watchSelection(_onSelectionChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_showFirstWebViewTour());
+    });
+  }
+
+  Future<void> _showFirstWebViewTour() async {
+    if (!mounted || !_engine.supportsReaderMode) return;
+    final bool show =
+        await context.read<SettingsController>().claimWebViewTour();
+    if (!show || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        key: const ValueKey<String>('webview-quick-tour'),
+        icon: const Icon(Icons.auto_stories_rounded),
+        title: const Text('Quick tour'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text('• Tap the book button in the address bar for Reading Mode.'),
+            SizedBox(height: 8),
+            Text('• Use Play to listen and follow sentence highlighting.'),
+            SizedBox(height: 8),
+            Text('• Select text to translate it or save a confirmed meaning.'),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            key: const ValueKey<String>('webview-tour-skip'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Skip'),
+          ),
+          FilledButton(
+            key: const ValueKey<String>('webview-tour-done'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onEngine() {
@@ -787,33 +829,131 @@ class _AddressPill extends StatelessWidget {
             // row tall and no control is pushed off a narrow screen.
             Tooltip(
               message: tooltip ?? '',
-              child: JellySurface(
-                key: const ValueKey<String>('browser-reader'),
+              child: _ReaderDiscoveryButton(
                 onTap: onRead,
-                scale: 0.9,
-                boundary: false,
-                child: Padding(
-                  padding: const EdgeInsets.all(3),
-                  child: reading
-                      ? SizedBox(
-                          width: compact ? 12 : 13,
-                          height: compact ? 12 : 13,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 1.4,
-                            color: context.colors.primary,
-                          ),
-                        )
-                      : Icon(
-                          Icons.auto_stories_outlined,
-                          size: compact ? 14 : 15,
-                          color: context.colors.primary,
-                        ),
-                ),
+                reading: reading,
+                compact: compact,
               ),
             ),
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Briefly emphasizes Reading Mode when a publisher page opens. It runs once
+/// per cooldown, never loops, and is disabled for reduced-motion/Ultra-Light.
+class _ReaderDiscoveryButton extends StatefulWidget {
+  const _ReaderDiscoveryButton({
+    required this.onTap,
+    required this.reading,
+    required this.compact,
+  });
+
+  final VoidCallback onTap;
+  final bool reading;
+  final bool compact;
+
+  @override
+  State<_ReaderDiscoveryButton> createState() =>
+      _ReaderDiscoveryButtonState();
+}
+
+class _ReaderDiscoveryButtonState extends State<_ReaderDiscoveryButton>
+    with SingleTickerProviderStateMixin {
+  static DateTime? _lastEmphasis;
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
+  bool _considered = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_considered) return;
+    _considered = true;
+    final DateTime now = DateTime.now();
+    final DateTime? previous = _lastEmphasis;
+    if (Motion.of(context).reduce ||
+        AppEffectsScope.of(context) ||
+        (previous != null &&
+            now.difference(previous) < const Duration(minutes: 20))) {
+      return;
+    }
+    _lastEmphasis = now;
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double size = widget.compact ? 14 : 15;
+    return AnimatedBuilder(
+      animation: _controller,
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: widget.reading
+            ? SizedBox(
+                width: widget.compact ? 12 : 13,
+                height: widget.compact ? 12 : 13,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.4,
+                  color: context.colors.primary,
+                ),
+              )
+            : Icon(
+                Icons.auto_stories_outlined,
+                size: size,
+                color: context.colors.primary,
+              ),
+      ),
+      builder: (BuildContext context, Widget? child) {
+        final double progress = _controller.value;
+        final double envelope =
+            _controller.isAnimating ? (1 - progress).clamp(0, 1) : 0;
+        final double shake = envelope > 0 && progress < 0.62
+            ? (progress * 10).round().isEven
+                ? 1.5 * envelope
+                : -1.5 * envelope
+            : 0;
+        final double pulse = 1 + 0.10 * envelope;
+        return Transform.translate(
+          offset: Offset(shake, 0),
+          child: Transform.scale(
+            scale: pulse,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: progress == 0 || progress == 1
+                    ? const <BoxShadow>[]
+                    : <BoxShadow>[
+                        BoxShadow(
+                          color: context.colors.primary.withValues(
+                            alpha: 0.24 * envelope,
+                          ),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+              ),
+              child: JellySurface(
+                key: const ValueKey<String>('browser-reader'),
+                onTap: widget.onTap,
+                scale: 0.9,
+                boundary: false,
+                child: child!,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

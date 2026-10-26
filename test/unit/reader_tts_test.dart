@@ -47,6 +47,19 @@ class _TtsEngine implements ReaderTtsEngine {
       'stopped', <String, Object?>{'articleId': article, 'offset': 0}));
 }
 
+class _FailingTtsEngine extends _TtsEngine {
+  @override
+  Future<void> speak({
+    required String articleId,
+    required String text,
+    required String language,
+    required double rate,
+    int startOffset = 0,
+  }) async {
+    throw StateError('engine initialization failed');
+  }
+}
+
 void main() {
   test('segments Bengali and English while preserving UTF-16 offsets', () {
     final SpokenDocument value = SpokenDocument.fromParagraphs(<String>[
@@ -112,6 +125,42 @@ void main() {
     expect(engine.speaks, 2);
     expect(controller.articleId, 'two');
     expect(controller.offset, 0);
+    controller.dispose();
+  });
+
+  test('empty cleaned article never enters a false playing state', () async {
+    final _TtsEngine engine = _TtsEngine();
+    final ReaderTtsController controller = ReaderTtsController(engine: engine);
+    await controller.play('empty', <String>['  ', '\n'], language: 'en-US');
+    expect(engine.speaks, 0);
+    expect(controller.playbackState, TtsPlaybackState.error);
+    expect(controller.error, contains('readable text'));
+    controller.dispose();
+  });
+
+  test('engine initialization failure becomes an actionable error state',
+      () async {
+    final ReaderTtsController controller =
+        ReaderTtsController(engine: _FailingTtsEngine());
+    await controller.play('one', <String>['Readable text.'], language: 'en-US');
+    expect(controller.playbackState, TtsPlaybackState.error);
+    expect(controller.error, contains('Android TTS engine'));
+    controller.dispose();
+  });
+
+  test('unavailable voice data never leaves playback loading', () async {
+    final _TtsEngine engine = _TtsEngine();
+    final ReaderTtsController controller = ReaderTtsController(engine: engine);
+    await controller.play('one', <String>['Readable text.'], language: 'en-US');
+    engine.stream.add(const TtsEvent('error', <String, Object?>{
+      'articleId': 'one',
+      'offset': 0,
+      'reasonCode': 'voiceUnavailable',
+      'message': 'Install English voice data.',
+    }));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.playbackState, TtsPlaybackState.error);
+    expect(controller.error, contains('Install English'));
     controller.dispose();
   });
 

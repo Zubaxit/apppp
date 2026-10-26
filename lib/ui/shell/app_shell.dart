@@ -32,11 +32,15 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell>
-    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   int _index = 0;
   bool _started = false;
 
   late final AnimationController _tabFade;
+  late final AnimationController _navBounce;
+  late final Animation<double> _navOffset;
+  double? _scrollStart;
+  DateTime? _lastBounce;
 
   final HomeReselectController _homeReselect = HomeReselectController();
   late final List<Widget> _tabs = <Widget>[
@@ -55,6 +59,29 @@ class _AppShellState extends State<AppShell>
       duration: const Duration(milliseconds: 260),
       value: 1,
     );
+    _navBounce = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _navOffset = TweenSequence<double>(
+      <TweenSequenceItem<double>>[
+        TweenSequenceItem<double>(
+          tween: Tween<double>(begin: 0, end: -5)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: 35,
+        ),
+        TweenSequenceItem<double>(
+          tween: Tween<double>(begin: -5, end: 1.5)
+              .chain(CurveTween(curve: Curves.easeInOut)),
+          weight: 35,
+        ),
+        TweenSequenceItem<double>(
+          tween: Tween<double>(begin: 1.5, end: 0)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: 30,
+        ),
+      ],
+    ).animate(_navBounce);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_start()));
   }
@@ -78,6 +105,7 @@ class _AppShellState extends State<AppShell>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _tabFade.dispose();
+    _navBounce.dispose();
     super.dispose();
   }
 
@@ -110,6 +138,28 @@ class _AppShellState extends State<AppShell>
       ..forward();
   }
 
+  bool _onScroll(ScrollNotification notification) {
+    if (notification is ScrollStartNotification) {
+      _scrollStart = notification.metrics.pixels;
+    } else if (notification is ScrollEndNotification) {
+      final double distance = (notification.metrics.pixels -
+              (_scrollStart ?? notification.metrics.pixels))
+          .abs();
+      _scrollStart = null;
+      final DateTime now = DateTime.now();
+      final DateTime? previous = _lastBounce;
+      if (distance >= 72 &&
+          !Motion.of(context).reduce &&
+          !AppEffectsScope.of(context) &&
+          (previous == null ||
+              now.difference(previous) >= const Duration(seconds: 2))) {
+        _lastBounce = now;
+        _navBounce.forward(from: 0);
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final SettingsController settings = context.watch<SettingsController>();
@@ -130,25 +180,38 @@ class _AppShellState extends State<AppShell>
         body: AuroraBackdrop(
           child: Stack(
             children: <Widget>[
-              FadeTransition(
-                opacity: _tabFade,
-                child: IndexedStack(index: _index, children: _tabs),
+              NotificationListener<ScrollNotification>(
+                onNotification: _onScroll,
+                child: FadeTransition(
+                  opacity: _tabFade,
+                  child: IndexedStack(index: _index, children: _tabs),
+                ),
               ),
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: _FloatingNav(
-                  index: _index,
-                  onSelected: _select,
-                  savedCount: savedCount,
-                  labels: <String>[
-                    settings.strings.navHome,
-                    settings.strings.navCategories,
-                    settings.strings.navPapers,
-                    settings.strings.navSaved,
-                    settings.strings.navSettings,
-                  ],
+                child: AnimatedBuilder(
+                  animation: _navBounce,
+                  child: _FloatingNav(
+                    index: _index,
+                    onSelected: _select,
+                    savedCount: savedCount,
+                    labels: <String>[
+                      settings.strings.navHome,
+                      settings.strings.navCategories,
+                      settings.strings.navPapers,
+                      settings.strings.navSaved,
+                      settings.strings.navSettings,
+                    ],
+                  ),
+                  builder: (BuildContext context, Widget? child) {
+                    return Transform.translate(
+                      key: const ValueKey<String>('scroll-nav-bounce'),
+                      offset: Offset(0, _navOffset.value),
+                      child: child,
+                    );
+                  },
                 ),
               ),
             ],
