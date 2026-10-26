@@ -74,7 +74,8 @@ void main() {
       expect(translator.requiresNetwork, isTrue);
     });
 
-    test('decodes Bengali JSON bytes as UTF-8 when charset is omitted', () async {
+    test('decodes Bengali JSON bytes as UTF-8 when charset is omitted',
+        () async {
       const String meaning = 'প্রতিবন্ধকতা—যুক্তাক্ষর ক্ষ, জ্ঞ।';
       final List<int> bytes = utf8.encode(jsonEncode(<String, Object>{
         'responseStatus': 200,

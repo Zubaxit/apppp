@@ -438,7 +438,8 @@ void main() {
   });
 
   group('SettingsScreen', () {
-    testWidgets('selected choices use a clean primary pill without stray border',
+    testWidgets(
+        'selected choices use a clean primary pill without stray border',
         (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const SettingsScreen()));
@@ -988,7 +989,8 @@ void main() {
   });
 
   group('AppShell navigation', () {
-    testWidgets('performance tip waits five seconds after first successful load',
+    testWidgets(
+        'performance tip waits five seconds after first successful load',
         (WidgetTester tester) async {
       final TestHarness h = harness(
         artwork: <Article>[bnArticle],
@@ -999,18 +1001,19 @@ void main() {
         ),
       );
       await tester.pumpWidget(h.wrap(const AppShell()));
-      for (int i = 0;
-          i < 10 && !h.settings.prefs.onboardingComplete;
-          i++) {
+      for (int i = 0; i < 10 && !h.settings.prefs.onboardingComplete; i++) {
         await tester.pump();
       }
       expect(h.settings.prefs.onboardingComplete, isTrue);
-      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+      expect(
+          find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
 
       await tester.pump(const Duration(milliseconds: 4999));
-      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+      expect(
+          find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
       await tester.pump(const Duration(milliseconds: 1));
-      expect(find.byKey(const ValueKey<String>('performance-tip')), findsOneWidget);
+      expect(find.byKey(const ValueKey<String>('performance-tip')),
+          findsOneWidget);
       expect(find.text('Want a smoother experience?'), findsOneWidget);
       expect(
         find.text(
@@ -1026,7 +1029,8 @@ void main() {
 
       await tester.pumpWidget(h.wrap(AppShell(key: UniqueKey())));
       await tester.pump(const Duration(seconds: 6));
-      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+      expect(
+          find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
     });
 
     testWidgets('failed offline first load never schedules performance tip',
@@ -1041,7 +1045,8 @@ void main() {
       await tester.pumpWidget(h.wrap(const AppShell()));
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 6));
-      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+      expect(
+          find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
       expect(h.settings.performanceTipComplete, isFalse);
     });
 
@@ -1056,9 +1061,7 @@ void main() {
         ),
       );
       await tester.pumpWidget(h.wrap(const AppShell()));
-      for (int i = 0;
-          i < 10 && !h.settings.prefs.onboardingComplete;
-          i++) {
+      for (int i = 0; i < 10 && !h.settings.prefs.onboardingComplete; i++) {
         await tester.pump();
       }
       await tester.pump(const Duration(seconds: 5));

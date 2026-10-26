@@ -58,7 +58,8 @@ void main() {
     expect(decoded.single.savedAt, DateTime.utc(2026, 10, 26));
   });
 
-  test('strict UTF-8 preserves Bengali conjuncts, signs, punctuation and mixed text',
+  test(
+      'strict UTF-8 preserves Bengali conjuncts, signs, punctuation and mixed text',
       () {
     const List<String> meanings = <String>[
       'প্রতিবন্ধকতা',
@@ -66,7 +67,8 @@ void main() {
       'Legislature অর্থ আইনসভা। ১২৩টি ধারা',
     ];
     final String json = VocabularyTransferCodec.encode(<VocabularyEntry>[
-      for (int i = 0; i < meanings.length; i++) entry(uniqueWord(i), meanings[i]),
+      for (int i = 0; i < meanings.length; i++)
+        entry(uniqueWord(i), meanings[i]),
     ]);
     final List<VocabularyEntry> decoded = VocabularyTransferCodec.decodeBytes(
       Uint8List.fromList(<int>[0xEF, 0xBB, 0xBF, ...utf8.encode(json)]),
@@ -99,7 +101,9 @@ void main() {
       throwsA(isA<VocabularyTransferException>()),
     );
     final String damaged = VocabularyTransferCodec.encode(
-      <VocabularyEntry>[entry('obstacle', 'à¦ªà§\x8dà¦°à¦¤à¦¿à¦¬à¦¨à§\x8dà¦§à¦\x95à¦¤à¦¾')],
+      <VocabularyEntry>[
+        entry('obstacle', 'à¦ªà§\x8dà¦°à¦¤à¦¿à¦¬à¦¨à§\x8dà¦§à¦\x95à¦¤à¦¾')
+      ],
     );
     expect(
       () => VocabularyTransferCodec.decode(damaged),

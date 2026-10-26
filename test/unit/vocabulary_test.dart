@@ -62,7 +62,8 @@ void main() {
     expect(harness.saved.vocabulary, isEmpty);
   });
 
-  test('import and repository retrieval preserve exact Bengali Unicode', () async {
+  test('import and repository retrieval preserve exact Bengali Unicode',
+      () async {
     const String meaning =
         'রাষ্ট্রের আইনসভা—যুক্তাক্ষর ক্ষ, জ্ঞ; mixed Legislature অর্থ।';
     final TestHarness harness = TestHarness(stores: fakeStores());

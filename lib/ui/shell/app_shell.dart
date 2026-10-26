@@ -107,9 +107,7 @@ class _AppShellState extends State<AppShell>
       // five-second tip delay starts only after that successful transition.
       await settings.completeOnboarding();
     }
-    if (firstLaunch &&
-        successfulLoad &&
-        !settings.performanceTipComplete) {
+    if (firstLaunch && successfulLoad && !settings.performanceTipComplete) {
       _schedulePerformanceTip(settings);
     }
     feed.setPollingActive(_index == 0);

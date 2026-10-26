@@ -398,81 +398,82 @@ class _BrowserScreenState extends State<BrowserScreen> {
           children: <Widget>[
             Column(
               children: <Widget>[
-            ListenableBuilder(
-              listenable: _engine,
-              builder: (BuildContext context, Widget? child) => BrowserToolbar(
-                domain: _engine.domain.isNotEmpty ? _engine.domain : domain,
-                title: widget.title,
-                loading: _engine.loading,
-                progress: _engine.progress,
-                canGoBack: _engine.canGoBack,
-                onClose: _close,
-                onBack: _handleBack,
-                onReload: () => _engine.reload(),
-                onExternal: () => openUrlFeedback(context, _engine.url),
-                onSave: _savedLink ? null : _explainOfflineSave,
-                saved: _savedLink,
-                reading: _extracting,
-                onRead: _engine.supportsReaderMode ? _openReaderMode : null,
-                readerButtonKey: _readerButtonKey,
-                readerEmphasisEnabled: !_readerOpened,
-                shieldEnabled: _engine.shieldEnabled,
-                onShield: settings.newsShieldEnabled ? _toggleShield : null,
-              ),
-            ),
-            // The page surface listens to the engine itself, so a navigation
-            // error or a finished load repaints this subtree without the screen
-            // rebuilding the platform view's widget on every progress event.
-            Expanded(
-              child: Stack(
-                children: <Widget>[
-                  Positioned.fill(
-                    child: ListenableBuilder(
-                      listenable: _engine,
-                      child: _browserView,
-                      builder: (BuildContext context, Widget? view) {
-                        final String? error = _engine.error;
-                        if (error == null) return view!;
-                        return _BrowserError(
-                          message: error,
-                          onRetry: () => _engine.reload(),
-                          onExternal: () =>
-                              openUrlFeedback(context, _engine.url),
-                        );
-                      },
-                    ),
+                ListenableBuilder(
+                  listenable: _engine,
+                  builder: (BuildContext context, Widget? child) =>
+                      BrowserToolbar(
+                    domain: _engine.domain.isNotEmpty ? _engine.domain : domain,
+                    title: widget.title,
+                    loading: _engine.loading,
+                    progress: _engine.progress,
+                    canGoBack: _engine.canGoBack,
+                    onClose: _close,
+                    onBack: _handleBack,
+                    onReload: () => _engine.reload(),
+                    onExternal: () => openUrlFeedback(context, _engine.url),
+                    onSave: _savedLink ? null : _explainOfflineSave,
+                    saved: _savedLink,
+                    reading: _extracting,
+                    onRead: _engine.supportsReaderMode ? _openReaderMode : null,
+                    readerButtonKey: _readerButtonKey,
+                    readerEmphasisEnabled: !_readerOpened,
+                    shieldEnabled: _engine.shieldEnabled,
+                    onShield: settings.newsShieldEnabled ? _toggleShield : null,
                   ),
-                  // The selection action floats over the page instead of
-                  // pushing it: a strip that changes the page height while the
-                  // user is holding a selection would move the selection under
-                  // their finger.
-                  if (_selection.isNotEmpty)
-                    Positioned(
-                      left: 12,
-                      right: 12,
-                      bottom: 12,
-                      child: _SelectionAction(
-                        selection: _selection,
-                        onSaveWord: settings.vocabularyIntegrationEnabled &&
-                                RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
-                                    .hasMatch(_selection)
-                            ? _saveSelectedWord
-                            : null,
-                        onMeaning: settings.translationIntegrationEnabled
-                            ? _translateSelection
-                            : null,
-                        onTranslate: settings.translationIntegrationEnabled
-                            ? _translateSelection
-                            : null,
-                        onRead: settings.ttsIntegrationEnabled
-                            ? _readSelection
-                            : null,
-                        onDismiss: () => _onSelectionChanged(''),
+                ),
+                // The page surface listens to the engine itself, so a navigation
+                // error or a finished load repaints this subtree without the screen
+                // rebuilding the platform view's widget on every progress event.
+                Expanded(
+                  child: Stack(
+                    children: <Widget>[
+                      Positioned.fill(
+                        child: ListenableBuilder(
+                          listenable: _engine,
+                          child: _browserView,
+                          builder: (BuildContext context, Widget? view) {
+                            final String? error = _engine.error;
+                            if (error == null) return view!;
+                            return _BrowserError(
+                              message: error,
+                              onRetry: () => _engine.reload(),
+                              onExternal: () =>
+                                  openUrlFeedback(context, _engine.url),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ),
+                      // The selection action floats over the page instead of
+                      // pushing it: a strip that changes the page height while the
+                      // user is holding a selection would move the selection under
+                      // their finger.
+                      if (_selection.isNotEmpty)
+                        Positioned(
+                          left: 12,
+                          right: 12,
+                          bottom: 12,
+                          child: _SelectionAction(
+                            selection: _selection,
+                            onSaveWord: settings.vocabularyIntegrationEnabled &&
+                                    RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
+                                        .hasMatch(_selection)
+                                ? _saveSelectedWord
+                                : null,
+                            onMeaning: settings.translationIntegrationEnabled
+                                ? _translateSelection
+                                : null,
+                            onTranslate: settings.translationIntegrationEnabled
+                                ? _translateSelection
+                                : null,
+                            onRead: settings.ttsIntegrationEnabled
+                                ? _readSelection
+                                : null,
+                            onDismiss: () => _onSelectionChanged(''),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ],
             ),
             if (_tourVisible)
@@ -521,10 +522,14 @@ class _ReaderCoachMarkState extends State<_ReaderCoachMark>
           widget.targetKey.currentContext?.findRenderObject() as RenderBox?;
       final RenderBox? layer =
           _layerKey.currentContext?.findRenderObject() as RenderBox?;
-      if (target == null || layer == null || !target.hasSize || !layer.hasSize) {
+      if (target == null ||
+          layer == null ||
+          !target.hasSize ||
+          !layer.hasSize) {
         return;
       }
-      final Offset origin = layer.globalToLocal(target.localToGlobal(Offset.zero));
+      final Offset origin =
+          layer.globalToLocal(target.localToGlobal(Offset.zero));
       final Rect next = origin & target.size;
       if (_target != next) setState(() => _target = next);
     });
@@ -547,11 +552,10 @@ class _ReaderCoachMarkState extends State<_ReaderCoachMark>
         final double maximumTop = (constraints.maxHeight - safe.bottom - 250)
             .clamp(minimumTop, double.infinity)
             .toDouble();
-        final double cardTop = (target == null
-                ? safe.top + 92
-                : target.bottom + 14)
-            .clamp(minimumTop, maximumTop)
-            .toDouble();
+        final double cardTop =
+            (target == null ? safe.top + 92 : target.bottom + 14)
+                .clamp(minimumTop, maximumTop)
+                .toDouble();
         return SizedBox.expand(
           key: _layerKey,
           child: Stack(
@@ -594,7 +598,9 @@ class _ReaderCoachMarkState extends State<_ReaderCoachMark>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          bengali ? 'রিডিং মোড ব্যবহার করে দেখুন' : 'Try Reading Mode',
+                          bengali
+                              ? 'রিডিং মোড ব্যবহার করে দেখুন'
+                              : 'Try Reading Mode',
                           style: context.texts.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -604,7 +610,8 @@ class _ReaderCoachMarkState extends State<_ReaderCoachMark>
                           bengali
                               ? 'উপরে চিহ্নিত বই বাটনে চাপুন। পরিষ্কারভাবে খবর পড়ুন, শুনুন, অনুবাদ করুন এবং নিশ্চিত অর্থসহ নতুন শব্দ সংরক্ষণ করুন।'
                               : 'Tap the highlighted book button for a cleaner article view, text-to-speech, translation, and vocabulary saving with confirmed meanings.',
-                          style: context.texts.bodyMedium?.copyWith(height: 1.45),
+                          style:
+                              context.texts.bodyMedium?.copyWith(height: 1.45),
                         ),
                         Align(
                           alignment: Alignment.centerRight,
@@ -640,15 +647,19 @@ class _SpotlightPainter extends CustomPainter {
         : Path.combine(
             PathOperation.difference,
             full,
-            Path()..addRRect(
-                RRect.fromRectAndRadius(value.inflate(8), const Radius.circular(18)),
+            Path()
+              ..addRRect(
+                RRect.fromRectAndRadius(
+                    value.inflate(8), const Radius.circular(18)),
               ),
           );
-    canvas.drawPath(path, Paint()..color = Colors.black.withValues(alpha: 0.56));
+    canvas.drawPath(
+        path, Paint()..color = Colors.black.withValues(alpha: 0.56));
   }
 
   @override
-  bool shouldRepaint(_SpotlightPainter oldDelegate) => oldDelegate.target != target;
+  bool shouldRepaint(_SpotlightPainter oldDelegate) =>
+      oldDelegate.target != target;
 }
 
 /// The browser's controls, in one row: close, the address pill, then page
