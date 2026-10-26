@@ -62,6 +62,22 @@ void main() {
     expect(harness.saved.vocabulary, isEmpty);
   });
 
+  test('import and repository retrieval preserve exact Bengali Unicode', () async {
+    const String meaning =
+        'রাষ্ট্রের আইনসভা—যুক্তাক্ষর ক্ষ, জ্ঞ; mixed Legislature অর্থ।';
+    final TestHarness harness = TestHarness(stores: fakeStores());
+    await harness.saved.load();
+    await harness.saved.importVocabulary(
+      <VocabularyEntry>[entry('legislature', meaning)],
+      replaceConflicts: false,
+    );
+    expect(harness.saved.vocabularyFor('LEGISLATURE')?.meaningBn, meaning);
+    expect(
+      (await harness.repository.vocabulary()).single.meaningBn,
+      meaning,
+    );
+  });
+
   test('import preserves or replaces conflicts only when requested', () async {
     final TestHarness harness = TestHarness(stores: fakeStores());
     await harness.saved.load();

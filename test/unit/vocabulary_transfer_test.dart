@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:bangladesh_newspaper_hub/data/models/vocabulary_entry.dart';
 import 'package:bangladesh_newspaper_hub/services/vocabulary_transfer.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,6 +46,55 @@ void main() {
     expect(decoded.single.partOfSpeech, 'noun');
     expect(decoded.single.articleUrl, 'https://example.com/article');
     expect(decoded.single.savedAt, DateTime.utc(2026, 10, 26));
+  });
+
+  test('strict UTF-8 preserves Bengali conjuncts, signs, punctuation and mixed text',
+      () {
+    const List<String> meanings = <String>[
+      'প্রতিবন্ধকতা',
+      'রাষ্ট্রের আইনসভা—সংসদ; যুক্তাক্ষর: ক্ষ, জ্ঞ, ত্র',
+      'Legislature অর্থ আইনসভা। ১২৩টি ধারা',
+    ];
+    final String json = VocabularyTransferCodec.encode(<VocabularyEntry>[
+      for (int i = 0; i < meanings.length; i++) entry('word$i', meanings[i]),
+    ]);
+    final List<VocabularyEntry> decoded = VocabularyTransferCodec.decodeBytes(
+      Uint8List.fromList(<int>[0xEF, 0xBB, 0xBF, ...utf8.encode(json)]),
+    );
+    expect(
+      decoded.map((VocabularyEntry value) => value.meaningBn).toList(),
+      meanings,
+    );
+  });
+
+  test('large UTF-8 vocabulary round trips without character replacement', () {
+    final List<VocabularyEntry> original = <VocabularyEntry>[
+      for (int i = 0; i < 1500; i++)
+        entry('term$i', 'অর্থ $i — বাংলাদেশের যুক্তাক্ষর ও কার-ফলা'),
+    ];
+    final List<VocabularyEntry> decoded = VocabularyTransferCodec.decodeBytes(
+      Uint8List.fromList(
+        utf8.encode(VocabularyTransferCodec.encode(original)),
+      ),
+    );
+    expect(decoded, hasLength(original.length));
+    expect(decoded[1499].meaningBn, original[1499].meaningBn);
+  });
+
+  test('invalid UTF-8 and known Bengali mojibake are rejected', () {
+    expect(
+      () => VocabularyTransferCodec.decodeBytes(
+        Uint8List.fromList(<int>[0x7B, 0xFF, 0x7D]),
+      ),
+      throwsA(isA<VocabularyTransferException>()),
+    );
+    final String damaged = VocabularyTransferCodec.encode(
+      <VocabularyEntry>[entry('obstacle', 'à¦ªà§\x8dà¦°à¦¤à¦¿à¦¬à¦¨à§\x8dà¦§à¦\x95à¦¤à¦¾')],
+    );
+    expect(
+      () => VocabularyTransferCodec.decode(damaged),
+      throwsA(isA<VocabularyTransferException>()),
+    );
   });
 
   test('case-insensitive duplicates are collapsed safely', () {

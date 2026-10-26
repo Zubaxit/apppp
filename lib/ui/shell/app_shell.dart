@@ -35,6 +35,7 @@ class _AppShellState extends State<AppShell>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   int _index = 0;
   bool _started = false;
+  Timer? _performanceTipTimer;
 
   late final AnimationController _tabFade;
   late final AnimationController _navBounce;
@@ -44,12 +45,13 @@ class _AppShellState extends State<AppShell>
   DateTime? _lastBounce;
 
   final HomeReselectController _homeReselect = HomeReselectController();
+  final GlobalKey _ultraLightKey = GlobalKey();
   late final List<Widget> _tabs = <Widget>[
     HomeScreen(reselectController: _homeReselect),
     const CategoriesScreen(),
     const NewspapersScreen(),
     const SavedScreen(),
-    const SettingsScreen(),
+    SettingsScreen(ultraLightKey: _ultraLightKey),
   ];
 
   @override
@@ -93,8 +95,23 @@ class _AppShellState extends State<AppShell>
     final FeedController feed = context.read<FeedController>();
     final SavedController saved = context.read<SavedController>();
     final SettingsController settings = context.read<SettingsController>();
+    final bool firstLaunch = !settings.prefs.onboardingComplete;
     await saved.load();
     await feed.start();
+    final bool successfulLoad = feed.articles.isNotEmpty &&
+        feed.lastReport?.storageError == null &&
+        ((feed.lastReport?.sourcesSucceeded ?? 0) > 0 ||
+            (feed.lastReport?.sourcesNotModified ?? 0) > 0);
+    if (firstLaunch && successfulLoad) {
+      // The welcome disappears synchronously with this preference update. The
+      // five-second tip delay starts only after that successful transition.
+      await settings.completeOnboarding();
+    }
+    if (firstLaunch &&
+        successfulLoad &&
+        !settings.performanceTipComplete) {
+      _schedulePerformanceTip(settings);
+    }
     feed.setPollingActive(_index == 0);
     if (settings.defaultFeed == DefaultFeed.following &&
         settings.followedSourceIds.isNotEmpty) {
@@ -102,9 +119,55 @@ class _AppShellState extends State<AppShell>
     }
   }
 
+  void _schedulePerformanceTip(SettingsController settings) {
+    if (_performanceTipTimer?.isActive ?? false) return;
+    _performanceTipTimer = Timer(const Duration(seconds: 5), () async {
+      if (!mounted || settings.performanceTipComplete) return;
+      await settings.completePerformanceTip();
+      if (!mounted) return;
+      final bool? openSettings = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext dialogContext) => AlertDialog(
+          key: const ValueKey<String>('performance-tip'),
+          title: Text(settings.strings.performanceTipTitle),
+          content: Text(settings.strings.performanceTipBody),
+          actions: <Widget>[
+            TextButton(
+              key: const ValueKey<String>('performance-tip-dismiss'),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(settings.strings.cancel),
+            ),
+            FilledButton(
+              key: const ValueKey<String>('performance-tip-settings'),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(settings.strings.performanceTipAction),
+            ),
+          ],
+        ),
+      );
+      if (openSettings == true && mounted) {
+        Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
+        _select(4);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final BuildContext? target = _ultraLightKey.currentContext;
+          if (!mounted || target == null) return;
+          Scrollable.ensureVisible(
+            target,
+            alignment: 0.35,
+            duration: context.motion.reduce
+                ? Duration.zero
+                : const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+          );
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _performanceTipTimer?.cancel();
     _bounceDebounce?.cancel();
     _tabFade.dispose();
     _navBounce.dispose();
@@ -337,6 +400,7 @@ class _FloatingNav extends StatelessWidget {
                     for (int i = 0; i < _icons.length; i++)
                       Expanded(
                         child: _NavItem(
+                          key: ValueKey<String>('nav-item-$i-${i == index}'),
                           icon: _icons[i],
                           activeIcon: _activeIcons[i],
                           label: labels[i],
@@ -358,6 +422,7 @@ class _FloatingNav extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
+    super.key,
     required this.icon,
     required this.activeIcon,
     required this.label,

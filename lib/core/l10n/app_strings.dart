@@ -53,6 +53,11 @@ abstract class AppStrings {
   // Home
   String get latestNews;
   String get latestNewsSubtitle;
+  String get firstLaunchWelcomeTitle;
+  String get firstLaunchWelcomeBody;
+  String get performanceTipTitle;
+  String get performanceTipBody;
+  String get performanceTipAction;
   String get breakingNews;
   String get breakingShort;
   String get followedPapers;
@@ -317,6 +322,18 @@ class BanglaStrings extends AppStrings {
   String get latestNews => 'সর্বশেষ খবর';
   @override
   String get latestNewsSubtitle => 'সব পত্রিকা থেকে একসঙ্গে';
+  @override
+  String get firstLaunchWelcomeTitle => 'আমার নিউজে স্বাগতম!';
+  @override
+  String get firstLaunchWelcomeBody =>
+      'প্রথমবার আপনার জন্য খবরগুলো গুছিয়ে আনতে একটু সময় লাগতে পারে। একটু অপেক্ষা করুন—খবর লোড হয়ে গেলেই পড়া শুরু করতে পারবেন।';
+  @override
+  String get performanceTipTitle => 'অ্যাপ একটু ধীর মনে হচ্ছে?';
+  @override
+  String get performanceTipBody =>
+      'আপনার ফোনে Amar News আরও মসৃণভাবে চালাতে Settings থেকে Ultra-Light Performance Mode চালু করে দেখতে পারেন। এতে ভারী ভিজ্যুয়াল ইফেক্ট ও অপ্রয়োজনীয় অ্যানিমেশন কমে যাবে, আর খবর পড়া আরও স্বচ্ছন্দ হতে পারে।';
+  @override
+  String get performanceTipAction => 'Settings খুলুন';
   @override
   String get breakingNews => 'ব্রেকিং নিউজ';
   @override
@@ -782,6 +799,18 @@ class EnglishStrings extends AppStrings {
   String get latestNews => 'Latest news';
   @override
   String get latestNewsSubtitle => 'From every publication, together';
+  @override
+  String get firstLaunchWelcomeTitle => 'Welcome to Amar News!';
+  @override
+  String get firstLaunchWelcomeBody =>
+      'It may take a little longer to get your news ready the first time. Please bear with us while everything loads. Once your news is ready, you can start reading.';
+  @override
+  String get performanceTipTitle => 'Want a smoother experience?';
+  @override
+  String get performanceTipBody =>
+      'If Amar News feels a little slow on your phone, try enabling Ultra-Light Performance Mode in Settings. It reduces heavy visual effects and unnecessary animations, which may help the app feel more responsive.';
+  @override
+  String get performanceTipAction => 'Open Settings';
   @override
   String get breakingNews => 'Breaking news';
   @override

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/services.dart';
@@ -45,7 +46,36 @@ class VocabularyTransferCodec {
         ],
       });
 
+  /// Decodes the portable format using strict UTF-8. A document provider may
+  /// expose a content URI, but it must never get to choose the text charset.
+  static List<VocabularyEntry> decodeBytes(Uint8List bytes) {
+    try {
+      int start = 0;
+      if (bytes.length >= 3 &&
+          bytes[0] == 0xEF &&
+          bytes[1] == 0xBB &&
+          bytes[2] == 0xBF) {
+        start = 3;
+      }
+      return decode(utf8.decode(bytes.sublist(start), allowMalformed: false));
+    } on FormatException {
+      throw const VocabularyTransferException(
+        'This vocabulary file is not valid UTF-8 text.',
+      );
+    }
+  }
+
   static List<VocabularyEntry> decode(String source) {
+    if (source.contains('\uFFFD')) {
+      throw const VocabularyTransferException(
+        'This vocabulary file contains damaged Unicode text.',
+      );
+    }
+    if (_looksLikeUtf8DecodedAsLatin1(source)) {
+      throw const VocabularyTransferException(
+        'This backup contains incorrectly encoded Bengali text. Import the original UTF-8 backup instead.',
+      );
+    }
     Object? decoded;
     try {
       decoded = jsonDecode(source);
@@ -79,6 +109,11 @@ class VocabularyTransferCodec {
           'A vocabulary entry is missing a word, meaning, or date.',
         );
       }
+      if (_looksLikeUtf8DecodedAsLatin1(meaning)) {
+        throw const VocabularyTransferException(
+          'This backup contains incorrectly encoded Bengali text. Import the original UTF-8 backup instead.',
+        );
+      }
       unique[normalized] = VocabularyEntry(
         word: word,
         meaningBn: meaning,
@@ -92,6 +127,9 @@ class VocabularyTransferCodec {
     }
     return unique.values.toList(growable: false);
   }
+
+  static bool _looksLikeUtf8DecodedAsLatin1(String value) =>
+      value.contains('\u00E0\u00A6') || value.contains('\u00E0\u00A7');
 
   static String? _optional(Object? value) {
     final String text = '${value ?? ''}'.trim();
@@ -165,6 +203,6 @@ class VocabularyFileTransfer {
       acceptedTypeGroups: const <XTypeGroup>[json],
     );
     if (file == null) return null;
-    return VocabularyTransferCodec.decode(await file.readAsString());
+    return VocabularyTransferCodec.decodeBytes(await file.readAsBytes());
   }
 }

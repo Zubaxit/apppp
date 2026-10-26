@@ -18,6 +18,7 @@ class SettingsController extends ChangeNotifier {
 
   final PreferencesStore _store;
   AppPreferences _prefs;
+  bool _webViewTourClaimed = false;
 
   AppPreferences get prefs => _prefs;
   AppStrings get strings => AppStrings.forLanguage(_prefs.language);
@@ -53,6 +54,7 @@ class SettingsController extends ChangeNotifier {
       _prefs.translationIntegrationEnabled;
   bool get ultraLightMode => _prefs.ultraLightMode;
   bool get webViewTourComplete => _prefs.webViewTourComplete;
+  bool get performanceTipComplete => _prefs.performanceTipComplete;
   int get refreshMinutes => _prefs.refreshMinutes;
   DefaultFeed get defaultFeed => _prefs.defaultFeed;
 
@@ -122,13 +124,22 @@ class SettingsController extends ChangeNotifier {
             motion: reduce ? MotionChoice.reduced : MotionChoice.system),
       );
 
-  /// Atomically claims the one automatic WebView tour for this installation.
-  /// [_update] changes the in-memory value before awaiting disk, preventing two
-  /// concurrently opened browser routes from presenting duplicate dialogs.
-  Future<bool> claimWebViewTour() async {
-    if (_prefs.webViewTourComplete) return false;
-    await _update(_prefs.copyWith(webViewTourComplete: true));
+  /// Claims the one automatic coach mark without marking discovery complete.
+  /// The in-memory claim prevents concurrent browser routes from duplicating it.
+  bool beginWebViewTour() {
+    if (_prefs.webViewTourComplete || _webViewTourClaimed) return false;
+    _webViewTourClaimed = true;
     return true;
+  }
+
+  void releaseWebViewTour() {
+    _webViewTourClaimed = false;
+  }
+
+  Future<void> completeWebViewTour() {
+    _webViewTourClaimed = false;
+    if (_prefs.webViewTourComplete) return Future<void>.value();
+    return _update(_prefs.copyWith(webViewTourComplete: true));
   }
 
   Future<void> setVocabularyIntegrationEnabled(bool enabled) => _update(
@@ -163,6 +174,11 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> completeOnboarding() =>
       _update(_prefs.copyWith(onboardingComplete: true));
+
+  Future<void> completePerformanceTip() {
+    if (_prefs.performanceTipComplete) return Future<void>.value();
+    return _update(_prefs.copyWith(performanceTipComplete: true));
+  }
 
   Future<void> applyExtractedPreferences(AppPreferences prefs) =>
       _update(prefs);

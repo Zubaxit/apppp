@@ -56,9 +56,13 @@ class BrowserScreen extends StatefulWidget {
 
 class _BrowserScreenState extends State<BrowserScreen> {
   late final BrowserEngine _engine;
+  late final SettingsController _settings;
   late final Widget _browserView;
   late final bool _ownsEngine;
   bool _savedLink = false;
+  final GlobalKey _readerButtonKey = GlobalKey();
+  bool _tourVisible = false;
+  bool _readerOpened = false;
 
   /// Mirrors the page history, because the system back gesture depends on it.
   /// Everything else — progress, loading, domain — is drawn by a
@@ -86,7 +90,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
   void initState() {
     super.initState();
     _ownsEngine = widget.engine == null;
-    final SettingsController settings = context.read<SettingsController>();
+    _settings = context.read<SettingsController>();
+    final SettingsController settings = _settings;
     final String host =
         Uri.tryParse(widget.url)?.host.replaceFirst('www.', '') ?? '';
     _engine = widget.engine ??
@@ -99,47 +104,16 @@ class _BrowserScreenState extends State<BrowserScreen> {
     _engine.addListener(_onEngine);
     _engine.watchSelection(_onSelectionChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_showFirstWebViewTour());
+      if (!mounted || !_engine.supportsReaderMode) return;
+      if (_settings.beginWebViewTour()) {
+        setState(() => _tourVisible = true);
+      }
     });
   }
 
-  Future<void> _showFirstWebViewTour() async {
-    if (!mounted || !_engine.supportsReaderMode) return;
-    final bool show =
-        await context.read<SettingsController>().claimWebViewTour();
-    if (!show || !mounted) return;
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        key: const ValueKey<String>('webview-quick-tour'),
-        icon: const Icon(Icons.auto_stories_rounded),
-        title: const Text('Quick tour'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('• Tap the book button in the address bar for Reading Mode.'),
-            SizedBox(height: 8),
-            Text('• Use Play to listen and follow sentence highlighting.'),
-            SizedBox(height: 8),
-            Text('• Select text to translate it or save a confirmed meaning.'),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            key: const ValueKey<String>('webview-tour-skip'),
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Skip'),
-          ),
-          FilledButton(
-            key: const ValueKey<String>('webview-tour-done'),
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Got it'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _skipTour() async {
+    await _settings.completeWebViewTour();
+    if (mounted) setState(() => _tourVisible = false);
   }
 
   void _onEngine() {
@@ -181,6 +155,9 @@ class _BrowserScreenState extends State<BrowserScreen> {
 
   @override
   void dispose() {
+    if (_tourVisible) {
+      _settings.releaseWebViewTour();
+    }
     _engine.removeListener(_onEngine);
     if (_ownsEngine) _engine.dispose();
     super.dispose();
@@ -205,6 +182,14 @@ class _BrowserScreenState extends State<BrowserScreen> {
       return;
     }
     final ReaderDocument ready = document;
+    if (_tourVisible) {
+      await _settings.completeWebViewTour();
+      if (!mounted) return;
+    }
+    setState(() {
+      _readerOpened = true;
+      _tourVisible = false;
+    });
     await navigator.push<void>(
       editorialRoute<void>(
         ReaderModeScreen(
@@ -409,8 +394,10 @@ class _BrowserScreenState extends State<BrowserScreen> {
       },
       child: Scaffold(
         backgroundColor: context.theme.scaffoldBackgroundColor,
-        body: Column(
+        body: Stack(
           children: <Widget>[
+            Column(
+              children: <Widget>[
             ListenableBuilder(
               listenable: _engine,
               builder: (BuildContext context, Widget? child) => BrowserToolbar(
@@ -427,6 +414,8 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 saved: _savedLink,
                 reading: _extracting,
                 onRead: _engine.supportsReaderMode ? _openReaderMode : null,
+                readerButtonKey: _readerButtonKey,
+                readerEmphasisEnabled: !_readerOpened,
                 shieldEnabled: _engine.shieldEnabled,
                 onShield: settings.newsShieldEnabled ? _toggleShield : null,
               ),
@@ -484,11 +473,182 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 ],
               ),
             ),
+              ],
+            ),
+            if (_tourVisible)
+              Positioned.fill(
+                child: _ReaderCoachMark(
+                  targetKey: _readerButtonKey,
+                  onSkip: _skipTour,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
+}
+
+class _ReaderCoachMark extends StatefulWidget {
+  const _ReaderCoachMark({required this.targetKey, required this.onSkip});
+
+  final GlobalKey targetKey;
+  final VoidCallback onSkip;
+
+  @override
+  State<_ReaderCoachMark> createState() => _ReaderCoachMarkState();
+}
+
+class _ReaderCoachMarkState extends State<_ReaderCoachMark>
+    with WidgetsBindingObserver {
+  final GlobalKey _layerKey = GlobalKey();
+  Rect? _target;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _scheduleMeasure();
+  }
+
+  @override
+  void didChangeMetrics() => _scheduleMeasure();
+
+  void _scheduleMeasure() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final RenderBox? target =
+          widget.targetKey.currentContext?.findRenderObject() as RenderBox?;
+      final RenderBox? layer =
+          _layerKey.currentContext?.findRenderObject() as RenderBox?;
+      if (target == null || layer == null || !target.hasSize || !layer.hasSize) {
+        return;
+      }
+      final Offset origin = layer.globalToLocal(target.localToGlobal(Offset.zero));
+      final Rect next = origin & target.size;
+      if (_target != next) setState(() => _target = next);
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Rect? target = _target;
+    final bool bengali = context.isBengali;
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final EdgeInsets safe = MediaQuery.paddingOf(context);
+        final double minimumTop = safe.top + 8;
+        final double maximumTop = (constraints.maxHeight - safe.bottom - 250)
+            .clamp(minimumTop, double.infinity)
+            .toDouble();
+        final double cardTop = (target == null
+                ? safe.top + 92
+                : target.bottom + 14)
+            .clamp(minimumTop, maximumTop)
+            .toDouble();
+        return SizedBox.expand(
+          key: _layerKey,
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    key: const ValueKey<String>('webview-quick-tour'),
+                    painter: _SpotlightPainter(target),
+                  ),
+                ),
+              ),
+              if (target != null)
+                Positioned.fromRect(
+                  rect: target.inflate(7),
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: context.colors.primary,
+                          width: 2.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              Positioned(
+                left: 16,
+                right: 16,
+                top: cardTop,
+                child: Material(
+                  elevation: 6,
+                  borderRadius: BorderRadius.circular(Tokens.radiusLg),
+                  color: context.colors.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 16, 12, 10),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          bengali ? 'রিডিং মোড ব্যবহার করে দেখুন' : 'Try Reading Mode',
+                          style: context.texts.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 7),
+                        Text(
+                          bengali
+                              ? 'উপরে চিহ্নিত বই বাটনে চাপুন। পরিষ্কারভাবে খবর পড়ুন, শুনুন, অনুবাদ করুন এবং নিশ্চিত অর্থসহ নতুন শব্দ সংরক্ষণ করুন।'
+                              : 'Tap the highlighted book button for a cleaner article view, text-to-speech, translation, and vocabulary saving with confirmed meanings.',
+                          style: context.texts.bodyMedium?.copyWith(height: 1.45),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            key: const ValueKey<String>('webview-tour-skip'),
+                            onPressed: widget.onSkip,
+                            child: Text(bengali ? 'এড়িয়ে যান' : 'Skip'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SpotlightPainter extends CustomPainter {
+  const _SpotlightPainter(this.target);
+  final Rect? target;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Path full = Path()..addRect(Offset.zero & size);
+    final Rect? value = target;
+    final Path path = value == null
+        ? full
+        : Path.combine(
+            PathOperation.difference,
+            full,
+            Path()..addRRect(
+                RRect.fromRectAndRadius(value.inflate(8), const Radius.circular(18)),
+              ),
+          );
+    canvas.drawPath(path, Paint()..color = Colors.black.withValues(alpha: 0.56));
+  }
+
+  @override
+  bool shouldRepaint(_SpotlightPainter oldDelegate) => oldDelegate.target != target;
 }
 
 /// The browser's controls, in one row: close, the address pill, then page
@@ -514,6 +674,8 @@ class BrowserToolbar extends StatelessWidget {
     required this.saved,
     this.onRead,
     this.reading = false,
+    this.readerButtonKey,
+    this.readerEmphasisEnabled = true,
     this.onShield,
     this.shieldEnabled = false,
   });
@@ -538,6 +700,8 @@ class BrowserToolbar extends StatelessWidget {
 
   /// True while the page is being read, so the control can say so.
   final bool reading;
+  final GlobalKey? readerButtonKey;
+  final bool readerEmphasisEnabled;
   final VoidCallback? onShield;
   final bool shieldEnabled;
 
@@ -577,6 +741,8 @@ class BrowserToolbar extends StatelessWidget {
                           compact: compact,
                           onRead: onRead,
                           reading: reading,
+                          readerButtonKey: readerButtonKey,
+                          readerEmphasisEnabled: readerEmphasisEnabled,
                           tooltip: context.strings.readerMode,
                           onShield: onShield,
                           shieldEnabled: shieldEnabled,
@@ -723,6 +889,8 @@ class _AddressPill extends StatelessWidget {
     required this.compact,
     this.onRead,
     this.reading = false,
+    this.readerButtonKey,
+    this.readerEmphasisEnabled = true,
     this.tooltip,
     this.onShield,
     this.shieldEnabled = false,
@@ -734,6 +902,8 @@ class _AddressPill extends StatelessWidget {
   final bool compact;
   final VoidCallback? onRead;
   final bool reading;
+  final GlobalKey? readerButtonKey;
+  final bool readerEmphasisEnabled;
   final String? tooltip;
   final VoidCallback? onShield;
   final bool shieldEnabled;
@@ -830,9 +1000,11 @@ class _AddressPill extends StatelessWidget {
             Tooltip(
               message: tooltip ?? '',
               child: _ReaderDiscoveryButton(
+                key: readerButtonKey,
                 onTap: onRead!,
                 reading: reading,
                 compact: compact,
+                emphasisEnabled: readerEmphasisEnabled,
               ),
             ),
           ],
@@ -846,14 +1018,17 @@ class _AddressPill extends StatelessWidget {
 /// per cooldown, never loops, and is disabled for reduced-motion/Ultra-Light.
 class _ReaderDiscoveryButton extends StatefulWidget {
   const _ReaderDiscoveryButton({
+    super.key,
     required this.onTap,
     required this.reading,
     required this.compact,
+    required this.emphasisEnabled,
   });
 
   final VoidCallback onTap;
   final bool reading;
   final bool compact;
+  final bool emphasisEnabled;
 
   @override
   State<_ReaderDiscoveryButton> createState() => _ReaderDiscoveryButtonState();
@@ -861,28 +1036,39 @@ class _ReaderDiscoveryButton extends StatefulWidget {
 
 class _ReaderDiscoveryButtonState extends State<_ReaderDiscoveryButton>
     with SingleTickerProviderStateMixin {
-  static DateTime? _lastEmphasis;
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1100),
+    duration: const Duration(milliseconds: 1400),
   );
-  bool _considered = false;
+
+  bool get _mayAnimate =>
+      widget.emphasisEnabled &&
+      !widget.reading &&
+      !Motion.of(context).reduce &&
+      !AppEffectsScope.of(context);
+
+  void _syncAnimation() {
+    if (_mayAnimate) {
+      if (!_controller.isAnimating) {
+        _controller.repeat(reverse: true);
+      }
+    } else {
+      _controller
+        ..stop()
+        ..value = 0;
+    }
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_considered) return;
-    _considered = true;
-    final DateTime now = DateTime.now();
-    final DateTime? previous = _lastEmphasis;
-    if (Motion.of(context).reduce ||
-        AppEffectsScope.of(context) ||
-        (previous != null &&
-            now.difference(previous) < const Duration(minutes: 20))) {
-      return;
-    }
-    _lastEmphasis = now;
-    _controller.forward();
+    _syncAnimation();
+  }
+
+  @override
+  void didUpdateWidget(_ReaderDiscoveryButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncAnimation();
   }
 
   @override
@@ -915,40 +1101,31 @@ class _ReaderDiscoveryButtonState extends State<_ReaderDiscoveryButton>
       ),
       builder: (BuildContext context, Widget? child) {
         final double progress = _controller.value;
-        final double envelope =
-            _controller.isAnimating ? (1 - progress).clamp(0, 1) : 0;
-        final double shake = envelope > 0 && progress < 0.62
-            ? (progress * 10).round().isEven
-                ? 1.5 * envelope
-                : -1.5 * envelope
-            : 0;
-        final double pulse = 1 + 0.10 * envelope;
-        return Transform.translate(
-          offset: Offset(shake, 0),
-          child: Transform.scale(
-            scale: pulse,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: progress == 0 || progress == 1
-                    ? const <BoxShadow>[]
-                    : <BoxShadow>[
-                        BoxShadow(
-                          color: context.colors.primary.withValues(
-                            alpha: 0.24 * envelope,
-                          ),
-                          blurRadius: 8,
-                          spreadRadius: 1,
+        final double pulse = 1 + 0.07 * progress;
+        return Transform.scale(
+          key: const ValueKey<String>('reader-discovery-pulse'),
+          scale: pulse,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: progress == 0
+                  ? const <BoxShadow>[]
+                  : <BoxShadow>[
+                      BoxShadow(
+                        color: context.colors.primary.withValues(
+                          alpha: 0.22 * progress,
                         ),
-                      ],
-              ),
-              child: JellySurface(
-                key: const ValueKey<String>('browser-reader'),
-                onTap: widget.onTap,
-                scale: 0.9,
-                boundary: false,
-                child: child!,
-              ),
+                        blurRadius: 7,
+                        spreadRadius: 0.5,
+                      ),
+                    ],
+            ),
+            child: JellySurface(
+              key: const ValueKey<String>('browser-reader'),
+              onTap: widget.onTap,
+              scale: 0.9,
+              boundary: false,
+              child: child!,
             ),
           ),
         );

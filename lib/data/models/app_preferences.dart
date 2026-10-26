@@ -41,6 +41,7 @@ class AppPreferences {
     this.searchHistory = const <String>[],
     this.onboardingComplete = false,
     this.webViewTourComplete = false,
+    this.performanceTipComplete = false,
     this.vocabularyIntegrationEnabled = true,
     this.ttsIntegrationEnabled = true,
     this.translationIntegrationEnabled = true,
@@ -69,6 +70,7 @@ class AppPreferences {
   final List<String> searchHistory;
   final bool onboardingComplete;
   final bool webViewTourComplete;
+  final bool performanceTipComplete;
   final bool vocabularyIntegrationEnabled;
   final bool ttsIntegrationEnabled;
   final bool translationIntegrationEnabled;
@@ -93,6 +95,7 @@ class AppPreferences {
     List<String>? searchHistory,
     bool? onboardingComplete,
     bool? webViewTourComplete,
+    bool? performanceTipComplete,
     bool? vocabularyIntegrationEnabled,
     bool? ttsIntegrationEnabled,
     bool? translationIntegrationEnabled,
@@ -116,6 +119,8 @@ class AppPreferences {
       searchHistory: searchHistory ?? this.searchHistory,
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
       webViewTourComplete: webViewTourComplete ?? this.webViewTourComplete,
+      performanceTipComplete:
+          performanceTipComplete ?? this.performanceTipComplete,
       vocabularyIntegrationEnabled:
           vocabularyIntegrationEnabled ?? this.vocabularyIntegrationEnabled,
       ttsIntegrationEnabled:
@@ -167,6 +172,7 @@ class AppPreferences {
         'searchHistory': searchHistory,
         'onboardingComplete': onboardingComplete,
         'webViewTourComplete': webViewTourComplete,
+        'performanceTipComplete': performanceTipComplete,
         'vocabularyIntegrationEnabled': vocabularyIntegrationEnabled,
         'ttsIntegrationEnabled': ttsIntegrationEnabled,
         'translationIntegrationEnabled': translationIntegrationEnabled,
@@ -218,6 +224,7 @@ class AppPreferences {
       ],
       onboardingComplete: map['onboardingComplete'] == true,
       webViewTourComplete: map['webViewTourComplete'] == true,
+      performanceTipComplete: map['performanceTipComplete'] == true,
       vocabularyIntegrationEnabled:
           map['vocabularyIntegrationEnabled'] != false,
       ttsIntegrationEnabled: map['ttsIntegrationEnabled'] != false,

@@ -190,7 +190,19 @@ class MyMemoryTranslator implements MachineTranslator {
       );
     }
 
-    final Object? decoded = _decode(response.body);
+    // JSON is Unicode and MyMemory returns UTF-8. `http.Response.body` may
+    // otherwise fall back to Latin-1 when a provider omits its charset,
+    // producing Bengali mojibake such as "à¦..." that can later be saved.
+    String responseText;
+    try {
+      responseText = utf8.decode(response.bodyBytes, allowMalformed: false);
+    } on FormatException {
+      throw const TranslationException(
+        'The translation service sent invalid UTF-8 text.',
+        retryable: false,
+      );
+    }
+    final Object? decoded = _decode(responseText);
     if (decoded is! Map<String, dynamic>) {
       throw const TranslationException(
           'The translation service sent an unreadable answer.');
@@ -214,6 +226,14 @@ class MyMemoryTranslator implements MachineTranslator {
           'The translation service sent no translation.');
     }
     final String translated = '${data['translatedText'] ?? ''}'.trim();
+    if (translated.contains('\uFFFD') ||
+        translated.contains('à¦') ||
+        translated.contains('à§')) {
+      throw const TranslationException(
+        'The translation service sent damaged Bengali text.',
+        retryable: false,
+      );
+    }
     if (translated.isEmpty) {
       throw const TranslationException(
           'The translation service sent an empty translation.');

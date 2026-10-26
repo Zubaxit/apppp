@@ -1,4 +1,5 @@
 import 'package:bangladesh_newspaper_hub/core/utils/reader_extract.dart';
+import 'package:bangladesh_newspaper_hub/data/models/vocabulary_entry.dart';
 import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/reader_mode_screen.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,37 @@ void main() {
     // Reading arbitrary lazy rows must never depend on which row was built first.
     expect(readerParagraphIndices(blocks)[4], 2);
     expect(readerParagraphIndices(blocks)[1], 0);
+  });
+
+  testWidgets('imported Bengali meaning is displayed exactly in Reading Mode',
+      (WidgetTester tester) async {
+    const String meaning = 'প্রতিবন্ধকতা—যুক্তাক্ষর ক্ষ, ত্র; mixed বাংলা।';
+    final TestHarness h = TestHarness();
+    await h.saved.load();
+    await h.saved.importVocabulary(
+      <VocabularyEntry>[
+        VocabularyEntry(
+          word: 'obstacle',
+          meaningBn: meaning,
+          savedAt: DateTime.utc(2026, 10, 27),
+        ),
+      ],
+      replaceConflicts: true,
+    );
+    final ReaderDocument value = ReaderDocument(
+      title: 'Test',
+      site: 'dw.com',
+      blocks: const <ReaderBlock>[
+        ReaderBlock(text: 'obstacle'),
+      ],
+    );
+    await tester.pumpWidget(h.wrap(
+      ReaderModeScreen(document: value, translator: FakeTranslator()),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('obstacle').last);
+    await tester.pumpAndSettle();
+    expect(find.text(meaning), findsOneWidget);
   });
 
   testWidgets('translation is OFF by default and starts only after a tap',

@@ -74,6 +74,24 @@ void main() {
       expect(translator.requiresNetwork, isTrue);
     });
 
+    test('decodes Bengali JSON bytes as UTF-8 when charset is omitted', () async {
+      const String meaning = 'প্রতিবন্ধকতা—যুক্তাক্ষর ক্ষ, জ্ঞ।';
+      final List<int> bytes = utf8.encode(jsonEncode(<String, Object>{
+        'responseStatus': 200,
+        'responseData': <String, Object>{'translatedText': meaning},
+      }));
+      final MyMemoryTranslator translator = MyMemoryTranslator(
+        client: MockClient((http.Request request) async => http.Response.bytes(
+              bytes,
+              200,
+              headers: const <String, String>{
+                'content-type': 'application/json',
+              },
+            )),
+      );
+      expect(await translator.translate('obstacle'), meaning);
+    });
+
     test('an exhausted allowance is reported as such, not as an empty result',
         () async {
       final MyMemoryTranslator translator = MyMemoryTranslator(

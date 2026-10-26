@@ -50,7 +50,9 @@ Future<void> _prepareOfflineTranslation(BuildContext context) async {
 /// to touch. Section titles are upper-case so the page scans as three clear
 /// groups instead of a long list.
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.ultraLightKey});
+
+  final Key? ultraLightKey;
 
   static const String appVersion = '1.2.0 (3)';
 
@@ -136,6 +138,7 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       const _PanelDivider(),
                       _ToggleRow(
+                        key: ultraLightKey,
                         title: bengali
                             ? 'আল্ট্রা-লাইট পারফরম্যান্স'
                             : 'Ultra-Light performance',
@@ -550,14 +553,12 @@ class _Choice<T> extends StatelessWidget {
             child: FractionallySizedBox(
               widthFactor: 1 / values.length,
               child: Container(
+                key: ValueKey<String>('choice-selected-$index'),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(Tokens.radiusPill),
-                  color: dark ? Tokens.nightRaised : Colors.white,
-                  border: Border.all(
-                    color: dark ? Tokens.nightHairline : Tokens.hairline,
-                    width: 0.8,
+                  color: context.colors.primary.withValues(
+                    alpha: dark ? 0.24 : 0.13,
                   ),
-                  boxShadow: Tokens.shadow(context, lift: 0.3),
                 ),
               ),
             ),
@@ -602,6 +603,7 @@ class _Choice<T> extends StatelessWidget {
 
 class _ToggleRow extends StatelessWidget {
   const _ToggleRow({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.value,

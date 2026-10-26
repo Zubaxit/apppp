@@ -62,7 +62,13 @@ void main() {
       final Future<void> starting = h.feed.start();
       await tester.pump(const Duration(milliseconds: 10));
 
-      expect(find.text('আমার নিউজে স্বাগতম'), findsOneWidget);
+      expect(find.text('Welcome to Amar News!'), findsOneWidget);
+      expect(
+        find.text(
+          'It may take a little longer to get your news ready the first time. Please bear with us while everything loads. Once your news is ready, you can start reading.',
+        ),
+        findsOneWidget,
+      );
       expect(find.text('No headlines yet'), findsNothing);
 
       // Advance the widget-test clock so the intentionally slow fake request
@@ -70,7 +76,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 60));
       await starting;
       await tester.pumpAndSettle();
-      expect(find.text('আমার নিউজে স্বাগতম'), findsNothing);
+      expect(find.text('Welcome to Amar News!'), findsNothing);
       expect(h.settings.prefs.onboardingComplete, isTrue);
     });
 
@@ -432,6 +438,21 @@ void main() {
   });
 
   group('SettingsScreen', () {
+    testWidgets('selected choices use a clean primary pill without stray border',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const SettingsScreen()));
+      await tester.pumpAndSettle();
+      final Container selected = tester.widget<Container>(
+        find.byKey(const ValueKey<String>('choice-selected-0')).first,
+      );
+      final BoxDecoration decoration = selected.decoration! as BoxDecoration;
+      expect(decoration.border, isNull);
+      expect(decoration.boxShadow, isNull);
+      expect(decoration.color, isNotNull);
+      expect(decoration.color!.r, greaterThan(decoration.color!.b));
+    });
+
     testWidgets('feed choices adapt at 320dp with large text in dark theme',
         (WidgetTester tester) async {
       tester.view.physicalSize = const Size(320, 900);
@@ -967,6 +988,84 @@ void main() {
   });
 
   group('AppShell navigation', () {
+    testWidgets('performance tip waits five seconds after first successful load',
+        (WidgetTester tester) async {
+      final TestHarness h = harness(
+        artwork: <Article>[bnArticle],
+        prefs: const AppPreferences(
+          language: AppLanguage.en,
+          onboardingComplete: false,
+          performanceTipComplete: false,
+        ),
+      );
+      await tester.pumpWidget(h.wrap(const AppShell()));
+      await tester.pumpAndSettle();
+      expect(h.settings.prefs.onboardingComplete, isTrue);
+      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 4999));
+      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(find.byKey(const ValueKey<String>('performance-tip')), findsOneWidget);
+      expect(find.text('Want a smoother experience?'), findsOneWidget);
+      expect(
+        find.text(
+          'If Amar News feels a little slow on your phone, try enabling Ultra-Light Performance Mode in Settings. It reduces heavy visual effects and unnecessary animations, which may help the app feel more responsive.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const ValueKey<String>('performance-tip-dismiss')),
+      );
+      await tester.pumpAndSettle();
+      expect(h.settings.performanceTipComplete, isTrue);
+
+      await tester.pumpWidget(h.wrap(AppShell(key: UniqueKey())));
+      await tester.pump(const Duration(seconds: 6));
+      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+    });
+
+    testWidgets('failed offline first load never schedules performance tip',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(
+          onboardingComplete: false,
+          performanceTipComplete: false,
+        ),
+        online: false,
+      );
+      await tester.pumpWidget(h.wrap(const AppShell()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      expect(find.byKey(const ValueKey<String>('performance-tip')), findsNothing);
+      expect(h.settings.performanceTipComplete, isFalse);
+    });
+
+    testWidgets('performance tip action safely selects Settings in Bengali',
+        (WidgetTester tester) async {
+      final TestHarness h = harness(
+        artwork: <Article>[bnArticle],
+        prefs: const AppPreferences(
+          language: AppLanguage.bn,
+          onboardingComplete: false,
+          performanceTipComplete: false,
+        ),
+      );
+      await tester.pumpWidget(h.wrap(const AppShell()));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.text('অ্যাপ একটু ধীর মনে হচ্ছে?'), findsOneWidget);
+      expect(find.text('Settings খুলুন'), findsOneWidget);
+      await tester.tap(
+        find.byKey(const ValueKey<String>('performance-tip-settings')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('nav-item-4-true')),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('meaningful settled scroll briefly transforms navigation',
         (WidgetTester tester) async {
       final List<Article> articles = List<Article>.generate(

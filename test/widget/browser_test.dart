@@ -422,8 +422,59 @@ void main() {
     });
   });
 
+  group('Reading Mode discovery animation', () {
+    testWidgets('repeats in normal mode and stops immediately in Ultra-Light',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(
+          webViewTourComplete: true,
+        ),
+      );
+      final FakeBrowserEngine engine = FakeBrowserEngine();
+      await tester.pumpWidget(
+        h.wrap(
+          BrowserScreen(url: engine.url, engine: engine),
+          reduceMotion: false,
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+      final Transform animated = tester.widget<Transform>(
+        find.byKey(const ValueKey<String>('reader-discovery-pulse')),
+      );
+      expect(animated.transform.getMaxScaleOnAxis(), greaterThan(1));
+
+      await h.settings.setUltraLightMode(true);
+      await tester.pump();
+      final Transform stopped = tester.widget<Transform>(
+        find.byKey(const ValueKey<String>('reader-discovery-pulse')),
+      );
+      expect(stopped.transform.getMaxScaleOnAxis(), 1);
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('reduced motion keeps the emphasis static',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(
+          motion: MotionChoice.reduced,
+          webViewTourComplete: true,
+        ),
+      );
+      final FakeBrowserEngine engine = FakeBrowserEngine();
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: engine.url, engine: engine),
+      ));
+      await tester.pump(const Duration(seconds: 2));
+      final Transform stopped = tester.widget<Transform>(
+        find.byKey(const ValueKey<String>('reader-discovery-pulse')),
+      );
+      expect(stopped.transform.getMaxScaleOnAxis(), 1);
+    });
+  });
+
   group('first WebView quick tour', () {
-    testWidgets('presents once, persists dismissal, and never duplicates',
+    testWidgets('anchors on first visit, persists Skip, and never duplicates',
         (WidgetTester tester) async {
       final TestHarness h = TestHarness(
         prefs: const AppPreferences(
@@ -440,6 +491,11 @@ void main() {
         find.byKey(const ValueKey<String>('webview-quick-tour')),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const ValueKey<String>('browser-reader')),
+        findsOneWidget,
+      );
+      expect(find.text('Got it'), findsNothing);
       await tester.tap(
         find.byKey(const ValueKey<String>('webview-tour-skip')),
       );
@@ -453,6 +509,41 @@ void main() {
         BrowserScreen(url: second.url, engine: second),
       ));
       await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>('webview-quick-tour')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('successful Reading Mode entry completes the tour',
+        (WidgetTester tester) async {
+      final TestHarness h = TestHarness(
+        prefs: const AppPreferences(
+          language: AppLanguage.en,
+          webViewTourComplete: false,
+        ),
+      );
+      final FakeBrowserEngine engine = FakeBrowserEngine()
+        ..extraction = jsonEncode(<String, Object?>{
+          'title': 'Readable article',
+          'site': 'dw.com',
+          'blocks': <Map<String, Object?>>[
+            <String, Object?>{
+              'text': 'A readable English paragraph for Reading Mode.',
+            },
+          ],
+        });
+      await tester.pumpWidget(h.wrap(
+        BrowserScreen(url: engine.url, engine: engine),
+      ));
+      await tester.pumpAndSettle();
+      expect(h.settings.webViewTourComplete, isFalse);
+      await tester.tap(
+        find.byKey(const ValueKey<String>('browser-reader')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ReaderModeScreen), findsOneWidget);
+      expect(h.settings.webViewTourComplete, isTrue);
       expect(
         find.byKey(const ValueKey<String>('webview-quick-tour')),
         findsNothing,

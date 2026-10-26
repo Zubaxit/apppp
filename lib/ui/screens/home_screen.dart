@@ -827,7 +827,7 @@ class _WelcomeLoadingState extends StatelessWidget {
                 ),
                 const SizedBox(height: 18),
                 Text(
-                  'আমার নিউজে স্বাগতম',
+                  context.strings.firstLaunchWelcomeTitle,
                   textAlign: TextAlign.center,
                   style: context.texts.headlineSmall?.copyWith(
                     fontFamily: Tokens.serif,
@@ -836,7 +836,7 @@ class _WelcomeLoadingState extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'আপনার জন্য সর্বশেষ খবর আনা হচ্ছে। অনুগ্রহ করে একটু অপেক্ষা করুন। এই স্বাগত বার্তাটি শুধু প্রথমবার দেখানো হবে।',
+                  context.strings.firstLaunchWelcomeBody,
                   textAlign: TextAlign.center,
                   style: context.texts.bodyMedium?.copyWith(height: 1.6),
                 ),

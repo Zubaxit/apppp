@@ -84,6 +84,38 @@ void main() {
       controller.dispose();
     });
 
+    test('onboarding copy is localized exactly in Bengali and English', () {
+      expect(
+        SettingsController(
+          initial: const AppPreferences(language: AppLanguage.bn),
+          store: InMemoryPreferencesStore(),
+        ).strings.firstLaunchWelcomeTitle,
+        'আমার নিউজে স্বাগতম!',
+      );
+      expect(
+        SettingsController(
+          initial: const AppPreferences(language: AppLanguage.en),
+          store: InMemoryPreferencesStore(),
+        ).strings.performanceTipTitle,
+        'Want a smoother experience?',
+      );
+    });
+
+    test('performance tip completion persists independently', () async {
+      final InMemoryPreferencesStore store = InMemoryPreferencesStore();
+      final SettingsController controller = SettingsController(
+        initial: const AppPreferences(),
+        store: store,
+      );
+      await controller.completePerformanceTip();
+      expect(controller.performanceTipComplete, isTrue);
+      expect(
+        AppPreferences.decode(await store.read()).performanceTipComplete,
+        isTrue,
+      );
+      controller.dispose();
+    });
+
     test('WebView tour claim is persisted and cannot be claimed twice',
         () async {
       final InMemoryPreferencesStore store = InMemoryPreferencesStore();
@@ -91,8 +123,11 @@ void main() {
         initial: const AppPreferences(),
         store: store,
       );
-      expect(await controller.claimWebViewTour(), isTrue);
-      expect(await controller.claimWebViewTour(), isFalse);
+      expect(controller.beginWebViewTour(), isTrue);
+      expect(controller.beginWebViewTour(), isFalse);
+      expect(controller.webViewTourComplete, isFalse);
+      await controller.completeWebViewTour();
+      expect(controller.beginWebViewTour(), isFalse);
       expect(
         AppPreferences.decode(await store.read()).webViewTourComplete,
         isTrue,
