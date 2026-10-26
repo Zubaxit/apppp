@@ -321,6 +321,9 @@ class ArticleRepository {
   Future<void> saveVocabulary(VocabularyEntry entry) =>
       stores.vocabulary.save(entry);
 
+  Future<void> saveVocabularyAtomic(Iterable<VocabularyEntry> entries) =>
+      stores.vocabulary.saveAllAtomic(entries);
+
   Future<void> removeVocabulary(String word) => stores.vocabulary.remove(word);
 
   Future<void> clearCache() async {

@@ -79,7 +79,12 @@ class WebViewBrowserEngine extends BrowserEngine {
         _shieldEnabled = shieldEnabled {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0x00000000))
+      // Publisher pages frequently rely on the WebView's default opaque canvas.
+      // A transparent canvas exposed Amar News's dark surface through BBC and
+      // other transparent ad/embed slots, producing gray panels and dark text
+      // on dark backgrounds. Keep publisher CSS untouched and provide the
+      // standards-compatible white page canvas instead.
+      ..setBackgroundColor(Colors.white)
       ..addJavaScriptChannel(
         ReaderScripts.channel,
         onMessageReceived: _onPageMessage,
@@ -108,6 +113,7 @@ class WebViewBrowserEngine extends BrowserEngine {
             _domain = _domainOf(value);
             await _refreshHistory();
             await _installShield();
+            await _installSelectionWatcher();
             notifyListeners();
           },
           onNavigationRequest: (NavigationRequest request) {
@@ -269,10 +275,18 @@ class WebViewBrowserEngine extends BrowserEngine {
   @override
   void watchSelection(ValueChanged<String> onSelection) {
     _onSelection = onSelection;
-    _controller.runJavaScript(ReaderScripts.installGlobals).then(
-      (_) => _controller.runJavaScript(ReaderScripts.watchSelection),
-      onError: (Object error) {},
-    );
+    unawaited(_installSelectionWatcher());
+  }
+
+  Future<void> _installSelectionWatcher() async {
+    if (_onSelection == null) return;
+    try {
+      await _controller.runJavaScript(ReaderScripts.installGlobals);
+      await _controller.runJavaScript(ReaderScripts.watchSelection);
+    } catch (_) {
+      // The page can be between documents. onPageFinished retries without
+      // altering publisher markup or selection behavior.
+    }
   }
 
   @override

@@ -40,6 +40,10 @@ class AppPreferences {
     this.newsShieldExceptions = const <String>{},
     this.searchHistory = const <String>[],
     this.onboardingComplete = false,
+    this.vocabularyIntegrationEnabled = true,
+    this.ttsIntegrationEnabled = true,
+    this.translationIntegrationEnabled = true,
+    this.ultraLightMode = false,
   });
 
   final AppLanguage language;
@@ -63,6 +67,10 @@ class AppPreferences {
   final Set<String> newsShieldExceptions;
   final List<String> searchHistory;
   final bool onboardingComplete;
+  final bool vocabularyIntegrationEnabled;
+  final bool ttsIntegrationEnabled;
+  final bool translationIntegrationEnabled;
+  final bool ultraLightMode;
 
   bool get isBengali => language == AppLanguage.bn;
 
@@ -82,6 +90,10 @@ class AppPreferences {
     Set<String>? newsShieldExceptions,
     List<String>? searchHistory,
     bool? onboardingComplete,
+    bool? vocabularyIntegrationEnabled,
+    bool? ttsIntegrationEnabled,
+    bool? translationIntegrationEnabled,
+    bool? ultraLightMode,
   }) {
     return AppPreferences(
       language: language ?? this.language,
@@ -99,6 +111,13 @@ class AppPreferences {
       newsShieldExceptions: newsShieldExceptions ?? this.newsShieldExceptions,
       searchHistory: searchHistory ?? this.searchHistory,
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
+      vocabularyIntegrationEnabled:
+          vocabularyIntegrationEnabled ?? this.vocabularyIntegrationEnabled,
+      ttsIntegrationEnabled:
+          ttsIntegrationEnabled ?? this.ttsIntegrationEnabled,
+      translationIntegrationEnabled:
+          translationIntegrationEnabled ?? this.translationIntegrationEnabled,
+      ultraLightMode: ultraLightMode ?? this.ultraLightMode,
     );
   }
 
@@ -140,6 +159,10 @@ class AppPreferences {
         'newsShieldExceptions': newsShieldExceptions.toList(),
         'searchHistory': searchHistory,
         'onboardingComplete': onboardingComplete,
+        'vocabularyIntegrationEnabled': vocabularyIntegrationEnabled,
+        'ttsIntegrationEnabled': ttsIntegrationEnabled,
+        'translationIntegrationEnabled': translationIntegrationEnabled,
+        'ultraLightMode': ultraLightMode,
       };
 
   String encode() => json.encode(toJson());
@@ -181,6 +204,12 @@ class AppPreferences {
           '$item',
       ],
       onboardingComplete: map['onboardingComplete'] == true,
+      vocabularyIntegrationEnabled:
+          map['vocabularyIntegrationEnabled'] != false,
+      ttsIntegrationEnabled: map['ttsIntegrationEnabled'] != false,
+      translationIntegrationEnabled:
+          map['translationIntegrationEnabled'] != false,
+      ultraLightMode: map['ultraLightMode'] == true,
     );
   }
 

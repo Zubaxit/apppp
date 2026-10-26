@@ -45,6 +45,12 @@ class SettingsController extends ChangeNotifier {
   bool shieldEnabledFor(String domain) =>
       _prefs.newsShieldEnabled && !_prefs.newsShieldExceptions.contains(domain.toLowerCase());
   bool get reduceMotion => _prefs.motion == MotionChoice.reduced;
+  bool get vocabularyIntegrationEnabled =>
+      _prefs.vocabularyIntegrationEnabled;
+  bool get ttsIntegrationEnabled => _prefs.ttsIntegrationEnabled;
+  bool get translationIntegrationEnabled =>
+      _prefs.translationIntegrationEnabled;
+  bool get ultraLightMode => _prefs.ultraLightMode;
   int get refreshMinutes => _prefs.refreshMinutes;
   DefaultFeed get defaultFeed => _prefs.defaultFeed;
 
@@ -108,6 +114,22 @@ class SettingsController extends ChangeNotifier {
 
   Future<void> setReduceMotion(bool reduce) => _update(
         _prefs.copyWith(motion: reduce ? MotionChoice.reduced : MotionChoice.system),
+      );
+
+  Future<void> setVocabularyIntegrationEnabled(bool enabled) => _update(
+        _prefs.copyWith(vocabularyIntegrationEnabled: enabled),
+      );
+
+  Future<void> setTtsIntegrationEnabled(bool enabled) => _update(
+        _prefs.copyWith(ttsIntegrationEnabled: enabled),
+      );
+
+  Future<void> setTranslationIntegrationEnabled(bool enabled) => _update(
+        _prefs.copyWith(translationIntegrationEnabled: enabled),
+      );
+
+  Future<void> setUltraLightMode(bool enabled) => _update(
+        _prefs.copyWith(ultraLightMode: enabled),
       );
 
   Future<void> toggleFollow(String sourceId) =>

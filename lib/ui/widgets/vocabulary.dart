@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/extensions.dart';
 import '../../data/models/vocabulary_entry.dart';
 import '../../services/machine_translation.dart';
+import '../../services/vocabulary_transfer.dart';
 import '../../state/saved_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/tokens.dart';
@@ -173,6 +174,61 @@ class VocabularyList extends StatefulWidget {
 class _VocabularyListState extends State<VocabularyList> {
   String _query = '';
 
+  Future<void> _export(SavedController saved) async {
+    try {
+      final bool written = await VocabularyFileTransfer.export(saved.vocabulary);
+      if (mounted && written) context.showSnack('Vocabulary exported.');
+    } on Object {
+      if (mounted) context.showSnack('Vocabulary could not be exported.');
+    }
+  }
+
+  Future<void> _import(SavedController saved) async {
+    try {
+      final List<VocabularyEntry>? incoming =
+          await VocabularyFileTransfer.pickAndDecode();
+      if (!mounted || incoming == null) return;
+      final int conflicts = incoming
+          .where((VocabularyEntry entry) =>
+              saved.vocabularyFor(entry.word) != null)
+          .length;
+      final bool? replace = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext dialogContext) => AlertDialog(
+          title: const Text('Import vocabulary'),
+          content: Text(
+            '${incoming.length} valid entries found. '
+            '$conflicts already exist. Keep local meanings or replace conflicts?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(context.strings.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Keep local'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Replace conflicts'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || replace == null) return;
+      final int count = await saved.importVocabulary(
+        incoming,
+        replaceConflicts: replace,
+      );
+      if (mounted) context.showSnack('$count vocabulary entries imported.');
+    } on VocabularyTransferException catch (error) {
+      if (mounted) context.showSnack(error.message);
+    } on Object {
+      if (mounted) context.showSnack('Vocabulary could not be imported.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final SavedController saved = context.watch<SavedController>();
@@ -185,7 +241,31 @@ class _VocabularyListState extends State<VocabularyList> {
     return Column(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 12, Tokens.gutter, 4),
+          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 10, Tokens.gutter, 0),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: saved.vocabulary.isEmpty
+                      ? null
+                      : () => _export(saved),
+                  icon: const Icon(Icons.file_upload_outlined),
+                  label: const Text('Export'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _import(saved),
+                  icon: const Icon(Icons.file_download_outlined),
+                  label: const Text('Import'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 4),
           child: TextField(
             onChanged: (String value) => setState(() => _query = value),
             decoration: const InputDecoration(
@@ -199,7 +279,7 @@ class _VocabularyListState extends State<VocabularyList> {
               ? const EmptyState(
                   icon: Icons.spellcheck_rounded,
                   title: 'No saved vocabulary',
-                  body: 'Select an English word in Reading Mode to save a confirmed Bengali meaning.',
+                  body: 'Select an English word on a webpage or in Reading Mode to save a confirmed Bengali meaning.',
                 )
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(Tokens.gutter, 8, Tokens.gutter, 130),

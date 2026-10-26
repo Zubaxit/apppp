@@ -31,6 +31,7 @@ dependencies:
   url_launcher: ^6.3.0
   share_plus: ^7.2.2
   connectivity_plus: ^6.0.3
+  file_selector: ^1.0.3
 
   # Media + formatting.
   cached_network_image: ^3.4.1

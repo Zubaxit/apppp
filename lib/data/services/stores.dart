@@ -68,6 +68,7 @@ abstract class HistoryStore {
 
 abstract class VocabularyStore {
   Future<void> save(VocabularyEntry entry);
+  Future<void> saveAllAtomic(Iterable<VocabularyEntry> entries);
   Future<List<VocabularyEntry>> all();
   Future<VocabularyEntry?> byWord(String normalizedWord);
   Future<void> remove(String normalizedWord);
@@ -371,7 +372,27 @@ class SqliteVocabularyStore implements VocabularyStore {
   Future<void> save(VocabularyEntry entry) async {
     await _db.insert(
       _table,
-      <String, Object?>{
+      _row(entry),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<void> saveAllAtomic(Iterable<VocabularyEntry> entries) async {
+    await _db.transaction((Transaction transaction) async {
+      final Batch batch = transaction.batch();
+      for (final VocabularyEntry entry in entries) {
+        batch.insert(
+          _table,
+          _row(entry),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      await batch.commit(noResult: true);
+    });
+  }
+
+  Map<String, Object?> _row(VocabularyEntry entry) => <String, Object?>{
         'word': entry.normalizedWord,
         'display_word': entry.word.trim(),
         'meaning_bn': entry.meaningBn.trim(),
@@ -381,10 +402,7 @@ class SqliteVocabularyStore implements VocabularyStore {
         'article_url': entry.articleUrl,
         'source_name': entry.sourceName,
         'saved_at': entry.savedAt.toUtc().millisecondsSinceEpoch,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
+      };
 
   @override
   Future<List<VocabularyEntry>> all() async {

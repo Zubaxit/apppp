@@ -11,6 +11,7 @@ import '../../data/models/article.dart';
 import '../../data/models/news_source.dart';
 import '../../services/fallback_translation.dart';
 import '../../services/machine_translation.dart';
+import '../../services/reader_tts.dart';
 import '../../services/translation_service.dart';
 import '../../state/saved_controller.dart';
 import '../../state/settings_controller.dart';
@@ -19,6 +20,7 @@ import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../helpers/app_nav.dart';
 import '../services/browser_engine.dart';
+import '../widgets/vocabulary.dart';
 import 'reader_mode_screen.dart';
 
 /// In-app reader for a publisher's own page.
@@ -54,6 +56,7 @@ class BrowserScreen extends StatefulWidget {
 
 class _BrowserScreenState extends State<BrowserScreen> {
   late final BrowserEngine _engine;
+  late final Widget _browserView;
   late final bool _ownsEngine;
   bool _savedLink = false;
 
@@ -89,6 +92,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
       url: widget.url,
       shieldEnabled: settings.shieldEnabledFor(host),
     );
+    _browserView = _engine.buildView(context);
     _canGoBack = _engine.canGoBack;
     _engine.addListener(_onEngine);
     _engine.watchSelection(_onSelectionChanged);
@@ -218,6 +222,30 @@ class _BrowserScreenState extends State<BrowserScreen> {
     );
   }
 
+  Future<void> _saveSelectedWord() async {
+    final String selection = _selection.trim();
+    if (!RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
+        .hasMatch(selection)) {
+      return;
+    }
+    await showVocabularyEditor(
+      context,
+      word: selection,
+      translator: _translator,
+      articleTitle: widget.article?.title ?? widget.title,
+      articleUrl: _engine.url,
+      sourceName: widget.source?.name ?? _engine.domain,
+    );
+  }
+
+  Future<void> _readSelection() => ReaderTtsController.instance.play(
+        'web-selection:${_engine.url}',
+        <String>[_selection],
+        language: RegExp(r'[\u0980-\u09FF]').hasMatch(_selection)
+            ? 'bn-BD'
+            : 'en-US',
+      );
+
   Future<void> _translateSelection() async {
     final String selection = _selection;
     if (selection.isEmpty) return;
@@ -316,6 +344,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final SettingsController settings = context.watch<SettingsController>();
     final String domain = _engine.domain.isNotEmpty ? _engine.domain : widget.url;
     return PopScope(
       // The route never pops itself: every back press comes through
@@ -349,7 +378,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                 reading: _extracting,
                 onRead: _engine.supportsReaderMode ? _openReaderMode : null,
                 shieldEnabled: _engine.shieldEnabled,
-                onShield: context.read<SettingsController>().newsShieldEnabled
+                onShield: settings.newsShieldEnabled
                     ? _toggleShield
                     : null,
               ),
@@ -363,7 +392,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                   Positioned.fill(
                     child: ListenableBuilder(
                       listenable: _engine,
-                      child: _engine.buildView(context),
+                      child: _browserView,
                       builder: (BuildContext context, Widget? view) {
                         final String? error = _engine.error;
                         if (error == null) return view!;
@@ -386,7 +415,22 @@ class _BrowserScreenState extends State<BrowserScreen> {
                       bottom: 12,
                       child: _SelectionAction(
                         selection: _selection,
-                        onTranslate: _translateSelection,
+                        onSaveWord: settings.vocabularyIntegrationEnabled &&
+                                RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
+                                    .hasMatch(_selection)
+                            ? _saveSelectedWord
+                            : null,
+                        onMeaning: settings.translationIntegrationEnabled &&
+                                RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
+                                    .hasMatch(_selection)
+                            ? _translateSelection
+                            : null,
+                        onTranslate: settings.translationIntegrationEnabled
+                            ? _translateSelection
+                            : null,
+                        onRead: settings.ttsIntegrationEnabled
+                            ? _readSelection
+                            : null,
                         onDismiss: () => _onSelectionChanged(''),
                       ),
                     ),
@@ -775,52 +819,103 @@ class _AddressPill extends StatelessWidget {
 class _SelectionAction extends StatelessWidget {
   const _SelectionAction({
     required this.selection,
+    required this.onSaveWord,
+    required this.onMeaning,
     required this.onTranslate,
+    required this.onRead,
     required this.onDismiss,
   });
 
   final String selection;
-  final VoidCallback onTranslate;
+  final VoidCallback? onSaveWord;
+  final VoidCallback? onMeaning;
+  final VoidCallback? onTranslate;
+  final VoidCallback? onRead;
   final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
     return GlassBar(
-      padding: const EdgeInsets.fromLTRB(12, 7, 6, 7),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(12, 8, 6, 7),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Expanded(
-            child: Text(
-              selection,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: context.texts.labelSmall?.copyWith(fontSize: 11),
-            ),
-          ),
-          const SizedBox(width: 8),
-          JellyButton(
-            label: context.strings.bengaliMeaning,
-            icon: Icons.translate_rounded,
-            compact: true,
-            onPressed: onTranslate,
-          ),
-          JellySurface(
-            onTap: onDismiss,
-            scale: 0.9,
-            boundary: false,
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Icon(
-                Icons.close_rounded,
-                size: 15,
-                color: context.colors.onSurfaceVariant,
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  selection,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.texts.labelSmall,
+                ),
               ),
+              IconButton(
+                tooltip: context.strings.cancel,
+                visualDensity: VisualDensity.compact,
+                onPressed: onDismiss,
+                icon: const Icon(Icons.close_rounded, size: 17),
+              ),
+            ],
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: <Widget>[
+                if (onSaveWord != null)
+                  _SelectionButton(
+                    label: 'Save Word',
+                    icon: Icons.bookmark_add_outlined,
+                    onTap: onSaveWord!,
+                  ),
+                if (onMeaning != null)
+                  _SelectionButton(
+                    label: context.strings.bengaliMeaning,
+                    icon: Icons.menu_book_outlined,
+                    onTap: onMeaning!,
+                  ),
+                if (onTranslate != null)
+                  _SelectionButton(
+                    label: 'Translate',
+                    icon: Icons.translate_rounded,
+                    onTap: onTranslate!,
+                  ),
+                if (onRead != null)
+                  _SelectionButton(
+                    label: 'Read aloud',
+                    icon: Icons.volume_up_outlined,
+                    onTap: onRead!,
+                  ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _SelectionButton extends StatelessWidget {
+  const _SelectionButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: ActionChip(
+          avatar: Icon(icon, size: 16),
+          label: Text(label),
+          onPressed: onTap,
+          visualDensity: VisualDensity.compact,
+        ),
+      );
 }
 
 class _BrowserError extends StatelessWidget {

@@ -11,6 +11,7 @@ import 'package:bangladesh_newspaper_hub/state/feed_controller.dart';
 import 'package:bangladesh_newspaper_hub/state/saved_controller.dart';
 import 'package:bangladesh_newspaper_hub/state/settings_controller.dart';
 import 'package:bangladesh_newspaper_hub/theme/app_theme.dart';
+import 'package:bangladesh_newspaper_hub/theme/materials.dart';
 import 'package:bangladesh_newspaper_hub/theme/motion.dart';
 import 'package:bangladesh_newspaper_hub/theme/tokens.dart';
 import 'package:bangladesh_newspaper_hub/ui/widgets/publisher_logo.dart';
@@ -104,10 +105,12 @@ class TestHarness {
               Tokens.configureFont(settings.font.family);
               return AppStringsScope(
                 strings: settings.strings,
-                child: AppMotionScope(
-                  reduceMotion: true,
-                  child: MaterialApp(
-                    debugShowCheckedModeBanner: false,
+                child: AppEffectsScope(
+                  ultraLight: settings.ultraLightMode,
+                  child: AppMotionScope(
+                    reduceMotion: true,
+                    child: MaterialApp(
+                      debugShowCheckedModeBanner: false,
                     theme: brightness == Brightness.dark ? AppTheme.dark() : AppTheme.light(),
                     builder: (BuildContext context, Widget? child) {
                       final MediaQueryData data = MediaQuery.of(context);
@@ -121,6 +124,7 @@ class TestHarness {
                     // Screens are always mounted inside a Scaffold in the app
                     // (AppShell), so the harness mirrors that.
                     home: Scaffold(body: child),
+                    ),
                   ),
                 ),
               );

@@ -23,6 +23,20 @@ ReaderDocument document({int paragraphs = 2, bool bengali = false}) {
 }
 
 void main() {
+  test('reader block mapping is deterministic for out-of-order lazy builds', () {
+    final List<ReaderBlock> blocks = <ReaderBlock>[
+      const ReaderBlock(text: 'Heading', heading: true),
+      const ReaderBlock(text: 'First paragraph'),
+      const ReaderBlock(text: '', imageUrl: 'https://example.com/image.jpg'),
+      const ReaderBlock(text: 'Second paragraph'),
+      const ReaderBlock(text: 'Third paragraph'),
+    ];
+    expect(readerParagraphIndices(blocks), <int?>[null, 0, null, 1, 2]);
+    // Reading arbitrary lazy rows must never depend on which row was built first.
+    expect(readerParagraphIndices(blocks)[4], 2);
+    expect(readerParagraphIndices(blocks)[1], 0);
+  });
+
   testWidgets('translation is OFF by default and starts only after a tap',
       (WidgetTester tester) async {
     final TestHarness h = TestHarness();

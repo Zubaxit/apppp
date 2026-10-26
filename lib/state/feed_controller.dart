@@ -69,6 +69,7 @@ class FeedController extends ChangeNotifier {
   int _progressTotal = 0;
   Timer? _timer;
   bool _disposed = false;
+  bool _started = false;
   bool _pollingActive = false;
   bool _viewportAtTop = true;
   bool _updatesPending = false;
@@ -122,14 +123,20 @@ class FeedController extends ChangeNotifier {
   }
 
   Future<void> start() async {
+    if (_started) return;
+    _started = true;
     _lastRefreshAt = await repository.lastRefreshAt();
     _lastAttemptAt = await repository.lastAttemptAt();
     _health = await repository.healthMap();
     await _reload(notify: false);
     _notify();
-    await _rebuildComparisonIndex();
     _restartTimer();
-    await refreshIfStale();
+    // A controller is created once per process, so this is a genuine cold
+    // launch refresh. Cached rows are already visible and the existing
+    // single-flight coordinator prevents any duplicate Home request.
+    final Future<void> coldRefresh = refresh(force: true);
+    await _rebuildComparisonIndex();
+    await coldRefresh;
     _loading = false;
     _notify();
   }

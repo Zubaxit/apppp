@@ -13,12 +13,29 @@ import '../../services/reader_translation_controller.dart';
 import '../../services/reader_tts.dart';
 import '../../services/vocabulary_matcher.dart';
 import '../../state/saved_controller.dart';
+import '../../state/settings_controller.dart';
 import '../../theme/materials.dart';
 import '../../theme/motion.dart';
 import '../../theme/tokens.dart';
 import '../widgets/actions.dart';
 import '../widgets/common.dart';
 import '../widgets/vocabulary.dart';
+
+/// Stable block-to-prose mapping for the lazily built reader list.
+///
+/// A ListView may request rows out of order while flinging. Deriving the prose
+/// index by incrementing inside itemBuilder made those requests address the
+/// wrong paragraph (or a negative index), which could leave the viewport blank.
+List<int?> readerParagraphIndices(List<ReaderBlock> blocks) {
+  int paragraph = 0;
+  return <int?>[
+    for (final ReaderBlock block in blocks)
+      if (block.isImage || block.heading)
+        null
+      else
+        paragraph++,
+  ];
+}
 
 /// The bilingual reading surface.
 ///
@@ -62,6 +79,8 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
   late final List<GlobalKey> _paragraphKeys = <GlobalKey>[
     for (final String _ in widget.document.paragraphs) GlobalKey(),
   ];
+  late final List<int?> _blockParagraphs =
+      readerParagraphIndices(widget.document.blocks);
   late final String _articleId = widget.document.url ?? widget.document.title;
   int _lastAutoSentence = -1;
 
@@ -127,7 +146,9 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
       body: document.paragraphs.join(' '),
       title: document.title,
     );
-    final bool canTranslate = LanguageDetect.offersTranslation(language);
+    final SettingsController settings = context.watch<SettingsController>();
+    final bool canTranslate = LanguageDetect.offersTranslation(language) &&
+        settings.translationIntegrationEnabled;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AuroraBackdrop(
@@ -150,13 +171,17 @@ class _ReaderModeScreenState extends State<ReaderModeScreen> {
                     articleId: _articleId,
                     scrollController: _scroll,
                     paragraphKeys: _paragraphKeys,
+                    blockParagraphs: _blockParagraphs,
+                    vocabularyEnabled:
+                        settings.vocabularyIntegrationEnabled,
                     translator: widget.translator,
                     onRetry: (int index) => unawaited(_controller.retry(index)),
                     onOpenOriginal: _openOriginal,
                   ),
                 ),
               ),
-              _ListenBar(
+              if (settings.ttsIntegrationEnabled)
+                _ListenBar(
                 controller: _tts,
                 currentArticle: _articleId,
                 onPlay: () => unawaited(_tts.play(
@@ -240,6 +265,8 @@ class _Article extends StatelessWidget {
     required this.articleId,
     required this.scrollController,
     required this.paragraphKeys,
+    required this.blockParagraphs,
+    required this.vocabularyEnabled,
     required this.translator,
     required this.onRetry,
     required this.onOpenOriginal,
@@ -251,13 +278,14 @@ class _Article extends StatelessWidget {
   final String articleId;
   final ScrollController scrollController;
   final List<GlobalKey> paragraphKeys;
+  final List<int?> blockParagraphs;
+  final bool vocabularyEnabled;
   final MachineTranslator translator;
   final ValueChanged<int> onRetry;
   final VoidCallback onOpenOriginal;
 
   @override
   Widget build(BuildContext context) {
-    int proseIndex = -1;
     final SavedController saved = context.watch<SavedController>();
     final VocabularyMatcher vocabulary = VocabularyMatcher(saved.vocabulary);
 
@@ -317,8 +345,13 @@ class _Article extends StatelessWidget {
           );
         }
 
-        proseIndex += 1;
-        final int paragraph = proseIndex;
+        final int? mappedParagraph = blockParagraphs[index - 1];
+        if (mappedParagraph == null ||
+            mappedParagraph >= paragraphKeys.length ||
+            mappedParagraph >= controller.length) {
+          return const SizedBox.shrink();
+        }
+        final int paragraph = mappedParagraph;
         final ParagraphTranslation unit = controller.unitAt(paragraph);
         // A page that has not started translating shows nothing under the
         // paragraph: a pending spinner there would spin forever.
@@ -332,7 +365,9 @@ class _Article extends StatelessWidget {
               _ReaderParagraph(
                 key: paragraphKeys[paragraph],
                 text: block.text,
-                matches: vocabulary.find(block.text),
+                matches: vocabularyEnabled
+                    ? vocabulary.find(block.text)
+                    : const <VocabularyMatch>[],
                 activeSentence: tts.isCurrent(articleId) &&
                         tts.document != null &&
                         tts.activeSentence >= 0 &&
@@ -345,6 +380,7 @@ class _Article extends StatelessWidget {
                     : null,
                 translator: translator,
                 document: document,
+                vocabularyEnabled: vocabularyEnabled,
               ),
               if (show)
                 Padding(
@@ -367,6 +403,7 @@ class _ReaderParagraph extends StatefulWidget {
     required this.activeSentence,
     required this.translator,
     required this.document,
+    required this.vocabularyEnabled,
   });
 
   final String text;
@@ -374,6 +411,7 @@ class _ReaderParagraph extends StatefulWidget {
   final SentenceRange? activeSentence;
   final MachineTranslator translator;
   final ReaderDocument document;
+  final bool vocabularyEnabled;
 
   @override
   State<_ReaderParagraph> createState() => _ReaderParagraphState();
@@ -392,10 +430,16 @@ class _ReaderParagraphState extends State<_ReaderParagraph> {
 
   @override
   Widget build(BuildContext context) {
-    for (final TapGestureRecognizer recognizer in _recognizers) {
-      recognizer.dispose();
-    }
+    final List<TapGestureRecognizer> retired =
+        List<TapGestureRecognizer>.of(_recognizers);
     _recognizers.clear();
+    if (retired.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        for (final TapGestureRecognizer recognizer in retired) {
+          recognizer.dispose();
+        }
+      });
+    }
     final Set<int> boundary = <int>{0, widget.text.length};
     final SentenceRange? active = widget.activeSentence;
     if (active != null) {
@@ -459,7 +503,9 @@ class _ReaderParagraphState extends State<_ReaderParagraph> {
             : '';
         final List<ContextMenuButtonItem> items =
             List<ContextMenuButtonItem>.of(state.contextMenuButtonItems);
-        if (RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$").hasMatch(selected)) {
+        if (widget.vocabularyEnabled &&
+            RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
+                .hasMatch(selected)) {
           items.add(ContextMenuButtonItem(
             label: 'Save word',
             onPressed: () {

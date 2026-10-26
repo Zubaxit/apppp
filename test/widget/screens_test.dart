@@ -2,6 +2,7 @@ import 'package:bangladesh_newspaper_hub/core/utils/bengali_text.dart';
 import 'package:bangladesh_newspaper_hub/data/models/app_preferences.dart';
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
+import 'package:bangladesh_newspaper_hub/data/models/vocabulary_entry.dart';
 import 'package:bangladesh_newspaper_hub/state/feed_controller.dart';
 import 'package:bangladesh_newspaper_hub/theme/tokens.dart';
 import 'package:bangladesh_newspaper_hub/ui/screens/about_screen.dart';
@@ -411,7 +412,41 @@ void main() {
   });
 
   group('SettingsScreen', () {
-    testWidgets('switching theme and text size updates preferences', (WidgetTester tester) async {
+    testWidgets('pinned heading has an opaque surface above scrolling content',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await tester.pumpWidget(h.wrap(const SettingsScreen()));
+      await tester.pumpAndSettle();
+      final SliverAppBar bar = tester.widget<SliverAppBar>(
+        find.byType(SliverAppBar),
+      );
+      expect(bar.pinned, isTrue);
+      expect(bar.backgroundColor?.a, 1.0);
+    });
+
+    testWidgets('integration toggles change independently without deleting data',
+        (WidgetTester tester) async {
+      final TestHarness h = harness();
+      await h.saved.load();
+      await h.saved.saveVocabulary(VocabularyEntry(
+        word: 'policy',
+        meaningBn: 'নীতি',
+        savedAt: DateTime.utc(2026, 10, 26),
+      ));
+      await tester.pumpWidget(h.wrap(const SettingsScreen()));
+      await tester.pumpAndSettle();
+      await h.settings.setVocabularyIntegrationEnabled(false);
+      await h.settings.setTtsIntegrationEnabled(false);
+      await h.settings.setUltraLightMode(true);
+      await tester.pump();
+      expect(h.settings.vocabularyIntegrationEnabled, isFalse);
+      expect(h.settings.ttsIntegrationEnabled, isFalse);
+      expect(h.settings.translationIntegrationEnabled, isTrue);
+      expect(h.settings.ultraLightMode, isTrue);
+      expect(h.saved.vocabulary, hasLength(1));
+    });
+
+    testWidgets('switching theme and text size updates preferences',  (WidgetTester tester) async {
       final TestHarness h = harness();
       await tester.pumpWidget(h.wrap(const SettingsScreen()));
       await tester.pumpAndSettle();

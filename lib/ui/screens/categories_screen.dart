@@ -67,7 +67,7 @@ class CategoriesScreen extends StatelessWidget {
             SliverAppBar(
               pinned: true,
               toolbarHeight: 62,
-              backgroundColor: Colors.transparent,
+              backgroundColor: context.theme.scaffoldBackgroundColor,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,

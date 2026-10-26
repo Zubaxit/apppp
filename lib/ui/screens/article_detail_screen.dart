@@ -134,7 +134,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                 toolbarHeight: 58,
                 elevation: 0,
                 scrolledUnderElevation: 0,
-                backgroundColor: Colors.transparent,
+                backgroundColor: context.theme.scaffoldBackgroundColor,
                 surfaceTintColor: Colors.transparent,
                 leadingWidth: Tokens.gutter + 42,
                 leading: Padding(

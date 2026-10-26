@@ -72,7 +72,7 @@ class SettingsScreen extends StatelessWidget {
               pinned: true,
               toolbarHeight: 62,
               automaticallyImplyLeading: false,
-              backgroundColor: Colors.transparent,
+              backgroundColor: context.theme.scaffoldBackgroundColor,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,
@@ -133,6 +133,17 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       const _PanelDivider(),
                       _ToggleRow(
+                        title: bengali
+                            ? 'আল্ট্রা-লাইট পারফরম্যান্স'
+                            : 'Ultra-Light performance',
+                        subtitle: bengali
+                            ? 'ব্লার, ভারী ছায়া ও সাজসজ্জার অ্যানিমেশন কমায়'
+                            : 'Reduces blur, heavy shadows and decorative animation',
+                        value: settings.ultraLightMode,
+                        onChanged: settings.setUltraLightMode,
+                      ),
+                      const _PanelDivider(),
+                      _ToggleRow(
                         title: context.strings.breakingBannerToggle,
                         subtitle: context.strings.breakingBannerBody,
                         value: settings.breakingBannerEnabled,
@@ -187,6 +198,39 @@ class SettingsScreen extends StatelessWidget {
                             height: 1.55,
                           ),
                         ),
+                      ),
+                    ],
+                  ),
+                  _SectionTitle(
+                    bengali ? 'পড়ার সহায়তা' : 'Reading tools',
+                  ),
+                  _Panel(
+                    children: <Widget>[
+                      _ToggleRow(
+                        title: bengali ? 'শব্দ সংরক্ষণ' : 'Word Save & Vocabulary',
+                        subtitle: bengali
+                            ? 'ওয়েবপৃষ্ঠা ও রিডিং মোডে শব্দ সংরক্ষণ করুন'
+                            : 'Save words from webpages and Reading Mode',
+                        value: settings.vocabularyIntegrationEnabled,
+                        onChanged: settings.setVocabularyIntegrationEnabled,
+                      ),
+                      const _PanelDivider(),
+                      _ToggleRow(
+                        title: bengali ? 'শুনুন' : 'Text to speech',
+                        subtitle: bengali
+                            ? 'নির্বাচিত লেখা ও নিবন্ধ শুনুন'
+                            : 'Read selected text and articles aloud',
+                        value: settings.ttsIntegrationEnabled,
+                        onChanged: settings.setTtsIntegrationEnabled,
+                      ),
+                      const _PanelDivider(),
+                      _ToggleRow(
+                        title: bengali ? 'অনুবাদ' : 'Translation',
+                        subtitle: bengali
+                            ? 'নির্বাচিত লেখা ও রিডিং মোডে অনুবাদ দেখুন'
+                            : 'Translate selections and Reading Mode text',
+                        value: settings.translationIntegrationEnabled,
+                        onChanged: settings.setTranslationIntegrationEnabled,
                       ),
                     ],
                   ),

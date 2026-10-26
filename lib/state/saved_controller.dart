@@ -112,6 +112,32 @@ class SavedController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<int> importVocabulary(
+    Iterable<VocabularyEntry> imported, {
+    required bool replaceConflicts,
+  }) async {
+    final Map<String, VocabularyEntry> local = <String, VocabularyEntry>{
+      for (final VocabularyEntry entry in _vocabulary)
+        entry.normalizedWord: entry,
+    };
+    final List<VocabularyEntry> writes = <VocabularyEntry>[];
+    for (final VocabularyEntry entry in imported) {
+      if (!replaceConflicts && local.containsKey(entry.normalizedWord)) {
+        continue;
+      }
+      writes.add(entry);
+      local[entry.normalizedWord] = entry;
+    }
+    if (writes.isEmpty) return 0;
+    await repository.saveVocabularyAtomic(writes);
+    _vocabulary = local.values.toList()
+      ..sort((VocabularyEntry a, VocabularyEntry b) =>
+          b.savedAt.compareTo(a.savedAt));
+    _vocabularyRevision += 1;
+    notifyListeners();
+    return writes.length;
+  }
+
   Future<void> removeVocabulary(String word) async {
     final String normalized = VocabularyEntry.normalizeWord(word);
     await repository.removeVocabulary(normalized);

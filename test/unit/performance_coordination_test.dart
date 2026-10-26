@@ -19,6 +19,21 @@ void main() {
     expect(harness.feed.isRefreshing, isFalse);
   });
 
+  test('cold start refreshes once even when cached metadata is fresh', () async {
+    final FakeFeedGateway gateway = FakeFeedGateway();
+    final stores = fakeStores();
+    await stores.meta.set(
+      'last_refresh_at',
+      DateTime.now().toUtc().toIso8601String(),
+    );
+    final TestHarness harness = TestHarness(stores: stores, gateway: gateway);
+    await harness.feed.start();
+    final int callsAfterColdStart = gateway.calls;
+    await harness.feed.start();
+    expect(callsAfterColdStart, harness.registry.feedSources.length);
+    expect(gateway.calls, callsAfterColdStart);
+  });
+
   test('failed first load never completes one-time welcome state', () async {
     final FakeFeedGateway gateway = FakeFeedGateway(
       failing: <String>{'prothomalo', 'daily_star'},

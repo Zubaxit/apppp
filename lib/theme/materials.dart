@@ -5,6 +5,24 @@ import 'package:flutter/material.dart';
 import 'motion.dart';
 import 'tokens.dart';
 
+class AppEffectsScope extends InheritedWidget {
+  const AppEffectsScope({
+    super.key,
+    required this.ultraLight,
+    required super.child,
+  });
+
+  final bool ultraLight;
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AppEffectsScope>()?.ultraLight ??
+      false;
+
+  @override
+  bool updateShouldNotify(AppEffectsScope oldWidget) =>
+      oldWidget.ultraLight != ultraLight;
+}
+
 /// The backdrop the glass refracts.
 ///
 /// Three enormous, very low-contrast radial blooms on paper (or charcoal). It is
@@ -22,6 +40,12 @@ class AuroraBackdrop extends StatelessWidget {
     final bool dark = Theme.of(context).brightness == Brightness.dark;
     final List<Color> blooms = dark ? Tokens.auroraDark : Tokens.auroraLight;
     final Color base = dark ? Tokens.nightBg : Tokens.paper;
+    if (AppEffectsScope.of(context)) {
+      return ColoredBox(
+        color: base,
+        child: child ?? const SizedBox.expand(),
+      );
+    }
 
     return Stack(
       fit: StackFit.expand,
@@ -213,6 +237,10 @@ class GlassPanel extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.10)
         : Colors.white.withValues(alpha: 0.85);
     final Color line = dark ? Tokens.nightHairline : Tokens.hairline;
+    final bool lightEffects = AppEffectsScope.of(context);
+    final bool effectiveSheen = sheen && !lightEffects;
+    final bool effectiveShadow = shadow && !lightEffects;
+    final double effectiveBlur = lightEffects ? 0 : blur;
 
     Widget surface = DecoratedBox(
       decoration: BoxDecoration(
@@ -223,7 +251,7 @@ class GlassPanel extends StatelessWidget {
       child: Stack(
         children: <Widget>[
           Padding(padding: padding, child: child),
-          if (sheen)
+          if (effectiveSheen)
             Positioned(
               top: 0,
               left: 0,
@@ -244,11 +272,14 @@ class GlassPanel extends StatelessWidget {
       ),
     );
 
-    if (blur > 0) {
+    if (effectiveBlur > 0) {
       surface = ClipRRect(
         borderRadius: shaped,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          filter: ImageFilter.blur(
+            sigmaX: effectiveBlur,
+            sigmaY: effectiveBlur,
+          ),
           child: surface,
         ),
       );
@@ -256,7 +287,7 @@ class GlassPanel extends StatelessWidget {
       surface = ClipRRect(borderRadius: shaped, child: surface);
     }
 
-    if (!shadow) return surface;
+    if (!effectiveShadow) return surface;
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: shaped,

@@ -10,6 +10,7 @@ import 'state/feed_controller.dart';
 import 'state/saved_controller.dart';
 import 'state/settings_controller.dart';
 import 'theme/app_theme.dart';
+import 'theme/materials.dart';
 import 'theme/motion.dart';
 import 'theme/tokens.dart';
 import 'ui/shell/app_shell.dart';
@@ -23,11 +24,13 @@ class NewspaperHubApp extends StatelessWidget {
     Tokens.configureFont(settings.font.family);
     return AppStringsScope(
       strings: settings.strings,
-      child: AppMotionScope(
-        reduceMotion: settings.reduceMotion,
-        child: MaterialApp(
-          title: 'Amar News',
-          debugShowCheckedModeBanner: false,
+      child: AppEffectsScope(
+        ultraLight: settings.ultraLightMode,
+        child: AppMotionScope(
+          reduceMotion: settings.reduceMotion || settings.ultraLightMode,
+          child: MaterialApp(
+            title: 'Amar News',
+            debugShowCheckedModeBanner: false,
           themeMode: settings.themeMode,
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
@@ -47,6 +50,7 @@ class NewspaperHubApp extends StatelessWidget {
               child: child ?? const SizedBox.shrink(),
             );
           },
+          ),
         ),
       ),
     );

@@ -148,6 +148,18 @@ class FakeVocabularyStore implements VocabularyStore {
   }
 
   @override
+  Future<void> saveAllAtomic(Iterable<VocabularyEntry> entries) async {
+    final Map<String, VocabularyEntry> next =
+        Map<String, VocabularyEntry>.of(_items);
+    for (final VocabularyEntry entry in entries) {
+      next[entry.normalizedWord] = entry;
+    }
+    _items
+      ..clear()
+      ..addAll(next);
+  }
+
+  @override
   Future<List<VocabularyEntry>> all() async {
     final List<VocabularyEntry> values = _items.values.toList()
       ..sort((VocabularyEntry a, VocabularyEntry b) =>
@@ -264,12 +276,13 @@ class FakeFeedGateway implements FeedGateway {
 AppStores fakeStores({
   Iterable<Article> seed = const <Article>[],
   FakeArticleStore? articles,
+  VocabularyStore? vocabulary,
 }) {
   return AppStores(
     articles: articles ?? FakeArticleStore(seed),
     saved: FakeSavedStore(),
     history: FakeHistoryStore(),
-    vocabulary: FakeVocabularyStore(),
+    vocabulary: vocabulary ?? FakeVocabularyStore(),
     health: FakeHealthStore(),
     feedMeta: FakeFeedMetaStore(),
     meta: FakeMetaStore(),

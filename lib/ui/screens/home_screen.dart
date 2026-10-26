@@ -403,6 +403,7 @@ class _MastheadGlass extends StatelessWidget {
     final bool dark = context.isDark;
     return ClipRect(
       child: BackdropFilter(
+        enabled: !AppEffectsScope.of(context),
         filter: ImageFilter.blur(sigmaX: Tokens.blurBar, sigmaY: Tokens.blurBar),
         child: DecoratedBox(
           decoration: BoxDecoration(

@@ -1,4 +1,5 @@
 import 'package:bangladesh_newspaper_hub/data/models/vocabulary_entry.dart';
+import 'package:bangladesh_newspaper_hub/data/services/stores.dart';
 import 'package:bangladesh_newspaper_hub/services/vocabulary_matcher.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -51,4 +52,50 @@ void main() {
     await harness.saved.removeVocabulary('policy');
     expect(harness.saved.vocabulary, isEmpty);
   });
+
+  test('import preserves or replaces conflicts only when requested', () async {
+    final TestHarness harness = TestHarness(stores: fakeStores());
+    await harness.saved.load();
+    await harness.saved.saveVocabulary(entry('Policy', 'স্থানীয়'));
+    expect(
+      await harness.saved.importVocabulary(
+        <VocabularyEntry>[entry('policy', 'আমদানি'), entry('budget', 'বাজেট')],
+        replaceConflicts: false,
+      ),
+      1,
+    );
+    expect(harness.saved.vocabularyFor('policy')?.meaningBn, 'স্থানীয়');
+    await harness.saved.importVocabulary(
+      <VocabularyEntry>[entry('POLICY', 'আমদানি')],
+      replaceConflicts: true,
+    );
+    expect(harness.saved.vocabularyFor('policy')?.meaningBn, 'আমদানি');
+  });
+
+  test('failed atomic import leaves controller and storage unchanged', () async {
+    final _FailingVocabularyStore store = _FailingVocabularyStore();
+    final TestHarness harness = TestHarness(
+      stores: fakeStores(vocabulary: store),
+    );
+    await harness.saved.load();
+    await harness.saved.saveVocabulary(entry('local', 'স্থানীয়'));
+    await expectLater(
+      harness.saved.importVocabulary(
+        <VocabularyEntry>[entry('new', 'নতুন')],
+        replaceConflicts: true,
+      ),
+      throwsStateError,
+    );
+    expect(harness.saved.vocabularyFor('local'), isNotNull);
+    expect(harness.saved.vocabularyFor('new'), isNull);
+    expect(await store.all(), hasLength(1));
+  });
+}
+
+class _FailingVocabularyStore extends FakeVocabularyStore
+    implements VocabularyStore {
+  @override
+  Future<void> saveAllAtomic(Iterable<VocabularyEntry> entries) async {
+    throw StateError('simulated transaction failure');
+  }
 }

@@ -204,6 +204,7 @@ class _FloatingNav extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(Tokens.radiusXl),
         child: BackdropFilter(
+          enabled: !AppEffectsScope.of(context),
           filter: ImageFilter.blur(
             sigmaX: Tokens.blurStrong,
             sigmaY: Tokens.blurStrong,
@@ -231,7 +232,9 @@ class _FloatingNav extends StatelessWidget {
                     : Colors.white.withValues(alpha: 0.9),
                 width: 0.9,
               ),
-              boxShadow: Tokens.shadow(context, lift: 1),
+              boxShadow: AppEffectsScope.of(context)
+                  ? const <BoxShadow>[]
+                  : Tokens.shadow(context, lift: 1),
             ),
             child: Stack(
               children: <Widget>[

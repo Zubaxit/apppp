@@ -81,6 +81,26 @@ void main() {
       controller.dispose();
     });
 
+    test('reading integrations and Ultra-Light mode persist independently',
+        () async {
+      final InMemoryPreferencesStore store = InMemoryPreferencesStore();
+      final SettingsController controller = SettingsController(
+        initial: const AppPreferences(),
+        store: store,
+      );
+      await controller.setVocabularyIntegrationEnabled(false);
+      await controller.setTtsIntegrationEnabled(false);
+      await controller.setTranslationIntegrationEnabled(false);
+      await controller.setUltraLightMode(true);
+
+      final AppPreferences restarted = AppPreferences.decode(await store.read());
+      expect(restarted.vocabularyIntegrationEnabled, isFalse);
+      expect(restarted.ttsIntegrationEnabled, isFalse);
+      expect(restarted.translationIntegrationEnabled, isFalse);
+      expect(restarted.ultraLightMode, isTrue);
+      controller.dispose();
+    });
+
     test('News Shield global policy and site exceptions survive restart', () async {
       final InMemoryPreferencesStore store = InMemoryPreferencesStore();
       final SettingsController controller =
