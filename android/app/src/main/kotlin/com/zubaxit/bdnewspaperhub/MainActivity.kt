@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -14,33 +13,10 @@ class MainActivity : FlutterActivity() {
     private val channelName = "amar_news/reader_tts"
     private var pendingVocabularyExport: MethodChannel.Result? = null
     private var pendingVocabularyContents: String? = null
-    private val createVocabularyDocument = registerForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json"),
-    ) { uri ->
-        val result = pendingVocabularyExport
-        val contents = pendingVocabularyContents
-        pendingVocabularyExport = null
-        pendingVocabularyContents = null
-        if (result == null) return@registerForActivityResult
-        if (uri == null) {
-            result.success(false)
-            return@registerForActivityResult
-        }
-        try {
-            val stream = contentResolver.openOutputStream(uri, "wt")
-                ?: throw IllegalStateException("The selected document cannot be opened for writing.")
-            stream.bufferedWriter(Charsets.UTF_8).use { writer ->
-                writer.write(contents ?: "")
-                writer.flush()
-            }
-            result.success(true)
-        } catch (error: Exception) {
-            result.error("export_write_failed", error.message, null)
-        }
-    }
 
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST = 4102
+        private const val CREATE_VOCABULARY_DOCUMENT_REQUEST = 4103
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -68,8 +44,17 @@ class MainActivity : FlutterActivity() {
             }
             pendingVocabularyExport = result
             pendingVocabularyContents = contents
-            createVocabularyDocument.launch(
-                call.argument<String>("suggestedName") ?: "amar-news-vocabulary.json",
+            startActivityForResult(
+                Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "application/json"
+                    putExtra(
+                        Intent.EXTRA_TITLE,
+                        call.argument<String>("suggestedName")
+                            ?: "amar-news-vocabulary.json",
+                    )
+                },
+                CREATE_VOCABULARY_DOCUMENT_REQUEST,
             )
         }
         channel.setMethodCallHandler { call, result ->
@@ -115,7 +100,38 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    @Deprecated("Uses the stable Android document contract across supported SDKs")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != CREATE_VOCABULARY_DOCUMENT_REQUEST) return
+        val result = pendingVocabularyExport
+        val contents = pendingVocabularyContents
+        pendingVocabularyExport = null
+        pendingVocabularyContents = null
+        if (result == null) return
+        val uri = if (resultCode == RESULT_OK) data?.data else null
+        if (uri == null) {
+            result.success(false)
+            return
+        }
+        try {
+            val stream = contentResolver.openOutputStream(uri, "wt")
+                ?: throw IllegalStateException(
+                    "The selected document cannot be opened for writing.",
+                )
+            stream.bufferedWriter(Charsets.UTF_8).use { writer ->
+                writer.write(contents ?: "")
+                writer.flush()
+            }
+            result.success(true)
+        } catch (error: Exception) {
+            result.error("export_write_failed", error.message, null)
+        }
+    }
+
     override fun onDestroy() {
+        pendingVocabularyExport = null
+        pendingVocabularyContents = null
         TtsPlaybackService.eventSink = null
         super.onDestroy()
     }
