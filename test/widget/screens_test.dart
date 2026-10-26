@@ -945,6 +945,8 @@ void main() {
         connectivity: FakeConnectivity(),
         backgroundRefresh: true,
         autoRefreshInterval: const Duration(milliseconds: 20),
+        comparisonIndexer: (List<Article> articles) async =>
+            <String, List<Article>>{},
       );
       await tester.pumpWidget(h.wrap(const SizedBox.shrink()));
       await feed.start();

@@ -1,4 +1,5 @@
 import 'package:bangladesh_newspaper_hub/core/l10n/app_strings.dart';
+import 'package:bangladesh_newspaper_hub/core/utils/story_matcher.dart';
 import 'package:bangladesh_newspaper_hub/data/models/app_preferences.dart';
 import 'package:bangladesh_newspaper_hub/data/models/article.dart';
 import 'package:bangladesh_newspaper_hub/data/models/news_source.dart';
@@ -61,6 +62,8 @@ class TestHarness {
       // Widget tests assert on rendered state; the periodic refresh timer is
       // covered by its own test instead of arming one in every test.
       backgroundRefresh: false,
+      comparisonIndexer: (List<Article> articles) async =>
+          StoryMatcher.index(articles),
     );
     saved = SavedController(repository: repository, settings: settings);
     // The controllers are app-scoped in production, so nothing else disposes

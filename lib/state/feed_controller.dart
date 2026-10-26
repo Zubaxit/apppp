@@ -12,6 +12,15 @@ import '../data/services/article_repository.dart';
 import '../services/connectivity_service.dart';
 import 'settings_controller.dart';
 
+typedef ComparisonIndexer = Future<Map<String, List<Article>>> Function(
+  List<Article> articles,
+);
+
+Future<Map<String, List<Article>>> _backgroundComparisonIndex(
+  List<Article> articles,
+) =>
+    Isolate.run(() => StoryMatcher.index(articles));
+
 /// Owns the unified feed: cached articles, per-source health, refresh policy
 /// and the current filter.
 class FeedController extends ChangeNotifier {
@@ -22,12 +31,14 @@ class FeedController extends ChangeNotifier {
     required this.connectivity,
     this.backgroundRefresh = true,
     this.autoRefreshInterval = const Duration(seconds: 120),
+    this.comparisonIndexer = _backgroundComparisonIndex,
   });
 
   final ArticleRepository repository;
   final SettingsController settings;
   final SourceRegistry registry;
   final ConnectivityService connectivity;
+  final ComparisonIndexer comparisonIndexer;
 
   /// Whether to arm the periodic foreground refresh timer. Production keeps it
   /// on; tests that do not exercise scheduling turn it off so no timer outlives
@@ -148,8 +159,7 @@ class FeedController extends ChangeNotifier {
     _comparisonIndexReady = false;
     try {
       final List<Article> pool = await repository.comparisonCandidates();
-      final Map<String, List<Article>> next =
-          await Isolate.run(() => StoryMatcher.index(pool));
+      final Map<String, List<Article>> next = await comparisonIndexer(pool);
       if (_disposed || revision != _comparisonRevision) {
         return;
       }
