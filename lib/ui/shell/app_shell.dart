@@ -154,7 +154,7 @@ class _AppShellState extends State<AppShell>
           Scrollable.ensureVisible(
             target,
             alignment: 0.35,
-            duration: context.motion.reduce
+            duration: AppMotionScope.of(context)
                 ? Duration.zero
                 : const Duration(milliseconds: 350),
             curve: Curves.easeOutCubic,

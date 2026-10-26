@@ -54,7 +54,7 @@ void main() {
       ],
       replaceConflicts: true,
     );
-    final ReaderDocument value = ReaderDocument(
+    const ReaderDocument value = ReaderDocument(
       title: 'Test',
       site: 'dw.com',
       blocks: const <ReaderBlock>[
