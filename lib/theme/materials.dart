@@ -372,15 +372,19 @@ class GlassChip extends StatelessWidget {
               Icon(icon, size: dense ? 13 : 15, color: fg),
               const SizedBox(width: 6),
             ],
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: Tokens.sans,
-                fontSize: dense ? 11.5 : 12.5,
-                height: 1.2,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                letterSpacing: 0.1,
-                color: fg,
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: Tokens.sans,
+                  fontSize: dense ? 11.5 : 12.5,
+                  height: 1.2,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                  letterSpacing: 0.1,
+                  color: fg,
+                ),
               ),
             ),
             if (trailingCount != null) ...<Widget>[

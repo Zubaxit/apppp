@@ -978,7 +978,8 @@ void main() {
       );
       final TestHarness h = harness(artwork: articles);
       await tester.pumpWidget(h.wrap(const AppShell(), reduceMotion: false));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
       final TestGesture gesture = await tester.startGesture(
         tester.getCenter(find.byType(CustomScrollView).first),
       );
