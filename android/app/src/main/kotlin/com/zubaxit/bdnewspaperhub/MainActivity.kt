@@ -1,6 +1,8 @@
 package com.zubaxit.bdnewspaperhub
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
@@ -9,6 +11,10 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val channelName = "amar_news/reader_tts"
+
+    companion object {
+        private const val NOTIFICATION_PERMISSION_REQUEST = 4102
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -20,6 +26,16 @@ class MainActivity : FlutterActivity() {
             if (call.method == "state") {
                 result.success(TtsPlaybackService.snapshot())
                 return@setMethodCallHandler
+            }
+            if (call.method == "speak" &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    NOTIFICATION_PERMISSION_REQUEST,
+                )
             }
             val intent = Intent(this, TtsPlaybackService::class.java).apply {
                 action = "com.zubaxit.bdnewspaperhub.TTS_COMMAND"
