@@ -137,6 +137,9 @@ class FeedController extends ChangeNotifier {
     final Future<void> coldRefresh = refresh(force: true);
     await _rebuildComparisonIndex();
     await coldRefresh;
+    // Cold refresh is automatic; it must not consume the user's manual
+    // refresh debounce window immediately after launch.
+    _lastManualRefreshStarted = null;
     _loading = false;
     _notify();
   }

@@ -420,9 +420,7 @@ class _BrowserScreenState extends State<BrowserScreen> {
                                     .hasMatch(_selection)
                             ? _saveSelectedWord
                             : null,
-                        onMeaning: settings.translationIntegrationEnabled &&
-                                RegExp(r"^[A-Za-z]+(?:['’][A-Za-z]+)?$")
-                                    .hasMatch(_selection)
+                        onMeaning: settings.translationIntegrationEnabled
                             ? _translateSelection
                             : null,
                         onTranslate: settings.translationIntegrationEnabled
